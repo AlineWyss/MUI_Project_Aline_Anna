@@ -1,0 +1,21 @@
+{
+  "pathsToIds" : {
+    "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/AnatomyModel.usdz" : "01B096FB-5590-5EE3-ADA0-0D5DF470B061",
+    "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/BloodCellModels.usda" : "DF9503B3-F90F-5D2E-B8BF-BE7ADAE9810B",
+    "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/RedBloodCell.usdz" : "EFFF3A70-5520-586D-8349-CF6508F4867D",
+    "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/VirtualAnatomy.usda" : "796C73E7-B9A5-51A7-BE6C-E2D7DC2367FA",
+    "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/capillaries.usdz" : "FA0D0384-6961-5AA7-806B-3B19110B7A3F",
+    "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/cellInner.usdz" : "5B481DAE-80F9-58DD-AD92-5EB89398F8A6",
+    "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/cellOuter.usdz" : "F274E624-7272-571E-9C8B-246E3F703128",
+    "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/co2.usdz" : "B4CDBEE4-7C97-55D4-8368-04983D556EB1",
+    "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/hemoglobin.usdz" : "04E9ED02-E1BF-5107-9032-84303B5E3C8C",
+    "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/nucleous.usdz" : "51B1083D-DC50-57D2-A437-85EED1AC5698",
+    "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/o2.usdz" : "2A640167-5F57-542E-BF77-005884159444",
+    "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/shell.usdz" : "22574D60-19CB-5DAE-9BBC-4F0D695B227F",
+    "RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/BloodCellModels.usda" : "18C086B3-62A6-488F-8310-3DC10B3816FE"
+  },
+  "projectID" : 7603861613191374469,
+  "uuidToIntID" : {
+    "18C086B3-62A6-488F-8310-3DC10B3816FE" : 2978221652800381364
+  }
+}

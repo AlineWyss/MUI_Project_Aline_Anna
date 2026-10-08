@@ -1,0 +1,148 @@
+//
+//  Config.swift
+//  BloodCellJourney
+//
+//  Everything you are likely to tune lives here: names, sizes, positions, colours, timings.
+//  Texts are in Content/StoryText.swift, positions on the physical model in Scene/AnatomyMap.swift.
+//
+
+import Foundation
+import simd
+import UIKit
+
+enum Config {
+    /// File name (without extension) of the reference object you trained in Create ML.
+    /// Copy `AnatomyModel.referenceobject` into the `Resources` folder of the app target.
+    static let referenceObjectName = "AnatomyModel"
+
+    /// Shows a translucent copy of the scanned model on top of the real one.
+    /// Turn this on once to check that the bloodstream overlay sits correctly on the physical model.
+    static let showAlignmentGhost = false
+
+    /// Opacity of the virtual anatomy model (mode "without the model"). It is see-through so the
+    /// bloodstream inside stays visible. 1 = solid.
+    static let virtualModelOpacity: Float = 0.5
+
+    // MARK: Blood stream on the anatomy model
+
+    /// Number of red blood cells flowing through the anatomy model. Many tiny cells packed densely
+    /// read as a flowing liquid. They are drawn with GPU instancing, so thousands are fine; lower it
+    /// if the frame rate drops, raise it for a thicker stream.
+    static let flowCellCount = 8000
+    /// Diameter of the flowing cells (metres). A real red blood cell is 7–8 µm – far too small to see –
+    /// so this is the smallest size that still reads as cells up close (about 2 mm).
+    static let flowCellDiameter: Float = 0.0022
+    /// How far a cell may drift sideways from the centre of the vessel (metres) – half the stream's width.
+    static let flowCellSpread: Float = 0.0025
+    /// Base speed of the blood in metres per second (arteries; capillaries and veins are slower).
+    static let flowSpeed: Float = 0.09
+    /// Heart beats per minute when the heart beats by itself (not while the person pumps it).
+    static let restingHeartRate: Float = 72
+    /// Thickness (radius) of the glowing organ outlines in metres.
+    static let outlineThickness: Float = 0.0016
+    /// Also draw the circulation as thin tubes behind the flowing cells.
+    static let showVesselTubes = false
+    static let vesselTubeOpacity: Float = 0.25
+
+    /// The O2 and CO2 models were exported with 10–14 % opacity and are hard to see in the headset.
+    /// These values replace the exported opacity. Remove an entry to keep the original look.
+    static let opacityOverrides: [ModelLibrary.Model: Float] = [
+        .oxygen: 0.85,
+        .carbonDioxide: 0.85,
+        .shell: 0.30,
+        .bodyCellOuter: 0.35
+    ]
+}
+
+/// Positions in metres inside the focus area in front of the person.
+/// +x = right, +y = up, +z = towards the person. The focus area always faces the person.
+enum Layout {
+    /// Distance of the focus area from the person's eyes.
+    static let focusDistance: Float = 0.75
+    /// How far the focus area sits below eye height.
+    static let focusDrop: Float = 0.22
+
+    /// Virtual anatomy model (mode "without the model"): in front of the person …
+    static let virtualModelDistance: Float = 1.3
+    /// … to the left (negative = left) …
+    static let virtualModelSideOffset: Float = -0.75
+    /// … with its base this far below eye height (the figure is 0.94 m tall).
+    static let virtualModelDrop: Float = 1.0
+    /// Assumed head position when head tracking is not available (e.g. Simulator).
+    static let fallbackHeadPosition = SIMD3<Float>(0, 1.45, 0)
+
+    static let mainSlot = SIMD3<Float>(-0.10, 0, 0)
+    static let sideSlot = SIMD3<Float>(0.14, 0, 0)
+    /// The text panel – always on the right.
+    static let panelSlot = SIMD3<Float>(0.46, 0.03, -0.03)
+    static let startPromptSlot = SIMD3<Float>(-0.06, 0.02, 0)
+    /// The end screen with "Start again" – in the middle, where the cells were.
+    static let finalPanelSlot = SIMD3<Float>(0, 0.04, 0)
+    /// The "Tap the heart" counter sits this far to the side of the model's heart (towards the focus area).
+    static let heartCounterSideOffset: Float = 0.12
+    /// Size of the red blood cell while it flies into / out of the anatomy model.
+    static let cellScaleInModel: Float = 0.07
+    /// Gap between the top of a model and the bottom edge of its name label.
+    /// The label grows upwards from there when (i) opens the facts.
+    static let labelGap: Float = 0.02
+    /// Gap between the bottom of a model and the top edge of the start button.
+    static let buttonGap: Float = 0.035
+
+    /// Capillary used when the new cell squeezes into the bloodstream.
+    static let squeezeCapillaryCenter = SIMD3<Float>(-0.02, 0, -0.02)
+    static let squeezeCapillaryLength: Float = 0.42
+    /// Capillary used at the end when the old cell no longer fits.
+    static let agingCellSlot = SIMD3<Float>(-0.17, 0, 0)
+    static let agingCapillaryCenter = SIMD3<Float>(0.13, 0, -0.02)
+    static let agingCapillaryLength: Float = 0.28
+
+    /// Longest side of each model in the focus area, in metres.
+    enum Size {
+        static let redBloodCell: Float = 0.15
+        static let developingCell: Float = 0.17
+        static let hemoglobin: Float = 0.075
+        static let oxygen: Float = 0.055
+        static let carbonDioxide: Float = 0.055
+        static let bodyCell: Float = 0.20
+    }
+}
+
+enum Timing {
+    static let pop: TimeInterval = 0.45
+    /// Seconds for the red blood cell to fly into or out of the anatomy model.
+    static let flyToModel: TimeInterval = 1.1
+    static let travelToLungs: Double = 4.5
+    static let travelToSpleen: Double = 3.5
+    static let heartStep: Double = 0.7
+    static let requiredHeartBeats = 5
+    static let requiredAgingAttempts = 2
+    /// Seconds the "a red blood cell is born" text stays before the capillary appears.
+    static let afterBirth: Double = 3.0
+    /// Seconds to read the explanation why the old cell gets stuck before it dissolves.
+    static let readTooStiff: Double = 10.0
+    /// Seconds for one lap of the marker while the cycle repeats.
+    static let lapDuration: Double = 6.0
+}
+
+enum Palette {
+    static let rbcOxygenated = UIColor(red: 0.86, green: 0.07, blue: 0.09, alpha: 1)    // scarlet
+    static let rbcDeoxygenated = UIColor(red: 0.40, green: 0.03, blue: 0.09, alpha: 1)  // dark burgundy
+    static let rbcAged = UIColor(red: 0.42, green: 0.25, blue: 0.21, alpha: 1)          // dull brown-red
+    static let hemoglobinFill = UIColor(red: 0.85, green: 0.10, blue: 0.12, alpha: 1)
+
+    static let artery = UIColor(red: 1.00, green: 0.20, blue: 0.24, alpha: 1)
+    static let vein = UIColor(red: 0.30, green: 0.47, blue: 1.00, alpha: 1)
+    /// "Our" red blood cell on the anatomy model – yellow so it stands out from the red stream.
+    static let marker = UIColor(red: 1.00, green: 0.97, blue: 0.80, alpha: 1)
+    static let markerHalo = UIColor(red: 1.00, green: 0.85, blue: 0.25, alpha: 1)
+
+    static func zone(_ zone: AnatomyMap.Zone) -> UIColor {
+        switch zone {
+        case .boneMarrow: return UIColor(red: 1.00, green: 0.85, blue: 0.30, alpha: 1)
+        case .lungs: return UIColor(red: 0.45, green: 0.80, blue: 1.00, alpha: 1)
+        case .heart: return UIColor(red: 1.00, green: 0.30, blue: 0.40, alpha: 1)
+        case .organs: return UIColor(red: 0.60, green: 1.00, blue: 0.50, alpha: 1)
+        case .spleen: return UIColor(red: 0.85, green: 0.55, blue: 1.00, alpha: 1)
+        }
+    }
+}

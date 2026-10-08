@@ -1,0 +1,1003 @@
+#usda 1.0
+(
+    defaultPrim = "Root"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "Root"
+{
+    def Xform "RedBloodCell" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+        prepend references = @RedBloodCell.usdz@
+    )
+    {
+        rel material:binding = </Root/RedBloodCell/_materials/Material_016> (
+            bindMaterialAs = "weakerThanDescendants"
+        )
+        double3 xformOp:translate = (-0.8, 1.2, -1)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        over "env_light" (
+            active = false
+        )
+        {
+        }
+
+        over "_materials"
+        {
+            over "Material_016"
+            {
+                token inputs:frame:stPrimvarName = "st" (
+                    customData = {
+                        dictionary realitykit = {
+                            bool hide = 1
+                        }
+                    }
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                def Shader "diffuseColor"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/RedBloodCell/Material.005_Base_color.png@
+                    float2 inputs:st.connect = </Root/RedBloodCell/_materials/Material_016/diffuseColor/TexCoordReader.outputs:result>
+                    color3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/RedBloodCell/_materials/Material_016.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                over "Principled_BSDF"
+                {
+                    color3f inputs:diffuseColor.connect = </Root/RedBloodCell/_materials/Material_016/diffuseColor.outputs:rgb>
+                    float inputs:metallic.connect = </Root/RedBloodCell/_materials/Material_016/metallic.outputs:r>
+                    normal3f inputs:normal = (0, 0, 1)
+                    normal3f inputs:normal.connect = </Root/RedBloodCell/_materials/Material_016/normal.outputs:rgb>
+                    float inputs:occlusion = 1
+                    float inputs:occlusion.connect = </Root/RedBloodCell/_materials/Material_016/occlusion.outputs:r>
+                    float inputs:roughness.connect = </Root/RedBloodCell/_materials/Material_016/roughness.outputs:r>
+                }
+
+                def Shader "roughness"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/RedBloodCell/Material.005_Specular_roughness.png@
+                    float2 inputs:st.connect = </Root/RedBloodCell/_materials/Material_016/roughness/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/RedBloodCell/_materials/Material_016.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "metallic"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/RedBloodCell/Material.005_Base_metalness.png@
+                    float2 inputs:st.connect = </Root/RedBloodCell/_materials/Material_016/metallic/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/RedBloodCell/_materials/Material_016.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "normal"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/RedBloodCell/Material.005_Normal_OpenGL.png@
+                    float2 inputs:st.connect = </Root/RedBloodCell/_materials/Material_016/normal/TexCoordReader.outputs:result>
+                    normal3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/RedBloodCell/_materials/Material_016.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "occlusion"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/RedBloodCell/Material.005_Mixed_AO.png@
+                    float2 inputs:st.connect = </Root/RedBloodCell/_materials/Material_016/occlusion/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/RedBloodCell/_materials/Material_016.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+            }
+        }
+    }
+
+    def Xform "DevelopingShell" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+        prepend references = @shell.usdz@
+    )
+    {
+        rel material:binding = </Root/DevelopingShell/_materials/Material_003> (
+            bindMaterialAs = "weakerThanDescendants"
+        )
+        double3 xformOp:translate = (-0.6, 1.2, -1)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        over "env_light" (
+            active = false
+        )
+        {
+        }
+
+        over "_materials"
+        {
+            over "Material_003"
+            {
+                token inputs:frame:stPrimvarName = "st" (
+                    customData = {
+                        dictionary realitykit = {
+                            bool hide = 1
+                        }
+                    }
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                def Shader "diffuseColor"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/Developing/Cell developing_Material.003_BaseColor.png@
+                    float2 inputs:st.connect = </Root/DevelopingShell/_materials/Material_003/diffuseColor/TexCoordReader.outputs:result>
+                    color3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/DevelopingShell/_materials/Material_003.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                over "Principled_BSDF"
+                {
+                    color3f inputs:diffuseColor.connect = None
+                    float inputs:metallic.connect = None
+                    normal3f inputs:normal = (0, 0, 1)
+                    normal3f inputs:normal.connect = None
+                    float inputs:roughness.connect = None
+                }
+
+                def Shader "roughness"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/Developing/Cell developing_Material.003_Roughness.png@
+                    float2 inputs:st.connect = </Root/DevelopingShell/_materials/Material_003/roughness/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/DevelopingShell/_materials/Material_003.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "metallic"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/Developing/Cell developing_Material.003_Metallic.png@
+                    float2 inputs:st.connect = </Root/DevelopingShell/_materials/Material_003/metallic/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/DevelopingShell/_materials/Material_003.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "normal"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/Developing/Cell developing_Material.003_Normal.png@
+                    float2 inputs:st.connect = </Root/DevelopingShell/_materials/Material_003/normal/TexCoordReader.outputs:result>
+                    normal3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/DevelopingShell/_materials/Material_003.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+            }
+        }
+    }
+
+    def Xform "DevelopingNucleus" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+        prepend references = @nucleous.usdz@
+    )
+    {
+        rel material:binding = </Root/DevelopingNucleus/_materials/Material_006> (
+            bindMaterialAs = "weakerThanDescendants"
+        )
+        double3 xformOp:translate = (-0.4, 1.2, -1)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        over "env_light" (
+            active = false
+        )
+        {
+        }
+
+        over "_materials"
+        {
+            over "Material_006"
+            {
+                token inputs:frame:stPrimvarName = "st" (
+                    customData = {
+                        dictionary realitykit = {
+                            bool hide = 1
+                        }
+                    }
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                def Shader "diffuseColor"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/Developing/nucleous2/nucleous2_Material.006_BaseColor.png@
+                    float2 inputs:st.connect = </Root/DevelopingNucleus/_materials/Material_006/diffuseColor/TexCoordReader.outputs:result>
+                    color3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/DevelopingNucleus/_materials/Material_006.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                over "Principled_BSDF"
+                {
+                    color3f inputs:diffuseColor.connect = </Root/DevelopingNucleus/_materials/Material_006/diffuseColor.outputs:rgb>
+                    float inputs:metallic.connect = </Root/DevelopingNucleus/_materials/Material_006/metallic.outputs:r>
+                    normal3f inputs:normal = (0, 0, 1)
+                    normal3f inputs:normal.connect = </Root/DevelopingNucleus/_materials/Material_006/normal.outputs:rgb>
+                    float inputs:roughness.connect = </Root/DevelopingNucleus/_materials/Material_006/roughness.outputs:r>
+                }
+
+                def Shader "roughness"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/Developing/nucleous2/nucleous2_Material.006_Roughness.png@
+                    float2 inputs:st.connect = </Root/DevelopingNucleus/_materials/Material_006/roughness/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/DevelopingNucleus/_materials/Material_006.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "normal"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/Developing/nucleous2/nucleous2_Material.006_Normal.png@
+                    float2 inputs:st.connect = </Root/DevelopingNucleus/_materials/Material_006/normal/TexCoordReader.outputs:result>
+                    normal3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/DevelopingNucleus/_materials/Material_006.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "metallic"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/Developing/nucleous2/nucleous2_Material.006_Metallic.png@
+                    float2 inputs:st.connect = </Root/DevelopingNucleus/_materials/Material_006/metallic/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/DevelopingNucleus/_materials/Material_006.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+            }
+        }
+    }
+
+    def Xform "Hemoglobin" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+        prepend references = @hemoglobin.usdz@
+    )
+    {
+        rel material:binding = </Root/Hemoglobin/_materials/Material_005> (
+            bindMaterialAs = "weakerThanDescendants"
+        )
+        double3 xformOp:translate = (-0.2, 1.2, -1)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        over "env_light" (
+            active = false
+        )
+        {
+        }
+
+        over "_materials"
+        {
+            over "Material_005"
+            {
+                token inputs:frame:stPrimvarName = "st" (
+                    customData = {
+                        dictionary realitykit = {
+                            bool hide = 1
+                        }
+                    }
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                def Shader "diffuseColor"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/hemoglobin2/hemoglobin2_Material.005_BaseColor.png@
+                    float2 inputs:st.connect = </Root/Hemoglobin/_materials/Material_005/diffuseColor/TexCoordReader.outputs:result>
+                    color3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/Hemoglobin/_materials/Material_005.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                over "Principled_BSDF"
+                {
+                    color3f inputs:diffuseColor.connect = </Root/Hemoglobin/_materials/Material_005/diffuseColor.outputs:rgb>
+                    float inputs:metallic.connect = </Root/Hemoglobin/_materials/Material_005/metallic.outputs:r>
+                    normal3f inputs:normal = (0, 0, 1)
+                    normal3f inputs:normal.connect = </Root/Hemoglobin/_materials/Material_005/normal.outputs:rgb>
+                    float inputs:roughness.connect = </Root/Hemoglobin/_materials/Material_005/roughness.outputs:r>
+                }
+
+                def Shader "roughness"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/hemoglobin2/hemoglobin2_Material.005_Roughness.png@
+                    float2 inputs:st.connect = </Root/Hemoglobin/_materials/Material_005/roughness/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/Hemoglobin/_materials/Material_005.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "metallic"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/hemoglobin2/hemoglobin2_Material.005_Metallic.png@
+                    float2 inputs:st.connect = </Root/Hemoglobin/_materials/Material_005/metallic/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/Hemoglobin/_materials/Material_005.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "normal"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/hemoglobin2/hemoglobin2_Material.005_Normal.png@
+                    float2 inputs:st.connect = </Root/Hemoglobin/_materials/Material_005/normal/TexCoordReader.outputs:result>
+                    normal3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/Hemoglobin/_materials/Material_005.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+            }
+        }
+    }
+
+    def Xform "Oxygen" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+        prepend references = @o2.usdz@
+    )
+    {
+        rel material:binding = </Root/Oxygen/_materials/Material_011> (
+            bindMaterialAs = "weakerThanDescendants"
+        )
+        double3 xformOp:translate = (0, 1.2, -1)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        over "env_light" (
+            active = false
+        )
+        {
+        }
+
+        over "_materials"
+        {
+            over "Material_011"
+            {
+                token inputs:frame:stPrimvarName = "st" (
+                    customData = {
+                        dictionary realitykit = {
+                            bool hide = 1
+                        }
+                    }
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                def Shader "diffuseColor"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/co2/c02_Material.003_BaseColor.png@
+                    float2 inputs:st.connect = </Root/Oxygen/_materials/Material_011/diffuseColor/TexCoordReader.outputs:result>
+                    color3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/Oxygen/_materials/Material_011.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                over "Principled_BSDF"
+                {
+                    color3f inputs:diffuseColor.connect = </Root/Oxygen/_materials/Material_011/diffuseColor.outputs:rgb>
+                    float inputs:metallic.connect = </Root/Oxygen/_materials/Material_011/metallic.outputs:r>
+                    normal3f inputs:normal = (0, 0, 1)
+                    normal3f inputs:normal.connect = </Root/Oxygen/_materials/Material_011/normal.outputs:rgb>
+                    float inputs:roughness.connect = </Root/Oxygen/_materials/Material_011/roughness.outputs:r>
+                }
+
+                def Shader "roughness"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/co2/c02_Material.003_Roughness.png@
+                    float2 inputs:st.connect = </Root/Oxygen/_materials/Material_011/roughness/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/Oxygen/_materials/Material_011.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "metallic"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/co2/c02_Material.003_Metallic.png@
+                    float2 inputs:st.connect = </Root/Oxygen/_materials/Material_011/metallic/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/Oxygen/_materials/Material_011.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "normal"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/co2/c02_Material.003_Normal.png@
+                    float2 inputs:st.connect = </Root/Oxygen/_materials/Material_011/normal/TexCoordReader.outputs:result>
+                    normal3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/Oxygen/_materials/Material_011.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+            }
+        }
+    }
+
+    def Xform "CarbonDioxide" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+        prepend references = @co2.usdz@
+    )
+    {
+        rel material:binding = </Root/CarbonDioxide/_materials/Material_003> (
+            bindMaterialAs = "weakerThanDescendants"
+        )
+        double3 xformOp:translate = (0.2, 1.2, -1)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        over "env_light" (
+            active = false
+        )
+        {
+        }
+
+        over "_materials"
+        {
+            over "Material_003"
+            {
+                token inputs:frame:stPrimvarName = "st" (
+                    customData = {
+                        dictionary realitykit = {
+                            bool hide = 1
+                        }
+                    }
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                def Shader "diffuseColor"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/2/02_Material.011_BaseColor.png@
+                    float2 inputs:st.connect = </Root/CarbonDioxide/_materials/Material_003/diffuseColor/TexCoordReader.outputs:result>
+                    color3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/CarbonDioxide/_materials/Material_003.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                over "Principled_BSDF"
+                {
+                    color3f inputs:diffuseColor.connect = </Root/CarbonDioxide/_materials/Material_003/diffuseColor.outputs:rgb>
+                    float inputs:metallic.connect = </Root/CarbonDioxide/_materials/Material_003/metallic.outputs:r>
+                    normal3f inputs:normal = (0, 0, 1)
+                    normal3f inputs:normal.connect = </Root/CarbonDioxide/_materials/Material_003/normal.outputs:rgb>
+                    float inputs:roughness.connect = </Root/CarbonDioxide/_materials/Material_003/roughness.outputs:r>
+                }
+
+                def Shader "roughness"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/2/02_Material.011_Roughness.png@
+                    float2 inputs:st.connect = </Root/CarbonDioxide/_materials/Material_003/roughness/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/CarbonDioxide/_materials/Material_003.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "metallic"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/2/02_Material.011_Metallic.png@
+                    float2 inputs:st.connect = </Root/CarbonDioxide/_materials/Material_003/metallic/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/CarbonDioxide/_materials/Material_003.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "normal"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/2/02_Material.011_Normal.png@
+                    float2 inputs:st.connect = </Root/CarbonDioxide/_materials/Material_003/normal/TexCoordReader.outputs:result>
+                    normal3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/CarbonDioxide/_materials/Material_003.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+            }
+        }
+    }
+
+    def Xform "BodyCellOuter" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+        prepend references = @cellOuter.usdz@
+    )
+    {
+        rel material:binding = </Root/BodyCellOuter/_materials/Material_013> (
+            bindMaterialAs = "weakerThanDescendants"
+        )
+        double3 xformOp:translate = (0.4, 1.2, -1)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        over "env_light" (
+            active = false
+        )
+        {
+        }
+
+        over "_materials"
+        {
+            over "Material_013"
+            {
+                token inputs:frame:stPrimvarName = "st" (
+                    customData = {
+                        dictionary realitykit = {
+                            bool hide = 1
+                        }
+                    }
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                def Shader "diffuseColor"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/cell/Material.001_Base_color.png@
+                    float2 inputs:st.connect = </Root/BodyCellOuter/_materials/Material_013/diffuseColor/TexCoordReader.outputs:result>
+                    color3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/BodyCellOuter/_materials/Material_013.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                over "Principled_BSDF"
+                {
+                    color3f inputs:diffuseColor.connect = </Root/BodyCellOuter/_materials/Material_013/diffuseColor.outputs:rgb>
+                    float inputs:metallic.connect = </Root/BodyCellOuter/_materials/Material_013/metallic.outputs:r>
+                    normal3f inputs:normal = (0, 0, 1)
+                    normal3f inputs:normal.connect = </Root/BodyCellOuter/_materials/Material_013/normal.outputs:rgb>
+                    float inputs:occlusion = 1
+                    float inputs:occlusion.connect = </Root/BodyCellOuter/_materials/Material_013/occlusion.outputs:r>
+                    float inputs:opacity.connect = </Root/BodyCellOuter/_materials/Material_013/opacity.outputs:r>
+                    float inputs:roughness.connect = </Root/BodyCellOuter/_materials/Material_013/roughness.outputs:r>
+                }
+
+                def Shader "roughness"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/cell/Material.001_Roughness.png@
+                    float2 inputs:st.connect = </Root/BodyCellOuter/_materials/Material_013/roughness/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/BodyCellOuter/_materials/Material_013.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "metallic"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/cell/Material.001_Metallic.png@
+                    float2 inputs:st.connect = </Root/BodyCellOuter/_materials/Material_013/metallic/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/BodyCellOuter/_materials/Material_013.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "opacity"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/cell/Material.001_Opacity.png@
+                    float2 inputs:st.connect = </Root/BodyCellOuter/_materials/Material_013/opacity/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/BodyCellOuter/_materials/Material_013.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "normal"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/cell/Material.001_Normal_OpenGL.png@
+                    float2 inputs:st.connect = </Root/BodyCellOuter/_materials/Material_013/normal/TexCoordReader.outputs:result>
+                    normal3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/BodyCellOuter/_materials/Material_013.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "occlusion"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/cell/Material.001_Mixed_AO.png@
+                    float2 inputs:st.connect = </Root/BodyCellOuter/_materials/Material_013/occlusion/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/BodyCellOuter/_materials/Material_013.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+            }
+        }
+    }
+
+    def Xform "BodyCellInner" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+        prepend references = @cellInner.usdz@
+    )
+    {
+        rel material:binding = </Root/BodyCellInner/_materials/Material_012> (
+            bindMaterialAs = "weakerThanDescendants"
+        )
+        double3 xformOp:translate = (0.6, 1.2, -1)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        over "env_light" (
+            active = false
+        )
+        {
+        }
+
+        over "_materials"
+        {
+            over "Material_012"
+            {
+                token inputs:frame:stPrimvarName = "st" (
+                    customData = {
+                        dictionary realitykit = {
+                            bool hide = 1
+                        }
+                    }
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                def Shader "diffuseColor"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/cell/Material.002_Base_color.png@
+                    float2 inputs:st.connect = </Root/BodyCellInner/_materials/Material_012/diffuseColor/TexCoordReader.outputs:result>
+                    color3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/BodyCellInner/_materials/Material_012.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                over "Principled_BSDF"
+                {
+                    color3f inputs:diffuseColor.connect = </Root/BodyCellInner/_materials/Material_012/diffuseColor.outputs:rgb>
+                    float inputs:metallic.connect = </Root/BodyCellInner/_materials/Material_012/metallic.outputs:r>
+                    normal3f inputs:normal = (0, 0, 1)
+                    normal3f inputs:normal.connect = </Root/BodyCellInner/_materials/Material_012/normal.outputs:rgb>
+                    float inputs:opacity.connect = None
+                    float inputs:roughness.connect = </Root/BodyCellInner/_materials/Material_012/roughness.outputs:r>
+                }
+
+                def Shader "roughness"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/cell/Material.002_Roughness.png@
+                    float2 inputs:st.connect = </Root/BodyCellInner/_materials/Material_012/roughness/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/BodyCellInner/_materials/Material_012.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "metallic"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/cell/Material.002_Metallic.png@
+                    float2 inputs:st.connect = </Root/BodyCellInner/_materials/Material_012/metallic/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/BodyCellInner/_materials/Material_012.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "opacity"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/cell/Material.002_Opacity.png@
+                    float2 inputs:st.connect = </Root/BodyCellInner/_materials/Material_012/opacity/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/BodyCellInner/_materials/Material_012.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "normal"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/cell/Material.002_Normal_OpenGL.png@
+                    float2 inputs:st.connect = </Root/BodyCellInner/_materials/Material_012/normal/TexCoordReader.outputs:result>
+                    normal3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/BodyCellInner/_materials/Material_012.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+            }
+        }
+    }
+
+    def Xform "Capillary" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+        prepend references = @capillaries.usdz@
+    )
+    {
+        rel material:binding = </Root/Capillary/_materials/Material_019> (
+            bindMaterialAs = "weakerThanDescendants"
+        )
+        double3 xformOp:translate = (0.8, 1.2, -1)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        over "env_light" (
+            active = false
+        )
+        {
+        }
+
+        over "_materials"
+        {
+            over "Material_019"
+            {
+                token inputs:frame:stPrimvarName = "st" (
+                    customData = {
+                        dictionary realitykit = {
+                            bool hide = 1
+                        }
+                    }
+                )
+                token outputs:mtlx:surface
+                token outputs:realitykit:vertex
+
+                def Shader "diffuseColor"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/capilaries/Capillaries_DefaultMaterial_BaseColor.png@
+                    float2 inputs:st.connect = </Root/Capillary/_materials/Material_019/diffuseColor/TexCoordReader.outputs:result>
+                    color3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/Capillary/_materials/Material_019.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                over "Principled_BSDF"
+                {
+                    color3f inputs:diffuseColor.connect = </Root/Capillary/_materials/Material_019/diffuseColor.outputs:rgb>
+                    float inputs:metallic.connect = </Root/Capillary/_materials/Material_019/metallic.outputs:r>
+                    normal3f inputs:normal = (0, 0, 1)
+                    normal3f inputs:normal.connect = </Root/Capillary/_materials/Material_019/normal.outputs:rgb>
+                    float inputs:roughness.connect = </Root/Capillary/_materials/Material_019/roughness.outputs:r>
+                }
+
+                def Shader "roughness"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/capilaries/Capillaries_DefaultMaterial_Roughness.png@
+                    float2 inputs:st.connect = </Root/Capillary/_materials/Material_019/roughness/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/Capillary/_materials/Material_019.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "metallic"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/capilaries/Capillaries_DefaultMaterial_Metallic.png@
+                    float2 inputs:st.connect = </Root/Capillary/_materials/Material_019/metallic/TexCoordReader.outputs:result>
+                    float outputs:r
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/Capillary/_materials/Material_019.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+
+                def Shader "normal"
+                {
+                    uniform token info:id = "UsdUVTexture"
+                    asset inputs:file = @Materials_good/capilaries/Capillaries_DefaultMaterial_Normal.png@
+                    float2 inputs:st.connect = </Root/Capillary/_materials/Material_019/normal/TexCoordReader.outputs:result>
+                    normal3f outputs:rgb
+
+                    def Shader "TexCoordReader"
+                    {
+                        uniform token info:id = "UsdPrimvarReader_float2"
+                        token inputs:varname.connect = </Root/Capillary/_materials/Material_019.inputs:frame:stPrimvarName>
+                        float2 outputs:result
+                    }
+                }
+            }
+        }
+    }
+}
+
