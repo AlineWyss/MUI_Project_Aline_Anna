@@ -80,7 +80,6 @@ enum StoryText {
 
     enum Buttons {
         static let start = "Start"
-        static let next = "Next"
         static let restart = "Start again"
         static let moreAbout = "More about"
         static let closeFacts = "Close facts"
@@ -96,7 +95,7 @@ enum StoryText {
             facts: [
                 "Shape: a flexible disc that is thinner in the middle (biconcave).",
                 "Only about 6–8 micrometres wide.",
-                "Has no nucleus – this leaves more room for hemoglobin.",
+                "Has no nucleus.",
                 "Contains about 270 million hemoglobin molecules.",
                 "Oxygen-rich blood is scarlet, oxygen-poor blood is dark red."
             ])
