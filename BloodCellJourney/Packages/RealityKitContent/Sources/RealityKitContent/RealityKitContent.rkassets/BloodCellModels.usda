@@ -470,7 +470,7 @@ def Xform "Root"
                 def Shader "diffuseColor"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/co2/c02_Material.003_BaseColor.png@
+                    asset inputs:file = @neue_Materilien/co2/c02_Material.003_BaseColor.png@
                     float2 inputs:st.connect = </Root/Oxygen/_materials/Material_011/diffuseColor/TexCoordReader.outputs:result>
                     color3f outputs:rgb
 
@@ -494,7 +494,7 @@ def Xform "Root"
                 def Shader "roughness"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/co2/c02_Material.003_Roughness.png@
+                    asset inputs:file = @neue_Materilien/co2/c02_Material.003_Roughness.png@
                     float2 inputs:st.connect = </Root/Oxygen/_materials/Material_011/roughness/TexCoordReader.outputs:result>
                     float outputs:r
 
@@ -524,7 +524,7 @@ def Xform "Root"
                 def Shader "normal"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/co2/c02_Material.003_Normal.png@
+                    asset inputs:file = @neue_Materilien/co2/c02_Material.003_Normal.png@
                     float2 inputs:st.connect = </Root/Oxygen/_materials/Material_011/normal/TexCoordReader.outputs:result>
                     normal3f outputs:rgb
 
@@ -573,7 +573,7 @@ def Xform "Root"
                 def Shader "diffuseColor"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/2/02_Material.011_BaseColor.png@
+                    asset inputs:file = @neue_Materilien/02/02_Material.011_BaseColor.png@
                     float2 inputs:st.connect = </Root/CarbonDioxide/_materials/Material_003/diffuseColor/TexCoordReader.outputs:result>
                     color3f outputs:rgb
 
@@ -597,7 +597,7 @@ def Xform "Root"
                 def Shader "roughness"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/2/02_Material.011_Roughness.png@
+                    asset inputs:file = @neue_Materilien/02/02_Material.011_Roughness.png@
                     float2 inputs:st.connect = </Root/CarbonDioxide/_materials/Material_003/roughness/TexCoordReader.outputs:result>
                     float outputs:r
 
@@ -612,7 +612,7 @@ def Xform "Root"
                 def Shader "metallic"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/2/02_Material.011_Metallic.png@
+                    asset inputs:file = @neue_Materilien/02/02_Material.011_Metallic.png@
                     float2 inputs:st.connect = </Root/CarbonDioxide/_materials/Material_003/metallic/TexCoordReader.outputs:result>
                     float outputs:r
 
@@ -627,7 +627,7 @@ def Xform "Root"
                 def Shader "normal"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/2/02_Material.011_Normal.png@
+                    asset inputs:file = @neue_Materilien/02/02_Material.011_Normal.png@
                     float2 inputs:st.connect = </Root/CarbonDioxide/_materials/Material_003/normal/TexCoordReader.outputs:result>
                     normal3f outputs:rgb
 
@@ -676,7 +676,7 @@ def Xform "Root"
                 def Shader "diffuseColor"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/cell/Material.001_Base_color.png@
+                    asset inputs:file = @neue_Materilien/cellShell/Material.001_Base_color.png@
                     float2 inputs:st.connect = </Root/BodyCellOuter/_materials/Material_013/diffuseColor/TexCoordReader.outputs:result>
                     color3f outputs:rgb
 
@@ -697,14 +697,14 @@ def Xform "Root"
                     float inputs:occlusion = 1
                     float inputs:occlusion.connect = </Root/BodyCellOuter/_materials/Material_013/occlusion.outputs:r>
                     float inputs:opacity = 0.1860465
-                    float inputs:opacity.connect = None
+                    float inputs:opacity.connect = </Root/BodyCellOuter/_materials/Material_013/opacity.outputs:r>
                     float inputs:roughness.connect = </Root/BodyCellOuter/_materials/Material_013/roughness.outputs:r>
                 }
 
                 def Shader "roughness"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/cell/Material.001_Roughness.png@
+                    asset inputs:file = @neue_Materilien/cellShell/Material.001_Roughness.png@
                     float2 inputs:st.connect = </Root/BodyCellOuter/_materials/Material_013/roughness/TexCoordReader.outputs:result>
                     float outputs:r
 
@@ -719,7 +719,7 @@ def Xform "Root"
                 def Shader "metallic"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/cell/Material.001_Metallic.png@
+                    asset inputs:file = @neue_Materilien/cellShell/Material.001_Metallic.png@
                     float2 inputs:st.connect = </Root/BodyCellOuter/_materials/Material_013/metallic/TexCoordReader.outputs:result>
                     float outputs:r
 
@@ -734,7 +734,7 @@ def Xform "Root"
                 def Shader "opacity"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/cell/Material.001_Opacity.png@
+                    asset inputs:file = @neue_Materilien/cellShell/Material.001_Opacity.png@
                     float2 inputs:st.connect = </Root/BodyCellOuter/_materials/Material_013/opacity/TexCoordReader.outputs:result>
                     float outputs:r
 
@@ -749,7 +749,7 @@ def Xform "Root"
                 def Shader "normal"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/cell/Material.001_Normal_OpenGL.png@
+                    asset inputs:file = @neue_Materilien/cellShell/Material.001_Normal_OpenGL.png@
                     float2 inputs:st.connect = </Root/BodyCellOuter/_materials/Material_013/normal/TexCoordReader.outputs:result>
                     normal3f outputs:rgb
 
@@ -764,7 +764,7 @@ def Xform "Root"
                 def Shader "occlusion"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/cell/Material.001_Mixed_AO.png@
+                    asset inputs:file = @neue_Materilien/cellShell/Material.001_Mixed_AO.png@
                     float2 inputs:st.connect = </Root/BodyCellOuter/_materials/Material_013/occlusion/TexCoordReader.outputs:result>
                     float outputs:r
 
