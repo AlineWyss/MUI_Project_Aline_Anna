@@ -41,7 +41,7 @@ def Xform "Root"
                 def Shader "diffuseColor"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/RedBloodCell/Material.005_Base_color.png@
+                    asset inputs:file = @neue_Materilien/RedBloodCellNew/bright/Material.005_Base_color.png@
                     float2 inputs:st.connect = </Root/RedBloodCell/_materials/Material_016/diffuseColor/TexCoordReader.outputs:result>
                     color3f outputs:rgb
 
@@ -67,7 +67,7 @@ def Xform "Root"
                 def Shader "roughness"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/RedBloodCell/Material.005_Specular_roughness.png@
+                    asset inputs:file = @neue_Materilien/RedBloodCellNew/bright/Material.005_Specular_roughness.png@
                     float2 inputs:st.connect = </Root/RedBloodCell/_materials/Material_016/roughness/TexCoordReader.outputs:result>
                     float outputs:r
 
@@ -82,7 +82,7 @@ def Xform "Root"
                 def Shader "metallic"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/RedBloodCell/Material.005_Base_metalness.png@
+                    asset inputs:file = @neue_Materilien/RedBloodCellNew/bright/Material.005_Base_metalness.png@
                     float2 inputs:st.connect = </Root/RedBloodCell/_materials/Material_016/metallic/TexCoordReader.outputs:result>
                     float outputs:r
 
@@ -97,7 +97,7 @@ def Xform "Root"
                 def Shader "normal"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/RedBloodCell/Material.005_Normal_OpenGL.png@
+                    asset inputs:file = @neue_Materilien/RedBloodCellNew/bright/Material.005_Normal_OpenGL.png@
                     float2 inputs:st.connect = </Root/RedBloodCell/_materials/Material_016/normal/TexCoordReader.outputs:result>
                     normal3f outputs:rgb
 
@@ -112,7 +112,7 @@ def Xform "Root"
                 def Shader "occlusion"
                 {
                     uniform token info:id = "UsdUVTexture"
-                    asset inputs:file = @Materials_good/RedBloodCell/Material.005_Mixed_AO.png@
+                    asset inputs:file = @neue_Materilien/RedBloodCellNew/bright/Material.005_Mixed_AO.png@
                     float2 inputs:st.connect = </Root/RedBloodCell/_materials/Material_016/occlusion/TexCoordReader.outputs:result>
                     float outputs:r
 
@@ -696,7 +696,8 @@ def Xform "Root"
                     normal3f inputs:normal.connect = </Root/BodyCellOuter/_materials/Material_013/normal.outputs:rgb>
                     float inputs:occlusion = 1
                     float inputs:occlusion.connect = </Root/BodyCellOuter/_materials/Material_013/occlusion.outputs:r>
-                    float inputs:opacity.connect = </Root/BodyCellOuter/_materials/Material_013/opacity.outputs:r>
+                    float inputs:opacity = 0.1860465
+                    float inputs:opacity.connect = None
                     float inputs:roughness.connect = </Root/BodyCellOuter/_materials/Material_013/roughness.outputs:r>
                 }
 
@@ -780,14 +781,19 @@ def Xform "Root"
 
     def Xform "BodyCellInner" (
         prepend apiSchemas = ["MaterialBindingAPI"]
+        customData = {
+            float3 rotationEulerHint = (1.5707964, 0, 0)
+        }
         prepend references = @cellInner.usdz@
     )
     {
         rel material:binding = </Root/BodyCellInner/_materials/Material_012> (
             bindMaterialAs = "weakerThanDescendants"
         )
-        double3 xformOp:translate = (0.6, 1.2, -1)
-        uniform token[] xformOpOrder = ["xformOp:translate"]
+        quatf xformOp:orient = (0.70710677, 0.70710677, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0.6000000238418579, 1.2000000476837158, -1)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
         over "env_light" (
             active = false
