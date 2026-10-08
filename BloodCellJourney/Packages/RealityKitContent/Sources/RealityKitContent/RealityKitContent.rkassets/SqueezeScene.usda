@@ -1,0 +1,33 @@
+#usda 1.0
+(
+    defaultPrim = "Root"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "Root"
+{
+    def Xform "Squeeze" (
+        doc = "Squeeze animation (capillary + red blood cell) for the steps squeeze and aging. Rotate and scale this entity to change how it sits in front of the person; its position is set by the app. Change materials on Content > Capillary > Capillary and Content > Cell > Cell. The app drives the squeeze through the blend shapes."
+    )
+    {
+        quatf xformOp:orient = (0.9238795, 0, 0.38268343, 0)
+        float3 xformOp:scale = (0.8, 0.8, 0.8)
+        float3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        def Xform "Content" (
+            customData = {
+                float3 rotationEulerHint = (-1.5707967, -0.34906584, -1.5857484e-7)
+            }
+            prepend references = @SqueezeAnimation.usdz@
+        )
+        {
+            quatf xformOp:orient = (0.6963641, -0.6963644, -0.122787714, -0.12278788)
+            float3 xformOp:scale = (1, 1, 1)
+            float3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+        }
+    }
+}
+

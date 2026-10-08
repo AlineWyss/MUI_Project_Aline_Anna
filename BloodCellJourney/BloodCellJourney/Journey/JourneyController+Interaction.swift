@@ -88,25 +88,10 @@ extension JourneyController {
     private func constrain(_ item: StageItem, _ proposed: SIMD3<Float>, session: inout DragSession) -> SIMD3<Float> {
         switch step {
         case .squeezeIntoBlood where item === redBloodCell:
-            guard let path = squeezePath else { return proposed }
-            let hit = path.closest(to: proposed)
-            let r = item.radius
-            let entering = Curves.smoothstep(squeezeTubeStart - r, squeezeTubeStart, hit.along)
-            let leaving = 1 - Curves.smoothstep(squeezeTubeEnd, squeezeTubeEnd + r, hit.along)
-            item.setSqueeze(min(entering, leaving))
-            if hit.along >= path.length - 0.03 {
-                squeezeCompleted()
-            }
-            return hit.point
+            return constrainSqueeze(item, proposed)
 
         case .aging where item === redBloodCell:
-            guard let path = agingPath else { return proposed }
-            let hit = path.closest(to: proposed)
-            if hit.along >= path.length - 0.004 && !session.blocked {
-                session.blocked = true
-                item.shake()
-            }
-            return hit.point
+            return constrainAging(item, proposed, session: &session)
 
         default:
             return proposed
@@ -159,7 +144,7 @@ extension JourneyController {
             }
 
         case .aging where item === redBloodCell:
-            move(item.container, to: Layout.agingCellSlot, duration: 0.45)
+            springBack(item)
             if session.blocked {
                 agingAttemptFailed()
             }
@@ -170,3 +155,4 @@ extension JourneyController {
         }
     }
 }
+

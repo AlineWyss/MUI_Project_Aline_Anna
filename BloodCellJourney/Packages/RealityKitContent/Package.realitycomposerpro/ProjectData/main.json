@@ -12,10 +12,12 @@
     "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/nucleous.usdz" : "51B1083D-DC50-57D2-A437-85EED1AC5698",
     "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/o2.usdz" : "2A640167-5F57-542E-BF77-005884159444",
     "\/RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/shell.usdz" : "22574D60-19CB-5DAE-9BBC-4F0D695B227F",
-    "RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/BloodCellModels.usda" : "18C086B3-62A6-488F-8310-3DC10B3816FE"
+    "RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/BloodCellModels.usda" : "18C086B3-62A6-488F-8310-3DC10B3816FE",
+    "RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/SqueezeScene.usda" : "59BD28F3-956D-4B85-BD65-6E78C52A32C1"
   },
   "projectID" : 7603861613191374469,
   "uuidToIntID" : {
-    "18C086B3-62A6-488F-8310-3DC10B3816FE" : 2978221652800381364
+    "18C086B3-62A6-488F-8310-3DC10B3816FE" : 2978221652800381364,
+    "59BD28F3-956D-4B85-BD65-6E78C52A32C1" : -7091521612145378139
   }
 }

@@ -223,8 +223,8 @@ enum StoryText {
         static let squeeze = PanelContent(
             id: "squeeze",
             title: "Squeeze into the bloodstream",
-            body: "To enter the blood, the cell must pass through the wall of a tiny blood vessel. Red blood cells are wider than many capillaries – they bend and stretch to squeeze through.",
-            hint: "Drag the cell through the capillary.")
+            body: "To enter the blood, the cell must pass through the wall of a tiny blood vessel. The gaps in the wall are narrower than the cell – it folds and stretches to squeeze through.",
+            hint: "Push the cell into the capillary wall.")
 
         static let travelToLungs = PanelContent(
             id: "travelToLungs",
@@ -275,13 +275,13 @@ enum StoryText {
         static let agingTry = PanelContent(
             id: "agingTry",
             title: "120 days later",
-            body: "In the spleen, blood has to pass through very narrow gaps. Let's see if the old cell still fits.",
-            hint: "Drag the cell into the capillary.")
+            body: "In the spleen, blood has to squeeze through narrow gaps in the vessel walls. Let's see if the old cell still fits.",
+            hint: "Push the cell into the capillary wall.")
 
         static let agingTryAgain = PanelContent(
             id: "agingTryAgain",
             title: "It doesn't fit",
-            body: "The old cell gets stuck at the entrance.",
+            body: "The old cell can only bend a little – it gets stuck in the gap.",
             hint: "Try once more.")
 
         static let tooStiff = PanelContent(
@@ -318,3 +318,4 @@ enum StoryText {
         static let title = "Tap the heart"
     }
 }
+

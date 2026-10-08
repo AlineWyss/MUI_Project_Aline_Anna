@@ -87,11 +87,9 @@ final class JourneyController {
 
     @ObservationIgnored var draggables: [ObjectIdentifier: StageItem] = [:]
     @ObservationIgnored var drag: DragSession?
-    @ObservationIgnored var squeezePath: SampledPath?
-    @ObservationIgnored var squeezeTubeStart: Float = 0
-    @ObservationIgnored var squeezeTubeEnd: Float = 0
+    /// The squeeze animation from Blender while a cell is pushed into the capillary (young and old cell).
+    @ObservationIgnored var squeezeScene: SqueezeScene?
     @ObservationIgnored var squeezeDone = false
-    @ObservationIgnored var agingPath: SampledPath?
     @ObservationIgnored var agingAttempts = 0
     @ObservationIgnored var interactionLocked = false
     /// Titles of the items whose label was already shown in this run (labels appear only once per item).
@@ -135,6 +133,8 @@ final class JourneyController {
 
         do {
             try await library.load()
+            // Read the baked squeeze animation now, so the squeeze step starts without a hitch.
+            _ = try? SqueezeAnimation.shared()
         } catch {
             modelLoadError = error.localizedDescription
             showMessage(StoryText.Messages.modelsFailed(error.localizedDescription))
@@ -649,9 +649,8 @@ final class JourneyController {
         drag = nil
         isHolding = false
         interactionLocked = false
-        squeezePath = nil
+        squeezeScene = nil
         squeezeDone = false
-        agingPath = nil
         agingAttempts = 0
         heartBeats = 0
 
@@ -702,3 +701,4 @@ extension Entity {
         return false
     }
 }
+

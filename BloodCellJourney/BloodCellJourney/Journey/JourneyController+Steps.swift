@@ -195,51 +195,7 @@ extension JourneyController {
         }
     }
 
-    // MARK: - Squeeze through the capillary into the bloodstream
-
-    func enterSqueezeIntoBlood() {
-        step = .squeezeIntoBlood
-        guard let cell = redBloodCell else { return }
-        let tube = library.capillary(length: Layout.squeezeCapillaryLength)
-        place(tube, at: Layout.squeezeCapillaryCenter)
-        popIn(tube)
-        capillary = tube
-
-        // Path in focus-area space: before the tube → along its centre line → after the tube.
-        let line = tube.centerline.map { $0 + tube.container.position }
-        guard let first = line.first, let last = line.last else { return }
-        let lead = cell.radius + 0.05
-        let entry = first - SIMD3<Float>(lead, 0, 0)
-        let exit = last + SIMD3<Float>(lead, 0, 0)
-        let path = SampledPath([entry] + line + [exit])
-        squeezePath = path
-        squeezeTubeStart = lead
-        squeezeTubeEnd = path.length - lead
-        squeezeDone = false
-
-        move(cell.container, to: entry, duration: 0.8)
-        makeDraggable(cell)
-        setSecondaryLabel(StoryText.Labels.capillary, on: tube)
-        setPanel(StoryText.Panels.squeeze)
-    }
-
-    func squeezeCompleted() {
-        guard step == .squeezeIntoBlood, !squeezeDone, let cell = redBloodCell else { return }
-        squeezeDone = true
-        makeStatic(cell)
-        cell.setSqueeze(0)
-        interactionLocked = true
-
-        sequence { id in
-            self.setSecondaryLabel(nil, on: nil)
-            self.remove(self.capillary, duration: 0.6)
-            self.capillary = nil
-            self.move(cell.container, to: Layout.mainSlot, duration: 0.8)
-            guard await self.pause(0.9, id) else { return }
-            self.interactionLocked = false
-            self.enterLungsOxygen()
-        }
-    }
+    // Step "squeeze" (into the bloodstream): see JourneyController+Squeeze.swift
 
     // MARK: - Lungs: oxygen in
 
@@ -470,23 +426,11 @@ extension JourneyController {
             await self.overlay.travel(.lungsToSpleen, duration: Timing.travelToSpleen)
             guard id == self.runID else { return }
             self.highlight(.spleen)
-            await self.flyOutOfModel(cell, from: self.overlay.markerWorldPosition, to: Layout.agingCellSlot,
+            await self.flyOutOfModel(cell, from: self.overlay.markerWorldPosition, to: Layout.squeezeStart,
                                      label: StoryText.Labels.oldRedBloodCell)
             guard id == self.runID else { return }
-            self.interactionLocked = false
-
-            let tube = self.library.capillary(length: Layout.agingCapillaryLength)
-            self.place(tube, at: Layout.agingCapillaryCenter)
-            self.popIn(tube)
-            self.capillary = tube
-
-            // The cell may only touch the opening of the capillary.
-            let line = tube.centerline.map { $0 + tube.container.position }
-            guard let entrance = line.first else { return }
-            let stop = entrance - SIMD3<Float>(cell.radius * 0.75, 0, 0)
-            self.agingPath = SampledPath([Layout.agingCellSlot, stop])
-            self.makeDraggable(cell)
-            self.setPanel(StoryText.Panels.agingTry)
+            // The same squeeze as before – but the old cell can't get through (JourneyController+Squeeze.swift).
+            await self.startAgingSqueeze(cell, id)
         }
     }
 
@@ -524,6 +468,7 @@ extension JourneyController {
         dissolve(cell)
         remove(capillary, duration: 1.0)
         capillary = nil
+        squeezeScene = nil
 
         sequence { id in
             guard await self.pause(2.4, id) else { return }
@@ -593,3 +538,4 @@ extension JourneyController {
         }
     }
 }
+

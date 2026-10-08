@@ -42,6 +42,11 @@ enum Config {
     static let outlineThickness: Float = 0.0016
     /// Also draw the circulation as thin tubes behind the flowing cells.
     static let showVesselTubes = false
+
+    /// The squeezing cell takes the cell's colour in the story (young: dark red, old: brown) on top of
+    /// its material from Reality Composer Pro (only for physically based materials; textures are kept).
+    /// false = exactly the material set in Reality Composer Pro.
+    static let squeezeCellUsesStoryColor = true
     static let vesselTubeOpacity: Float = 0.25
 
     /// The O2 and CO2 models were exported with 10–14 % opacity and are hard to see in the headset.
@@ -88,13 +93,10 @@ enum Layout {
     /// Gap between the bottom of a model and the top edge of the start button.
     static let buttonGap: Float = 0.035
 
-    /// Capillary used when the new cell squeezes into the bloodstream.
-    static let squeezeCapillaryCenter = SIMD3<Float>(-0.02, 0, -0.02)
-    static let squeezeCapillaryLength: Float = 0.42
-    /// Capillary used at the end when the old cell no longer fits.
-    static let agingCellSlot = SIMD3<Float>(-0.17, 0, 0)
-    static let agingCapillaryCenter = SIMD3<Float>(0.13, 0, -0.02)
-    static let agingCapillaryLength: Float = 0.28
+    /// Squeeze animation from claudeAniamtion.blend (young cell squeezes in, old cell gets stuck):
+    /// where the cell starts. The capillary is placed relative to it. Rotation and size of the squeeze
+    /// are set in Reality Composer Pro: scene "SqueezeScene", entity "Squeeze" (45°, scale 0.8).
+    static let squeezeStart = SIMD3<Float>(-0.2, 0, -0.05)
 
     /// Longest side of each model in the focus area, in metres.
     enum Size {
@@ -122,6 +124,14 @@ enum Timing {
     static let readTooStiff: Double = 10.0
     /// Seconds for one lap of the marker while the cycle repeats.
     static let lapDuration: Double = 6.0
+    /// How far the old cell gets into the squeeze animation (a frame of claudeAniamtion.blend).
+    /// 12 = Blender's shape key "Key 1" is complete (blend shapes Squeeze01–03); 9 = it can't bend at all;
+    /// 21 = it would get through.
+    static let agingStopFrame: Float = 12
+    /// Seconds for the cell to relax into its normal shape after squeezing.
+    static let squeezeRelax: Double = 0.8
+    /// Seconds for the old cell to spring back after it got stuck.
+    static let springBack: Double = 0.45
 }
 
 enum Palette {
@@ -146,3 +156,4 @@ enum Palette {
         }
     }
 }
+
