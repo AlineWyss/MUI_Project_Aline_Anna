@@ -7,10 +7,12 @@
 //
 //  Scene graph (world space):
 //    root
-//     ├ anatomyRoot  – follows the physical model (object tracking), holds the overlay
-//     ├ focusRoot    – the area in front of the person: models, labels, text panel, heart
-//     ├ heartCounter – "Tap the heart" counter next to the model's heart while pumping
-//     └ finalPanel   – end card in front of the physical model
+//     ├ anatomyRoot  – follows the physical model (object tracking) or holds the virtual copy:
+//     │   ├ overlay      blood stream, organ outlines, yellow marker
+//     │   └ heartCounter "Tap the heart" counter next to the model's heart while pumping
+//     └ focusRoot    – the stage for the cells, labels, Start button, text panel and end screen.
+//                      It sits at a fixed spot next to the anatomy model (Layout.focusOffsetFromModel),
+//                      not where the person happened to stand when the experience started.
 //
 
 import Foundation
@@ -102,6 +104,18 @@ final class JourneyController {
     private var modelLoadError: String?
     @ObservationIgnored private var isStartingVirtualModel = false
     @ObservationIgnored private var virtualAnatomy: Entity?
+
+    /// Where the focus area was placed, relative to the anatomy model (see placeFocusArea).
+    private struct FocusPlacement {
+        /// The model's pose when the focus area was placed.
+        var modelPosition: SIMD3<Float>
+        var modelYaw: Float
+        /// The focus area in the model's directions (turn around the vertical axis only).
+        var offset: SIMD3<Float>
+        var relativeYaw: Float
+    }
+    @ObservationIgnored private var focusPlacement: FocusPlacement?
+    @ObservationIgnored private var isWaitingToFollowModel = false
 
     /// With the physical model (object tracking) or with a virtual copy of it.
     private(set) var mode: ExperienceMode
@@ -236,21 +250,16 @@ final class JourneyController {
         }
     }
 
-    /// Puts the virtual model front-left of the person, a bit further back, facing them.
+    /// Puts the virtual copy where the physical model would stand: the stage (focus area) ends up right
+    /// in front of the person, and the copy sits at Layout.focusOffsetFromModel from it – slightly to the
+    /// left and further back. Same arrangement as with the physical model.
     func placeVirtualAnatomy() {
-        let view = viewpoint()
-        let right = SIMD3<Float>(-view.forward.z, 0, view.forward.x)
-        var position = view.head + view.forward * Layout.virtualModelDistance + right * Layout.virtualModelSideOffset
-        position.y = view.head.y - Layout.virtualModelDrop
-
-        var toPerson = view.head - position
-        toPerson.y = 0
-        let facing = simd_length(toPerson) > 0.01 ? simd_normalize(toPerson) : -view.forward
-
+        let stage = focusPoseInFrontOfPerson()
+        // The scan faces +z; it faces the same way as the stage (towards the person).
+        let rotation = Self.yawRotation(stage.yaw)
         var transform = Transform()
-        transform.translation = position
-        // The scan faces +z; turn it so it faces the person.
-        transform.rotation = simd_quatf(angle: atan2(facing.x, facing.z), axis: SIMD3<Float>(0, 1, 0))
+        transform.rotation = rotation
+        transform.translation = stage.position - rotation.act(Layout.focusOffsetFromModel)
         anatomyRoot.transform = transform
     }
 
@@ -261,6 +270,7 @@ final class JourneyController {
         // Keep the last good pose when the model is briefly lost.
         guard mode == .physicalModel, isTracked else { return }
         anatomyRoot.transform = Transform(matrix: transform)
+        followModelIfMoved()
         if !hasAnatomyPose {
             hasAnatomyPose = true
             anatomyRoot.isEnabled = true
@@ -280,13 +290,13 @@ final class JourneyController {
         overlay.root.addChild(ghost)
     }
 
-    /// While searching, the hint follows the person's view.
+    /// While searching, the hint follows the person's view (there is no model to place it next to yet).
     private func keepMessageInFrontWhileSearching() {
         let id = runID
         Task { @MainActor in
             var placedOnce = false
             while self.step == .searching && id == self.runID {
-                let placed = self.placeFocusArea(animated: placedOnce)
+                let placed = self.placeFocusAreaInFrontOfPerson(animated: placedOnce)
                 placedOnce = placedOnce || placed
                 try? await Task.sleep(for: .seconds(placedOnce ? 1.0 : 0.2))
             }
@@ -307,21 +317,109 @@ final class JourneyController {
         return (head, simd_normalize(forward), true)
     }
 
-    /// Places the focus area in front of the person, facing them.
+    /// Places the focus area (the stage for cells, labels and text) next to the anatomy model:
+    /// at Layout.focusOffsetFromModel in the model's own directions, so it is always at the same spot
+    /// relative to the model – wherever the person stood when the experience started.
+    /// It is turned towards the person once, when it is placed (start of every round), so the text can
+    /// be read; it does not keep turning while the person moves.
+    /// Needs the model's pose (anatomyRoot): called from enterIntro, after the model was found
+    /// (or the virtual copy was placed).
+    func placeFocusArea(animated: Bool = false) {
+        let model = modelPose()
+        let position = model.position + Self.yawRotation(model.yaw).act(Layout.focusOffsetFromModel)
+        let toPerson = horizontalDirectionToPerson(from: position)
+        let yaw = atan2(toPerson.x, toPerson.z)
+        moveFocusArea(to: position, yaw: yaw, animated: animated)
+        focusPlacement = FocusPlacement(modelPosition: model.position,
+                                        modelYaw: model.yaw,
+                                        offset: Layout.focusOffsetFromModel,
+                                        relativeYaw: yaw - model.yaw)
+    }
+
+    /// The physical model moved (someone bumped it): the focus area moves with it, keeping the same
+    /// position and turn relative to the model. Small changes are tracking noise and are ignored
+    /// (Layout.modelMoveTolerance / modelTurnTolerance). Never moves the stage while something is
+    /// being dragged – it waits until the person lets go.
+    private func followModelIfMoved() {
+        guard step != .searching, let placement = focusPlacement else { return }
+        let model = modelPose()
+        let moved = simd_distance(model.position, placement.modelPosition) > Layout.modelMoveTolerance
+        let turned = abs(Self.angleBetween(model.yaw, placement.modelYaw))
+            > Layout.modelTurnTolerance * .pi / 180
+        guard moved || turned else { return }
+        guard drag == nil else {
+            followModelAfterDrag()
+            return
+        }
+        let position = model.position + Self.yawRotation(model.yaw).act(placement.offset)
+        moveFocusArea(to: position, yaw: model.yaw + placement.relativeYaw, animated: true)
+        focusPlacement?.modelPosition = model.position
+        focusPlacement?.modelYaw = model.yaw
+    }
+
+    private func followModelAfterDrag() {
+        guard !isWaitingToFollowModel else { return }
+        isWaitingToFollowModel = true
+        Task { @MainActor in
+            while self.drag != nil {
+                try? await Task.sleep(for: .milliseconds(200))
+            }
+            self.isWaitingToFollowModel = false
+            self.followModelIfMoved()
+        }
+    }
+
+    /// Places the focus area in front of the person, facing them. Only used while searching for the
+    /// physical model (the hint must be visible before the model is known).
     /// Returns false if the head position is unknown (a default position is used then).
     @discardableResult
-    func placeFocusArea(animated: Bool = false) -> Bool {
+    func placeFocusAreaInFrontOfPerson(animated: Bool = false) -> Bool {
+        let stage = focusPoseInFrontOfPerson()
+        moveFocusArea(to: stage.position, yaw: stage.yaw, animated: animated)
+        return stage.isTracked
+    }
+
+    /// Layout.focusDistance in front of the person's eyes, Layout.focusDrop below them, facing the person.
+    private func focusPoseInFrontOfPerson() -> (position: SIMD3<Float>, yaw: Float, isTracked: Bool) {
         let view = viewpoint()
+        let position = view.head + view.forward * Layout.focusDistance - SIMD3<Float>(0, Layout.focusDrop, 0)
+        return (position, atan2(-view.forward.x, -view.forward.z), view.isTracked)
+    }
+
+    /// The anatomy model's position (centre of its base) and its turn around the vertical axis.
+    /// Any tilt from tracking is ignored, so the stage always stays level.
+    private func modelPose() -> (position: SIMD3<Float>, yaw: Float) {
+        let matrix = anatomyRoot.transform.matrix
+        let position = SIMD3<Float>(matrix.columns.3.x, matrix.columns.3.y, matrix.columns.3.z)
+        // The scan faces +z.
+        let front = SIMD3<Float>(matrix.columns.2.x, 0, matrix.columns.2.z)
+        let yaw = simd_length(front) > 0.0001 ? atan2(front.x, front.z) : 0
+        return (position, yaw)
+    }
+
+    private func moveFocusArea(to position: SIMD3<Float>, yaw: Float, animated: Bool) {
         var transform = Transform()
-        transform.translation = view.head + view.forward * Layout.focusDistance - SIMD3<Float>(0, Layout.focusDrop, 0)
-        transform.rotation = simd_quatf(angle: atan2(-view.forward.x, -view.forward.z), axis: SIMD3<Float>(0, 1, 0))
-        focusRoot.stopAllAnimations()
+        transform.translation = position
+        transform.rotation = Self.yawRotation(yaw)
+        // Only the stage itself – models on it may be in the middle of their own animations.
+        focusRoot.stopAllAnimations(recursive: false)
         if animated {
             focusRoot.move(to: transform, relativeTo: root, duration: 0.6, timingFunction: .easeInOut)
         } else {
             focusRoot.transform = transform
         }
-        return view.isTracked
+    }
+
+    private static func yawRotation(_ yaw: Float) -> simd_quatf {
+        simd_quatf(angle: yaw, axis: SIMD3<Float>(0, 1, 0))
+    }
+
+    /// Smallest difference between two angles (radians), -π…π.
+    private static func angleBetween(_ a: Float, _ b: Float) -> Float {
+        var difference = (a - b).truncatingRemainder(dividingBy: 2 * .pi)
+        if difference > .pi { difference -= 2 * .pi }
+        if difference < -.pi { difference += 2 * .pi }
+        return difference
     }
 
     // MARK: - Attachments
@@ -344,7 +442,8 @@ final class JourneyController {
         startButtonSlot = AttachmentSlot(name: "StartButton", parent: focusRoot) { [unowned self] in
             StartButtonView(controller: self)
         }
-        heartSlot = AttachmentSlot(name: "HeartCounter", parent: root) { [unowned self] in
+        // On the anatomy model, so it stays next to the model's heart.
+        heartSlot = AttachmentSlot(name: "HeartCounter", parent: anatomyRoot) { [unowned self] in
             HeartCounterView(controller: self)
         }
         startPromptSlot = AttachmentSlot(name: "StartPrompt", parent: focusRoot) { [unowned self] in
@@ -482,7 +581,7 @@ final class JourneyController {
         let personRight = simd_normalize(simd_cross(SIMD3<Float>(0, 1, 0), toPerson))
         let position = heartWorld + toPerson * 0.08 + personRight * Layout.heartCounterSideOffset
             + SIMD3<Float>(0, 0.02, 0)
-        let counter = heartSlot.show(at: root.convert(position: position, from: nil))
+        let counter = heartSlot.show(at: anatomyRoot.convert(position: position, from: nil))
         counter.components.set(BillboardComponent())   // always turned towards the person
     }
 

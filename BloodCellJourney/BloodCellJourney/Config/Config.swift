@@ -11,8 +11,7 @@ import simd
 import UIKit
 
 enum Config {
-    /// File name (without extension) of the reference object you trained in Create ML.
-    /// Copy `AnatomyModel.referenceobject` into the `Resources` folder of the app target.
+
     static let referenceObjectName = "AnatomyModel"
 
     /// Shows a translucent copy of the scanned model on top of the real one.
@@ -41,7 +40,7 @@ enum Config {
     /// Thickness (radius) of the glowing organ outlines in metres.
     static let outlineThickness: Float = 0.0016
     /// Also draw the circulation as thin tubes behind the flowing cells.
-    static let showVesselTubes = false
+    static let showVesselTubes = true
 
     /// The squeezing cell takes the cell's colour in the story (young: dark red, old: brown) on top of
     /// its material from Reality Composer Pro (only for physically based materials; textures are kept).
@@ -59,20 +58,31 @@ enum Config {
     ]
 }
 
-/// Positions in metres inside the focus area in front of the person.
-/// +x = right, +y = up, +z = towards the person. The focus area always faces the person.
+/// Positions in metres inside the focus area – the stage for the cells, labels, Start button, text panel
+/// and end screen. +x = right, +y = up, +z = towards the person. The focus area is turned towards the
+/// person at the start of every round.
 enum Layout {
-    /// Distance of the focus area from the person's eyes.
+    /// Where the focus area sits relative to the anatomy model (the physical one, or the virtual copy),
+    /// in metres, in the model's own directions:
+    ///   x = to the right of the model, as seen by someone standing in front of it,
+    ///   y = up from the model's base (the figure is 0.94 m tall, its heart is at 0.70 m),
+    ///   z = out of the model's front, towards the person.
+    /// The model then sits slightly to the left in the view, the cells and text in the middle, a bit
+    /// closer to the person than the model. The same spot every time – wherever the experience was started.
+    static let focusOffsetFromModel = SIMD3<Float>(0.45, 0.60, 0.50)
+    /// The focus area only moves with the physical model when it really moved (someone bumped it):
+    /// by more than this distance (metres) …
+    static let modelMoveTolerance: Float = 0.03
+    /// … or turned by more than this angle (degrees). Smaller changes are tracking noise and are ignored.
+    static let modelTurnTolerance: Float = 5
+
+    /// While searching for the physical model the hint sits in front of the person (there is no model to
+    /// place it next to yet): this far from the eyes …
     static let focusDistance: Float = 0.75
-    /// How far the focus area sits below eye height.
+    /// … and this far below eye height. Without the physical model, the virtual copy is placed so the
+    /// focus area ends up exactly here, and the copy at focusOffsetFromModel from it.
     static let focusDrop: Float = 0.22
 
-    /// Virtual anatomy model (mode "without the model"): in front of the person …
-    static let virtualModelDistance: Float = 1.3
-    /// … to the left (negative = left) …
-    static let virtualModelSideOffset: Float = -0.75
-    /// … with its base this far below eye height (the figure is 0.94 m tall).
-    static let virtualModelDrop: Float = 1.0
     /// Assumed head position when head tracking is not available (e.g. Simulator).
     static let fallbackHeadPosition = SIMD3<Float>(0, 1.45, 0)
 
@@ -84,6 +94,7 @@ enum Layout {
     /// The end screen with "Start again" – in the middle, where the cells were.
     static let finalPanelSlot = SIMD3<Float>(0, 0.04, 0)
     /// The "Tap the heart" counter sits this far to the side of the model's heart (towards the focus area).
+    /// It is attached to the anatomy model, so it stays next to the heart.
     static let heartCounterSideOffset: Float = 0.12
     /// Size of the red blood cell while it flies into / out of the anatomy model.
     static let cellScaleInModel: Float = 0.07
@@ -93,9 +104,7 @@ enum Layout {
     /// Gap between the bottom of a model and the top edge of the start button.
     static let buttonGap: Float = 0.035
 
-    /// Squeeze animation from claudeAniamtion.blend (young cell squeezes in, old cell gets stuck):
-    /// where the cell starts. The capillary is placed relative to it. Rotation and size of the squeeze
-    /// are set in Reality Composer Pro: scene "SqueezeScene", entity "Squeeze" (45°, scale 0.8).
+
     static let squeezeStart = SIMD3<Float>(-0.2, 0, -0.05)
 
     /// Longest side of each model in the focus area, in metres.
