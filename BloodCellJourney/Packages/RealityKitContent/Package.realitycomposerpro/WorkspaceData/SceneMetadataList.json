@@ -4,7 +4,55 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
+        "RedBloodCell",
+        "_materials"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
+        "CarbonDioxide",
+        "_materials"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
+        "Capillary"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
         "BodyCellInner",
+        "_materials"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
+        "BodyCellOuter"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
+        "BodyCellOuter",
         "_materials"
       ],
       {
@@ -24,7 +72,8 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "BodyCellInner"
+        "Oxygen",
+        "_materials"
       ],
       {
         "isExpanded" : true,
@@ -33,8 +82,15 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "Oxygen",
-        "_materials"
+        "BodyCellInner"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root"
       ],
       {
         "isExpanded" : true,
@@ -52,54 +108,7 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "BodyCellOuter",
-        "_materials"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
         "CarbonDioxide"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
-        "CarbonDioxide",
-        "_materials"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
-        "RedBloodCell",
-        "_materials"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
-        "Capillary"
       ],
       {
         "isExpanded" : true,
@@ -113,20 +122,32 @@
       {
         "isExpanded" : true,
         "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
-        "BodyCellOuter"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
       }
     ]
   },
   "59BD28F3-956D-4B85-BD65-6E78C52A32C1" : {
     "objectMetadataList" : [
+      [
+        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
+        "Root",
+        "Squeeze",
+        "Content",
+        "Cell",
+        "Cell"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
+        "Root",
+        "Squeeze"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
       [
         "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
         "Root"
@@ -138,7 +159,41 @@
       [
         "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
         "Root",
-        "Squeeze"
+        "Squeeze",
+        "Content",
+        "_materials"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
+        "Root",
+        "Squeeze",
+        "Content",
+        "Cell"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
+        "Root",
+        "Squeeze",
+        "Content",
+        "Capillary"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
+        "Root",
+        "Squeeze",
+        "Content"
       ],
       {
         "isExpanded" : true,

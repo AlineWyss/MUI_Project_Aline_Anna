@@ -27,6 +27,208 @@ def Xform "Root"
             float3 xformOp:scale = (1, 1, 1)
             float3 xformOp:translate = (0, 0, 0)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+            over "Capillary" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                rel material:binding = </Root/Squeeze/Content/_materials/CapillaryMaterial> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+            }
+
+            over "_materials"
+            {
+                over "CapillaryMaterial"
+                {
+                    token inputs:frame:stPrimvarName = "st" (
+                        customData = {
+                            dictionary realitykit = {
+                                bool hide = 1
+                            }
+                        }
+                    )
+                    token outputs:mtlx:surface
+                    token outputs:realitykit:vertex
+
+                    def Shader "diffuseColor"
+                    {
+                        uniform token info:id = "UsdUVTexture"
+                        asset inputs:file = @Materials_good/capilaries/Capillaries_DefaultMaterial_BaseColor.png@
+                        float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial/diffuseColor/TexCoordReader.outputs:result>
+                        color3f outputs:rgb
+
+                        def Shader "TexCoordReader"
+                        {
+                            uniform token info:id = "UsdPrimvarReader_float2"
+                            token inputs:varname.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial.inputs:frame:stPrimvarName>
+                            float2 outputs:result
+                        }
+                    }
+
+                    over "Principled_BSDF"
+                    {
+                        color3f inputs:diffuseColor.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial/diffuseColor.outputs:rgb>
+                        float inputs:metallic.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial/metallic.outputs:r>
+                        normal3f inputs:normal = (0, 0, 1)
+                        normal3f inputs:normal.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial/normal.outputs:rgb>
+                        float inputs:roughness.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial/roughness.outputs:r>
+                    }
+
+                    def Shader "roughness"
+                    {
+                        uniform token info:id = "UsdUVTexture"
+                        asset inputs:file = @Materials_good/capilaries/Capillaries_DefaultMaterial_Roughness.png@
+                        float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial/roughness/TexCoordReader.outputs:result>
+                        float outputs:r
+
+                        def Shader "TexCoordReader"
+                        {
+                            uniform token info:id = "UsdPrimvarReader_float2"
+                            token inputs:varname.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial.inputs:frame:stPrimvarName>
+                            float2 outputs:result
+                        }
+                    }
+
+                    def Shader "metallic"
+                    {
+                        uniform token info:id = "UsdUVTexture"
+                        asset inputs:file = @Materials_good/capilaries/Capillaries_DefaultMaterial_Metallic.png@
+                        float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial/metallic/TexCoordReader.outputs:result>
+                        float outputs:r
+
+                        def Shader "TexCoordReader"
+                        {
+                            uniform token info:id = "UsdPrimvarReader_float2"
+                            token inputs:varname.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial.inputs:frame:stPrimvarName>
+                            float2 outputs:result
+                        }
+                    }
+
+                    def Shader "normal"
+                    {
+                        uniform token info:id = "UsdUVTexture"
+                        asset inputs:file = @Materials_good/capilaries/Capillaries_DefaultMaterial_Normal.png@
+                        float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial/normal/TexCoordReader.outputs:result>
+                        normal3f outputs:rgb
+
+                        def Shader "TexCoordReader"
+                        {
+                            uniform token info:id = "UsdPrimvarReader_float2"
+                            token inputs:varname.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial.inputs:frame:stPrimvarName>
+                            float2 outputs:result
+                        }
+                    }
+                }
+
+                over "CellMaterial"
+                {
+                    token inputs:frame:stPrimvarName = "st" (
+                        customData = {
+                            dictionary realitykit = {
+                                bool hide = 1
+                            }
+                        }
+                    )
+                    token outputs:mtlx:surface
+                    token outputs:realitykit:vertex
+
+                    def Shader "diffuseColor"
+                    {
+                        uniform token info:id = "UsdUVTexture"
+                        asset inputs:file = @neue_Materilien/RedBloodCellNew/Material.005_Base_color.png@
+                        float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CellMaterial/diffuseColor/TexCoordReader.outputs:result>
+                        color3f outputs:rgb
+
+                        def Shader "TexCoordReader"
+                        {
+                            uniform token info:id = "UsdPrimvarReader_float2"
+                            token inputs:varname.connect = </Root/Squeeze/Content/_materials/CellMaterial.inputs:frame:stPrimvarName>
+                            float2 outputs:result
+                        }
+                    }
+
+                    over "Principled_BSDF"
+                    {
+                        color3f inputs:diffuseColor.connect = </Root/Squeeze/Content/_materials/CellMaterial/diffuseColor.outputs:rgb>
+                        float inputs:metallic.connect = </Root/Squeeze/Content/_materials/CellMaterial/metallic.outputs:r>
+                        normal3f inputs:normal = (0, 0, 1)
+                        normal3f inputs:normal.connect = </Root/Squeeze/Content/_materials/CellMaterial/normal.outputs:rgb>
+                        float inputs:occlusion = 1
+                        float inputs:occlusion.connect = </Root/Squeeze/Content/_materials/CellMaterial/occlusion.outputs:r>
+                        float inputs:roughness.connect = </Root/Squeeze/Content/_materials/CellMaterial/roughness.outputs:r>
+                    }
+
+                    def Shader "roughness"
+                    {
+                        uniform token info:id = "UsdUVTexture"
+                        asset inputs:file = @neue_Materilien/RedBloodCellNew/Material.005_Specular_roughness.png@
+                        float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CellMaterial/roughness/TexCoordReader.outputs:result>
+                        float outputs:r
+
+                        def Shader "TexCoordReader"
+                        {
+                            uniform token info:id = "UsdPrimvarReader_float2"
+                            token inputs:varname.connect = </Root/Squeeze/Content/_materials/CellMaterial.inputs:frame:stPrimvarName>
+                            float2 outputs:result
+                        }
+                    }
+
+                    def Shader "metallic"
+                    {
+                        uniform token info:id = "UsdUVTexture"
+                        asset inputs:file = @neue_Materilien/RedBloodCellNew/Material.005_Base_metalness.png@
+                        float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CellMaterial/metallic/TexCoordReader.outputs:result>
+                        float outputs:r
+
+                        def Shader "TexCoordReader"
+                        {
+                            uniform token info:id = "UsdPrimvarReader_float2"
+                            token inputs:varname.connect = </Root/Squeeze/Content/_materials/CellMaterial.inputs:frame:stPrimvarName>
+                            float2 outputs:result
+                        }
+                    }
+
+                    def Shader "normal"
+                    {
+                        uniform token info:id = "UsdUVTexture"
+                        asset inputs:file = @neue_Materilien/RedBloodCellNew/Material.005_Normal_OpenGL.png@
+                        float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CellMaterial/normal/TexCoordReader.outputs:result>
+                        normal3f outputs:rgb
+
+                        def Shader "TexCoordReader"
+                        {
+                            uniform token info:id = "UsdPrimvarReader_float2"
+                            token inputs:varname.connect = </Root/Squeeze/Content/_materials/CellMaterial.inputs:frame:stPrimvarName>
+                            float2 outputs:result
+                        }
+                    }
+
+                    def Shader "occlusion"
+                    {
+                        uniform token info:id = "UsdUVTexture"
+                        asset inputs:file = @neue_Materilien/RedBloodCellNew/Material.005_Mixed_AO.png@
+                        float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CellMaterial/occlusion/TexCoordReader.outputs:result>
+                        float outputs:r
+
+                        def Shader "TexCoordReader"
+                        {
+                            uniform token info:id = "UsdPrimvarReader_float2"
+                            token inputs:varname.connect = </Root/Squeeze/Content/_materials/CellMaterial.inputs:frame:stPrimvarName>
+                            float2 outputs:result
+                        }
+                    }
+                }
+            }
+
+            over "Cell" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                rel material:binding = </Root/Squeeze/Content/_materials/CellMaterial> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+            }
         }
     }
 }
