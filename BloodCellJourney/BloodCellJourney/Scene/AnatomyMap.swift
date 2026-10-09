@@ -163,10 +163,14 @@ enum AnatomyMap {
                     SIMD2<Float>(-0.149, 0.692), SIMD2<Float>(-0.140, 0.683), SIMD2<Float>(-0.118, 0.680), SIMD2<Float>(-0.098, 0.682),
                     SIMD2<Float>(-0.088, 0.690), SIMD2<Float>(-0.087, 0.712), SIMD2<Float>(-0.090, 0.735), SIMD2<Float>(-0.096, 0.752)]),
                 Outline(z: -0.067, points: [
-                    SIMD2<Float>(-0.071, 0.760), SIMD2<Float>(-0.051, 0.752), SIMD2<Float>(-0.034, 0.735), SIMD2<Float>(-0.026, 0.712),
-                    SIMD2<Float>(-0.027, 0.692), SIMD2<Float>(-0.036, 0.683), SIMD2<Float>(-0.046, 0.682), SIMD2<Float>(-0.048, 0.690),
-                    SIMD2<Float>(-0.054, 0.702), SIMD2<Float>(-0.062, 0.716), SIMD2<Float>(-0.072, 0.730), SIMD2<Float>(-0.078, 0.748)])
+                                SIMD2<Float>(-0.071, 0.760), SIMD2<Float>(-0.051, 0.752),
+                                SIMD2<Float>(-0.034, 0.735), SIMD2<Float>(-0.026, 0.712),
+                                SIMD2<Float>(-0.027, 0.692), SIMD2<Float>(-0.036, 0.683),
+                                SIMD2<Float>(-0.058, 0.680), SIMD2<Float>(-0.078, 0.682),
+                                SIMD2<Float>(-0.088, 0.690), SIMD2<Float>(-0.089, 0.712),
+                                SIMD2<Float>(-0.086, 0.735), SIMD2<Float>(-0.080, 0.752)  ]),
             ]
+            
         case .heart:
             return [
                 Outline(z: -0.053, points: [

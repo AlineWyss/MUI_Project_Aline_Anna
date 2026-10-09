@@ -54,7 +54,7 @@ enum Config {
         .oxygen: 0.85,
         .carbonDioxide: 0.85,
         .shell: 0.30,
-        .bodyCellOuter: 0.35
+        .bodyCellOuter: 0.55
     ]
 }
 
@@ -130,7 +130,7 @@ enum Timing {
     /// Seconds the "a red blood cell is born" text stays before the capillary appears.
     static let afterBirth: Double = 3.0
     /// Seconds to read the explanation why the old cell gets stuck before it dissolves.
-    static let readTooStiff: Double = 10.0
+    static let readTooStiff: Double = 5.0
     /// Seconds for one lap of the marker while the cycle repeats.
     static let lapDuration: Double = 6.0
     /// How far the old cell gets into the squeeze animation (a frame of claudeAniamtion.blend).
@@ -157,11 +157,11 @@ enum Palette {
 
     static func zone(_ zone: AnatomyMap.Zone) -> UIColor {
         switch zone {
-        case .boneMarrow: return UIColor(red: 0.40, green: 0.8, blue: 1.00, alpha: 1)
-        case .lungs: return UIColor(red: 0.45, green: 0.80, blue: 1.00, alpha: 1)
+        case .boneMarrow: return UIColor(red: 1.00, green: 1.00, blue: 1.00, alpha: 1)
+        case .lungs: return UIColor(red: 1.00, green: 1.00, blue: 1.00, alpha: 1)
         case .heart: return UIColor(red: 1.00, green: 0.30, blue: 0.40, alpha: 1)
-        case .organs: return UIColor(red: 0.45, green: 0.80, blue: 1.00, alpha: 1)
-        case .spleen: return UIColor(red: 0.45, green: 0.80, blue: 1.00, alpha: 1)
+        case .organs: return UIColor(red: 1.00, green: 1.00, blue: 1.00, alpha: 1)
+        case .spleen: return UIColor(red: 1.00, green: 1.00, blue: 1.00, alpha: 1)
         }
     }
 }
