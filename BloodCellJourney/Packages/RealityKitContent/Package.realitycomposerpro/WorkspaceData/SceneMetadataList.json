@@ -4,8 +4,43 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "RedBloodCell",
+        "BodyCellOuter",
         "_materials"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
+        "BodyCellOuter"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
+        "RedBloodCell"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
+        "Capillary"
       ],
       {
         "isExpanded" : true,
@@ -24,15 +59,6 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "Capillary"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
         "BodyCellInner",
         "_materials"
       ],
@@ -43,63 +69,8 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "BodyCellOuter"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
-        "BodyCellOuter",
+        "RedBloodCell",
         "_materials"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
-        "Capillary",
-        "_materials"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
-        "Oxygen",
-        "_materials"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
-        "BodyCellInner"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
-        "Oxygen"
       ],
       {
         "isExpanded" : true,
@@ -117,7 +88,17 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "RedBloodCell"
+        "BodyCellInner"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
+        "Capillary",
+        "_materials"
       ],
       {
         "isExpanded" : true,
@@ -131,26 +112,7 @@
         "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
         "Root",
         "Squeeze",
-        "Content",
-        "Cell",
-        "Cell"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
-        "Root",
-        "Squeeze"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
-        "Root"
+        "Content"
       ],
       {
         "isExpanded" : true,
@@ -161,7 +123,8 @@
         "Root",
         "Squeeze",
         "Content",
-        "_materials"
+        "Cell",
+        "Cell"
       ],
       {
         "isExpanded" : true,
@@ -193,7 +156,25 @@
         "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
         "Root",
         "Squeeze",
-        "Content"
+        "Content",
+        "_materials"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
+        "Root",
+        "Squeeze"
       ],
       {
         "isExpanded" : true,

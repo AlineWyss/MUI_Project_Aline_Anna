@@ -129,7 +129,7 @@ enum StoryText {
             holdText: "Drag hemoglobin into the cell",
             facts: [
                 "A protein made of 4 chains, each holding an iron-containing heme group.",
-                "Each hemoglobin can carry up to 4 oxygen molecules.",
+                "Can bind 4 oxygen molecules.",
                 "Carries more than 98 % of the oxygen in your blood.",
                 "The iron is what makes blood red."
             ])

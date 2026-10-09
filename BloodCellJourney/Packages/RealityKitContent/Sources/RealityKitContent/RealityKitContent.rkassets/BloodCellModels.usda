@@ -547,7 +547,7 @@ def Xform "Root"
     def Xform "CarbonDioxide" (
         prepend apiSchemas = ["MaterialBindingAPI"]
         customData = {
-            float3 rotationEulerHint = (0, 0, 0)
+            float3 rotationEulerHint = (0, 4.712389, 0)
         }
         prepend references = @co2.usdz@
     )
@@ -555,7 +555,7 @@ def Xform "Root"
         rel material:binding = </Root/CarbonDioxide/_materials/Material_003> (
             bindMaterialAs = "weakerThanDescendants"
         )
-        quatf xformOp:orient = (1, 0, 0, 0)
+        quatf xformOp:orient = (0.70710677, 0, -0.70710677, 0)
         float3 xformOp:scale = (1, 1, 1)
         double3 xformOp:translate = (0.20000000298023224, 1.2000000476837158, -1)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
