@@ -1,0 +1,88 @@
+{
+  "advancedEditorSelectedIdentifier" : "ProjectBrowser",
+  "openSceneRelativePaths" : [
+    "BloodCellModels.usda"
+  ],
+  "recentIdentifiers" : {
+    "773E31D5-81FA-48F1-82DA-C9195BD1C6AC" : [
+
+    ],
+    "DA04E1BC-D1A3-4976-A61A-3BC28FC9790E" : [
+
+    ]
+  },
+  "sceneCameraHistory" : {
+    "DA04E1BC-D1A3-4976-A61A-3BC28FC9790E" : [
+      {
+        "date" : 813185762.948867,
+        "title" : "Untitled",
+        "transform" : [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0.7071069,
+          -0.70710677,
+          0,
+          0,
+          0.70710677,
+          0.7071069,
+          0,
+          0.020909533,
+          1.031402,
+          0.4399911,
+          1
+        ]
+      },
+      {
+        "date" : 813185750.940035,
+        "title" : "Untitled",
+        "transform" : [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0.7071069,
+          -0.70710677,
+          0,
+          0,
+          0.70710677,
+          0.7071069,
+          0,
+          -0.069301836,
+          1.9635544,
+          1.6940258,
+          1
+        ]
+      },
+      {
+        "date" : 813185696.706461,
+        "title" : "Untitled",
+        "transform" : [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0.7071069,
+          -0.70710677,
+          0,
+          0,
+          0.70710677,
+          0.7071069,
+          0,
+          -0.034651034,
+          2.0125566,
+          1.6450238,
+          1
+        ]
+      }
+    ]
+  },
+  "sceneViewportBackgroundColors" : {
+
+  },
+  "selectedSceneRelativePath" : "BloodCellModels.usda"
+}
