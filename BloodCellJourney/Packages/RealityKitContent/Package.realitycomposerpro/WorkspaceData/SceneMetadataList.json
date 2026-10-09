@@ -4,7 +4,7 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "Capillary"
+        "Oxygen"
       ],
       {
         "isExpanded" : true,
@@ -13,35 +13,7 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "CarbonDioxide",
-        "_materials"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
-        "RedBloodCell",
-        "_materials"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
-        "Capillary",
+        "Oxygen",
         "_materials"
       ],
       {
@@ -61,7 +33,7 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "BodyCellInner",
+        "CarbonDioxide",
         "_materials"
       ],
       {
@@ -71,7 +43,7 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "Oxygen"
+        "Capillary"
       ],
       {
         "isExpanded" : true,
@@ -80,7 +52,7 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "Oxygen",
+        "BodyCellInner",
         "_materials"
       ],
       {
@@ -107,8 +79,26 @@
       },
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
         "RedBloodCell"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
+        "Capillary",
+        "_materials"
       ],
       {
         "isExpanded" : true,
@@ -122,6 +112,16 @@
       {
         "isExpanded" : true,
         "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
+        "RedBloodCell",
+        "_materials"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
       }
     ]
   },
@@ -130,8 +130,18 @@
       [
         "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
         "Root",
+        "Squeeze"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
+        "Root",
         "Squeeze",
-        "Content"
+        "Content",
+        "Capillary"
       ],
       {
         "isExpanded" : true,
@@ -150,18 +160,9 @@
       },
       [
         "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
-        "Root"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
         "Root",
         "Squeeze",
-        "Content",
-        "Capillary"
+        "Content"
       ],
       {
         "isExpanded" : true,
@@ -192,8 +193,7 @@
       },
       [
         "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
-        "Root",
-        "Squeeze"
+        "Root"
       ],
       {
         "isExpanded" : true,

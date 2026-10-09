@@ -403,7 +403,8 @@ extension JourneyController {
             // The cell goes back into the body and runs round and round.
             await self.flyIntoModel(cell, at: self.overlay.startPosition(of: .fullCircuit))
             guard id == self.runID, self.step == .cycleRepeats else { return }
-            self.overlay.loop(.fullCircuit, lapDuration: Timing.lapDuration)
+            //self.overlay.loop(.fullCircuit, lapDuration: Timing.lapDuration)
+            self.overlay.loopFinalBodyCycle(lapDuration: Timing.lapDuration)
             self.interactionLocked = false
             self.setPanel(StoryText.Panels.cycleRepeats)
         }

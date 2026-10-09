@@ -132,7 +132,7 @@ enum Timing {
     /// Seconds to read the explanation why the old cell gets stuck before it dissolves.
     static let readTooStiff: Double = 5.0
     /// Seconds for one lap of the marker while the cycle repeats.
-    static let lapDuration: Double = 6.0
+    static let lapDuration: Double = 40.0  //6.0
     /// How far the old cell gets into the squeeze animation (a frame of claudeAniamtion.blend).
     /// 12 = Blender's shape key "Key 1" is complete (blend shapes Squeeze01–03); 9 = it can't bend at all;
     /// 21 = it would get through.
@@ -144,7 +144,7 @@ enum Timing {
 }
 
 enum Palette {
-    static let rbcOxygenated = UIColor(red: 0.86, green: 0.07, blue: 0.09, alpha: 1)    // scarlet
+    static let rbcOxygenated = UIColor(red: 0.96, green: 0.07, blue: 0.09, alpha: 1)    // scarlet
     static let rbcDeoxygenated = UIColor(red: 0.60, green: 0.03, blue: 0.09, alpha: 1)  // dark burgundy
     static let rbcAged = UIColor(red: 0.62, green: 0.25, blue: 0.21, alpha: 1)          // dull brown-red
     static let hemoglobinFill = UIColor(red: 0.85, green: 0.10, blue: 0.12, alpha: 1)

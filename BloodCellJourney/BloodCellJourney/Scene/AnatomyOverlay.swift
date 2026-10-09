@@ -14,6 +14,7 @@ import Foundation
 import RealityKit
 import UIKit
 import RealityKitContent
+import simd
 
 @MainActor
 final class AnatomyOverlay {
@@ -204,7 +205,7 @@ private func buildMarker() {
 
     marker.addChild(halo)
     glowEntities.append(halo)
-
+    
 
     // MARK: - Fading trail behind the blood cell
 
@@ -461,9 +462,247 @@ private func buildMarker() {
     }
 
     /// Lets the marker run round and round (the cycle repeats).
-    func loop(_ route: AnatomyMap.Route, lapDuration: Double) {
+    /*func loop(_ route: AnatomyMap.Route, lapDuration: Double) {
         marker.isEnabled = true
         setMarker(path: path(for: route), progress: 0, target: 1, speed: Float(1 / max(lapDuration, 0.5)), loops: true)
+    } */
+
+    
+    func loop(_ route: AnatomyMap.Route, lapDuration: Double) {
+
+        marker.isEnabled = true
+
+        let loopPath: SampledPath
+
+        switch route {
+
+        case .fullCircuit:
+
+            // MARK: - Full-body circulation
+
+            let circuits = CirculationBuilder.circuits()
+            let branchCount = AnatomyMap.systemicBranches.count
+
+            // Each branch has two circuits:
+            // one for the right lung, one for the left.
+            guard circuits.count == branchCount * 2 else {
+                print("Blood circulation circuits missing")
+                return
+            }
+
+            var fullBodyPoints: [SIMD3<Float>] = []
+
+            // Visit EVERY systemic branch:
+            // head, arms, organs, intestines, legs.
+            for branchIndex in 0..<branchCount {
+
+                // Alternate between right and left lungs.
+                let lungIndex = branchIndex % 2
+
+                let circuitIndex = branchIndex * 2 + lungIndex
+
+                let points = circuits[circuitIndex].path.points
+
+                guard points.count >= 2 else {
+                    continue
+                }
+
+                if fullBodyPoints.isEmpty {
+
+                    fullBodyPoints.append(contentsOf: points)
+
+                } else {
+
+                    // Each circuit ends at the left heart.
+                    // The next circuit starts at the same point.
+                    // Avoid adding the shared point twice.
+                    fullBodyPoints.append(
+                        contentsOf: points.dropFirst()
+                    )
+                }
+            }
+
+            guard fullBodyPoints.count >= 2 else {
+                print("Full-body circulation path is empty")
+                return
+            }
+
+            loopPath = SampledPath(fullBodyPoints)
+
+        default:
+
+            // Keep all other explanatory routes unchanged.
+            loopPath = path(for: route)
+        }
+
+        // MARK: - Animate continuously
+
+        setMarker(
+            path: loopPath,
+            progress: 0,
+            target: 1,
+            speed: Float(1 / max(lapDuration, 0.5)),
+            loops: true
+        )
+    }
+
+    func loopFinalBodyCycle(lapDuration: Double = 120) {
+        typealias Point = SIMD3<Float>
+        typealias Landmark = AnatomyMap.Landmark
+
+        // Local branches: do not modify AnatomyMap.systemicBranches.
+        var branches: [[Landmark]] = []
+
+        for branch in AnatomyMap.systemicBranches {
+            if branch.last == .spleen && branch.contains(.stomach) {
+                // Stomach and spleen are separate arterial destinations.
+                branches.append(branch.filter { $0 != .spleen })
+                branches.append(branch.filter { $0 != .stomach })
+            } else {
+                branches.append(branch)
+            }
+        }
+
+        var points: [Point] = []
+
+        // Smooth each vessel separately; remove duplicate joining points.
+        func append(_ controls: [Point], smooth: Bool = true) {
+            let segment = smooth && controls.count > 1
+                ? Curves.catmullRom(controls, samplesPerSegment: 5)
+                : controls
+
+            for point in segment {
+                if let last = points.last,
+                   simd_distance(last, point) < 0.0001 {
+                    continue
+                }
+
+                points.append(point)
+            }
+        }
+
+        let liverIn = AnatomyMap.p(.liver)
+        let liverOut = liverIn + AnatomyMap.veinOffset
+
+        // Schematic guides, NOT measured portal-vein / vena-cava positions.
+        let portalGuide = (AnatomyMap.p(.celiac) + liverIn) * 0.5
+            + AnatomyMap.veinOffset * 0.5
+
+        let cavaGuide = AnatomyMap.p(.aorta1) + AnatomyMap.veinOffset
+
+        for (index, branch) in branches.enumerated() {
+            guard let destination = branch.last else { continue }
+
+            // 1. Left heart -> systemic artery -> selected tissue.
+            let artery = Curves.catmullRom(
+                AnatomyMap.arterialPoints(branch),
+                samplesPerSegment: 5
+            )
+
+            guard artery.count >= 2 else { continue }
+
+            append(artery, smooth: false)
+
+            // 2. Schematic tissue microcirculation: artery -> venous side.
+            let tissueIn = AnatomyMap.p(destination)
+            let tissueOut = tissueIn + AnatomyMap.veinOffset
+
+            let incoming = tissueIn - artery[artery.count - 2]
+            let direction = simd_length(incoming) > 0.0001
+                ? simd_normalize(incoming)
+                : Point(0, -1, 0)
+
+            let turn = tissueIn + direction * 0.008
+                + AnatomyMap.veinOffset * 0.5
+
+            append([tissueIn, turn, tissueOut], smooth: false)
+
+            // 3. Return to the right heart through the appropriate route.
+            switch destination {
+            case .stomach, .spleen, .gut, .gutL, .gutR:
+                // These organs drain through the portal system to the liver.
+                var portal = [tissueOut]
+
+                if destination == .gutL || destination == .gutR {
+                    portal.append(
+                        AnatomyMap.p(.gut) + AnatomyMap.veinOffset
+                    )
+                }
+
+                portal.append(contentsOf: [portalGuide, liverIn])
+                append(portal)
+
+                // Second microvascular bed: liver sinusoids.
+                let sinusoidTurn = liverIn + AnatomyMap.veinOffset * 0.5
+                    + Point(0, -0.008, 0)
+
+                append(
+                    [liverIn, sinusoidTurn, liverOut],
+                    smooth: false
+                )
+
+                // Hepatic veins -> inferior vena cava -> right heart.
+                append([liverOut, cavaGuide, AnatomyMap.rightHeart])
+
+            case .liver:
+                // Direct liver trip: hepatic arterial supply -> sinusoids
+                // -> hepatic veins -> inferior vena cava -> right heart.
+                append([tissueOut, cavaGuide, AnatomyMap.rightHeart])
+
+            default:
+                // Head / limbs -> systemic veins -> right heart.
+                append(AnatomyMap.venousPoints(branch))
+            }
+
+            // 4. Right heart -> one lung -> left heart.
+            // Complete this BEFORE starting the next systemic destination.
+            // Lung alternation is for teaching, not a biological rule.
+            let lung: Landmark = index.isMultiple(of: 2)
+                ? .rLung
+                : .lLung
+
+            let pulmonary = AnatomyMap.pulmonaryPoints(lung: lung)
+            append(pulmonary.toLung)
+
+            // Schematic lung capillaries connect artery to pulmonary vein.
+            let lungIn = AnatomyMap.p(lung)
+            let side: Float = lung == .rLung ? -1 : 1
+
+            append([
+                lungIn,
+                lungIn + Point(0.012 * side, -0.006, 0.003),
+                lungIn + Point(0.010 * side, -0.014, 0.004),
+                lungIn + AnatomyMap.pulmonaryVeinOffset
+            ], smooth: false)
+
+            append(pulmonary.fromLung)
+        }
+
+        guard points.count >= 2 else { return }
+
+        // Close the complete tour at the left heart.
+        points[0] = AnatomyMap.leftHeart
+        points[points.count - 1] = AnatomyMap.leftHeart
+
+        // Do not smooth the assembled tour again.
+        let tour = SampledPath(points)
+
+        guard tour.length.isFinite, tour.length > 0,
+              lapDuration.isFinite, lapDuration > 0 else {
+            return
+        }
+
+        marker.position = tour.point(at: 0)
+
+        setMarker(
+            path: tour,
+            progress: 0,
+            target: 1,
+            speed: Float(1 / max(lapDuration, 0.5)),
+            loops: true
+        )
+
+        marker.isEnabled = true
     }
 
     // MARK: - Reset

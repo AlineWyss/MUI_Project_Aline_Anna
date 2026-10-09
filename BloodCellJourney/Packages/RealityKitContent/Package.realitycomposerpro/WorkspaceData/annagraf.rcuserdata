@@ -2,7 +2,8 @@
   "advancedEditorSelectedIdentifier" : "ProjectBrowser",
   "openSceneRelativePaths" : [
     "BloodCellModels.usda",
-    "SqueezeScene.usda"
+    "SqueezeScene.usda",
+    "VirtualAnatomy.usda"
   ],
   "recentIdentifiers" : {
     "773E31D5-81FA-48F1-82DA-C9195BD1C6AC" : [
@@ -436,10 +437,34 @@
           1
         ]
       }
+    ],
+    "F5CDF407-D81C-4DFF-9221-78E1C6713654" : [
+      {
+        "date" : 813249431.546076,
+        "title" : "Untitled",
+        "transform" : [
+          0.9999742,
+          0,
+          -0.0071868277,
+          0,
+          -0.0050818548,
+          0.7071069,
+          -0.7070885,
+          0,
+          0.005081855,
+          0.70710677,
+          0.7070886,
+          0,
+          -0.050366044,
+          1.5061809,
+          0.8800228,
+          1
+        ]
+      }
     ]
   },
   "sceneViewportBackgroundColors" : {
 
   },
-  "selectedSceneRelativePath" : "SqueezeScene.usda"
+  "selectedSceneRelativePath" : "VirtualAnatomy.usda"
 }
