@@ -13,6 +13,7 @@
 import Foundation
 import RealityKit
 import UIKit
+import RealityKitContent
 
 @MainActor
 final class AnatomyOverlay {
@@ -45,22 +46,46 @@ final class AnatomyOverlay {
     // MARK: - Build
 
     func build() {
+
         root.addChild(stream.root)
-        stream.root.components.set(BloodStreamComponent(stream: stream))
+
+        stream.root.components.set(
+            BloodStreamComponent(stream: stream)
+        )
+
         if Config.showVesselTubes {
             buildVesselTubes()
         }
+
         buildZones()
         buildMarker()
         buildTapTarget()
 
-        let solid = ModelSortGroupComponent(group: sortGroup, order: Self.solidOrder)
-        root.forEachModelEntity { $0.components.set(solid) }
-        let glow = ModelSortGroupComponent(group: sortGroup, order: Self.glowOrder)
+        // MARK: - Solid models
+
+        let solid = ModelSortGroupComponent(
+            group: sortGroup,
+            order: Self.solidOrder
+        )
+
+        root.forEachModelEntity {
+            $0.components.set(solid)
+        }
+
+        // MARK: - Glowing elements
+
+        let glow = ModelSortGroupComponent(
+            group: sortGroup,
+            order: Self.glowOrder
+        )
+
         for entity in glowEntities {
-            entity.forEachModelEntity { $0.components.set(glow) }
+            entity.forEachModelEntity {
+                $0.components.set(glow)
+            }
         }
     }
+
 
     /// Makes a see-through body render after the overlay (see `sortGroup`).
     func drawAfterOverlay(_ body: Entity) {
@@ -126,7 +151,7 @@ final class AnatomyOverlay {
         }
     }
 
-    private func buildMarker() {
+    /* private func buildMarker() {
         let core = ModelEntity(mesh: .generateSphere(radius: 0.010), materials: [MaterialTools.glow(Palette.marker)])
         let halo = ModelEntity(mesh: .generateSphere(radius: 0.024),
                                materials: [MaterialTools.glow(Palette.markerHalo, opacity: 0.45)])
@@ -150,7 +175,152 @@ final class AnatomyOverlay {
         setMarker(path: SampledPath([AnatomyMap.p(.rMarrow)]), progress: 0, target: 0, speed: 0.3, loops: false)
         marker.isEnabled = false
         root.addChild(marker)
+    } */
+
+
+private func buildMarker() {
+
+    // MARK: - Glowing halo behind the 3D blood cell
+
+    let halo = ModelEntity(
+        mesh: .generateSphere(radius: 0.024),
+        materials: [
+            MaterialTools.glow(
+                Palette.markerHalo,
+                opacity: 0.45
+            )
+        ]
+    )
+
+    halo.name = "MarkerHalo"
+
+    halo.components.set(
+        PulseComponent(
+            baseScale: SIMD3<Float>(repeating: 1),
+            amount: 0.25,
+            speed: 5
+        )
+    )
+
+    marker.addChild(halo)
+    glowEntities.append(halo)
+
+
+    // MARK: - Fading trail behind the blood cell
+
+    let pieces = 10
+
+    for index in 0..<pieces {
+
+        let fraction = Float(index) / Float(pieces)
+
+        let piece = ModelEntity(
+            mesh: .generateSphere(
+                radius: 0.008 * (1 - fraction * 0.7)
+            ),
+            materials: [
+                MaterialTools.glow(
+                    Palette.markerHalo,
+                    opacity: 0.55 * (1 - fraction)
+                )
+            ]
+        )
+
+        marker.addChild(piece)
+        markerTrail.append(piece)
+        glowEntities.append(piece)
     }
+
+
+    // MARK: - Existing marker movement
+
+    setMarker(
+        path: SampledPath([AnatomyMap.p(.rMarrow)]),
+        progress: 0,
+        target: 0,
+        speed: 0.3,
+        loops: false
+    )
+
+    marker.isEnabled = false
+    root.addChild(marker)
+
+
+    // MARK: - Load the Reality Composer Pro 3D model
+
+    Task { [weak self] in
+
+        guard let self else { return }
+
+        do {
+            let library = try await Entity(
+                named: "BloodCellModels",
+                in: realityKitContentBundle
+            )
+
+            guard let redCell = library.findEntity(
+                named: ModelLibrary.Model.redBloodCell.rawValue
+            ) else {
+                print("RedBloodCell not found in BloodCellModels")
+                return
+            }
+
+            // Container for adjusting the model.
+            let visual = Entity()
+            visual.name = "RedBloodCellVisual"
+            visual.addChild(redCell)
+
+
+            // MARK: - Adjust blood cell size
+
+            let bounds = visual.visualBounds(
+                recursive: true,
+                relativeTo: visual
+            )
+
+            let maxDimension = max(
+                bounds.extents.x,
+                max(bounds.extents.y, bounds.extents.z)
+            )
+
+            if maxDimension > 0 {
+
+                // Change this to adjust the size.
+                let desiredDiameter: Float = 0.020
+
+                let scaleFactor = desiredDiameter / maxDimension
+
+                visual.scale = SIMD3<Float>(
+                    repeating: scaleFactor
+                )
+
+                // Center the model on the marker.
+                visual.position = -bounds.center * scaleFactor
+            }
+
+
+            // MARK: - Render model in front of halo and trail
+
+            let solid = ModelSortGroupComponent(
+                group: sortGroup,
+                order: Self.solidOrder
+            )
+
+            visual.forEachModelEntity {
+                $0.components.set(solid)
+            }
+
+
+            // MARK: - Attach model to moving marker
+
+            marker.addChild(visual)
+
+        } catch {
+            print("Failed to load RedBloodCell: \(error)")
+        }
+    }
+}
+
 
     private func buildTapTarget() {
         // Box around the whole figure (scan bounds: 0.48 × 0.94 × 0.26 m).
