@@ -17,12 +17,16 @@ def Xform "Root"
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
         def Xform "Content" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
             customData = {
                 float3 rotationEulerHint = (-1.5707967, -0.34906584, -1.5857484e-7)
             }
             prepend references = @SqueezeAnimation.usdz@
         )
         {
+            rel material:binding = </Root/Squeeze/Content/_materials/CapillaryMaterial> (
+                bindMaterialAs = "weakerThanDescendants"
+            )
             quatf xformOp:orient = (0.6963641, -0.6963644, -0.122787714, -0.12278788)
             float3 xformOp:scale = (1, 1, 1)
             float3 xformOp:translate = (0, 0, 0)
@@ -54,7 +58,7 @@ def Xform "Root"
                     def Shader "diffuseColor"
                     {
                         uniform token info:id = "UsdUVTexture"
-                        asset inputs:file = @Materials_good/capilaries/Capillaries_DefaultMaterial_BaseColor.png@
+                        asset inputs:file = @Materials_good/capilaries/capillaries2.2/DefaultMaterial_Base_color.png@
                         float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial/diffuseColor/TexCoordReader.outputs:result>
                         color3f outputs:rgb
 
@@ -78,7 +82,7 @@ def Xform "Root"
                     def Shader "roughness"
                     {
                         uniform token info:id = "UsdUVTexture"
-                        asset inputs:file = @Materials_good/capilaries/Capillaries_DefaultMaterial_Roughness.png@
+                        asset inputs:file = @Materials_good/capilaries/capillaries2.2/DefaultMaterial_Roughness.png@
                         float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial/roughness/TexCoordReader.outputs:result>
                         float outputs:r
 
@@ -93,7 +97,7 @@ def Xform "Root"
                     def Shader "metallic"
                     {
                         uniform token info:id = "UsdUVTexture"
-                        asset inputs:file = @Materials_good/capilaries/Capillaries_DefaultMaterial_Metallic.png@
+                        asset inputs:file = @Materials_good/capilaries/capillaries2.2/DefaultMaterial_Metallic.png@
                         float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial/metallic/TexCoordReader.outputs:result>
                         float outputs:r
 
@@ -108,9 +112,24 @@ def Xform "Root"
                     def Shader "normal"
                     {
                         uniform token info:id = "UsdUVTexture"
-                        asset inputs:file = @Materials_good/capilaries/Capillaries_DefaultMaterial_Normal.png@
+                        asset inputs:file = @Materials_good/capilaries/capillaries2.2/DefaultMaterial_Normal_DirectX.png@
                         float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial/normal/TexCoordReader.outputs:result>
                         normal3f outputs:rgb
+
+                        def Shader "TexCoordReader"
+                        {
+                            uniform token info:id = "UsdPrimvarReader_float2"
+                            token inputs:varname.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial.inputs:frame:stPrimvarName>
+                            float2 outputs:result
+                        }
+                    }
+
+                    def Shader "occlusion"
+                    {
+                        uniform token info:id = "UsdUVTexture"
+                        asset inputs:file = @Materials_good/capilaries/capillaries2.2/DefaultMaterial_Mixed_AO.png@
+                        float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CapillaryMaterial/occlusion/TexCoordReader.outputs:result>
+                        float outputs:r
 
                         def Shader "TexCoordReader"
                         {

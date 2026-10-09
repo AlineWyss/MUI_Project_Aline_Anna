@@ -145,23 +145,23 @@ enum Timing {
 
 enum Palette {
     static let rbcOxygenated = UIColor(red: 0.86, green: 0.07, blue: 0.09, alpha: 1)    // scarlet
-    static let rbcDeoxygenated = UIColor(red: 0.40, green: 0.03, blue: 0.09, alpha: 1)  // dark burgundy
-    static let rbcAged = UIColor(red: 0.42, green: 0.25, blue: 0.21, alpha: 1)          // dull brown-red
+    static let rbcDeoxygenated = UIColor(red: 0.60, green: 0.03, blue: 0.09, alpha: 1)  // dark burgundy
+    static let rbcAged = UIColor(red: 0.62, green: 0.25, blue: 0.21, alpha: 1)          // dull brown-red
     static let hemoglobinFill = UIColor(red: 0.85, green: 0.10, blue: 0.12, alpha: 1)
 
     static let artery = UIColor(red: 1.00, green: 0.20, blue: 0.24, alpha: 1)
     static let vein = UIColor(red: 0.30, green: 0.47, blue: 1.00, alpha: 1)
     /// "Our" red blood cell on the anatomy model – yellow so it stands out from the red stream.
-    static let marker = UIColor(red: 1.00, green: 0.97, blue: 0.80, alpha: 1)
-    static let markerHalo = UIColor(red: 1.00, green: 0.85, blue: 0.25, alpha: 1)
+    static let marker = UIColor(red: 1.00, green: 0.2, blue: 0.20, alpha: 1)
+    static let markerHalo = UIColor(red: 1.00, green: 0.10, blue: 0.15, alpha: 1)
 
     static func zone(_ zone: AnatomyMap.Zone) -> UIColor {
         switch zone {
-        case .boneMarrow: return UIColor(red: 1.00, green: 0.85, blue: 0.30, alpha: 1)
+        case .boneMarrow: return UIColor(red: 0.40, green: 0.8, blue: 1.00, alpha: 1)
         case .lungs: return UIColor(red: 0.45, green: 0.80, blue: 1.00, alpha: 1)
         case .heart: return UIColor(red: 1.00, green: 0.30, blue: 0.40, alpha: 1)
-        case .organs: return UIColor(red: 0.60, green: 1.00, blue: 0.50, alpha: 1)
-        case .spleen: return UIColor(red: 0.85, green: 0.55, blue: 1.00, alpha: 1)
+        case .organs: return UIColor(red: 0.45, green: 0.80, blue: 1.00, alpha: 1)
+        case .spleen: return UIColor(red: 0.45, green: 0.80, blue: 1.00, alpha: 1)
         }
     }
 }
