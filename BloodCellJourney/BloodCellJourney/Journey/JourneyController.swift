@@ -317,23 +317,25 @@ final class JourneyController {
         return (head, simd_normalize(forward), true)
     }
 
-    /// Places the focus area (the stage for cells, labels and text) next to the anatomy model:
-    /// at Layout.focusOffsetFromModel in the model's own directions, so it is always at the same spot
-    /// relative to the model – wherever the person stood when the experience started.
-    /// It is turned towards the person once, when it is placed (start of every round), so the text can
-    /// be read; it does not keep turning while the person moves.
+    /// Places the focus area (the stage for cells, labels and text) straight in front of the person,
+    /// facing them, so the 3D models and text are centred in the view and easy to read – not off to the
+    /// side. It still stays attached to the anatomy model: the spot is remembered in the model's own
+    /// directions, so the stage follows if the model is bumped (followModelIfMoved). It is turned
+    /// towards the person once, when it is placed (start of every round); it does not keep turning while
+    /// the person moves.
     /// Needs the model's pose (anatomyRoot): called from enterIntro, after the model was found
     /// (or the virtual copy was placed).
     func placeFocusArea(animated: Bool = false) {
+        let stage = focusPoseInFrontOfPerson()
         let model = modelPose()
-        let position = model.position + Self.yawRotation(model.yaw).act(Layout.focusOffsetFromModel)
-        let toPerson = horizontalDirectionToPerson(from: position)
-        let yaw = atan2(toPerson.x, toPerson.z)
-        moveFocusArea(to: position, yaw: yaw, animated: animated)
+        // Remember where the stage sits relative to the model (in the model's own directions), so it can
+        // follow the model if someone bumps it.
+        let offset = Self.yawRotation(-model.yaw).act(stage.position - model.position)
+        moveFocusArea(to: stage.position, yaw: stage.yaw, animated: animated)
         focusPlacement = FocusPlacement(modelPosition: model.position,
                                         modelYaw: model.yaw,
-                                        offset: Layout.focusOffsetFromModel,
-                                        relativeYaw: yaw - model.yaw)
+                                        offset: offset,
+                                        relativeYaw: stage.yaw - model.yaw)
     }
 
     /// The physical model moved (someone bumped it): the focus area moves with it, keeping the same
