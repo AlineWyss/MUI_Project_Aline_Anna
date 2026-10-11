@@ -2,11 +2,13 @@
 //  TaskHintView.swift
 //  BloodCellJourney
 //
-//  Created by wyss aline on 11.10.2026.
-//
 //  Die Aufgabe ("Zieh das Hämoglobin in die Zelle …") als Label UNTER dem
 //  Modell, mit dem die Person gerade etwas tun soll.
-//  Der Text ist derselbe wie bisher im Textfeld rechts (panel.hint).
+//  Der Text ist derselbe wie bisher im Textfeld (panel.hint).
+//  Wo das Label erscheint, entscheidet JourneyController.updateTaskHint().
+//
+//  NEU: Beim Herzpumpen steht hier kurz die Rückmeldung ("Too early …",
+//  "In rhythm!") statt der Aufgabe (controller.pumpFeedback).
 //
 
 import SwiftUI
@@ -16,10 +18,11 @@ struct TaskHintView: View {
 
     var body: some View {
         // Während die Person ein Objekt hält, wird die Aufgabe ausgeblendet –
-        // sie weiss dann ja schon, was zu tun ist (das Namens-Label zeigt
-        // in diesem Moment den holdText).
+        // sie weiss dann ja schon, was zu tun ist.
         if let hint = controller.panel?.hint, !controller.isHolding {
-            Label(hint, systemImage: "hand.pinch.fill")
+            // Rückmeldung beim Pumpen hat Vorrang vor der Aufgabe
+            let text = controller.pumpFeedback ?? hint
+            Label(text, systemImage: controller.pumpFeedback == nil ? "hand.pinch.fill" : "heart.fill")
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(.yellow)
                 .multilineTextAlignment(.center)
@@ -28,6 +31,8 @@ struct TaskHintView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
                 .glassBackgroundEffect(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .contentTransition(.opacity)
+                .animation(.easeInOut(duration: 0.2), value: controller.pumpFeedback)
                 .transition(.opacity)
         }
     }
