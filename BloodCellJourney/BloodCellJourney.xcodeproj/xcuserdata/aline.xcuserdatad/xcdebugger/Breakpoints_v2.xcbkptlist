@@ -18,36 +18,6 @@
             endingLineNumber = "92"
             landmarkName = "Layout"
             landmarkType = "13">
-            <Locations>
-               <Location
-                  uuid = "3D662201-C207-4A06-A293-7EDC4D3BBE8A - eca13ceee5a600dd"
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "one-time initialization function for panelSlot"
-                  moduleName = "BloodCellJourney.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/aline/Desktop/Semester_05/MUI/MUI_Project_Aline_Anna/BloodCellJourney/BloodCellJourney/Config/Config.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "92"
-                  endingLineNumber = "92">
-               </Location>
-               <Location
-                  uuid = "3D662201-C207-4A06-A293-7EDC4D3BBE8A - 844f29018e3ed2"
-                  shouldBeEnabled = "No"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "BloodCellJourney.Layout.panelSlot.unsafeMutableAddressor : Swift.SIMD3&lt;Swift.Float&gt;"
-                  moduleName = "BloodCellJourney.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/aline/Desktop/Semester_05/MUI/MUI_Project_Aline_Anna/BloodCellJourney/BloodCellJourney/Config/Config.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "92"
-                  endingLineNumber = "92">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

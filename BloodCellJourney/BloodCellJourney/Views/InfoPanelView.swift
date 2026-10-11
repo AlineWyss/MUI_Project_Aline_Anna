@@ -2,11 +2,11 @@
 //  InfoPanelView.swift
 //  BloodCellJourney
 //
-//  The text panel on the right: what is happening and what to do next.
-//  (The facts behind (i) open inside the label itself, see CellLabelView.)
-//
-//  NEU: Steht die Aufgabe (hint) schon als Label unter einem Modell
-//  (controller.hintBelowObject), wird sie hier nicht nochmals angezeigt.
+//  NEU: Hier wird nichts mehr angezeigt.
+//  • Die Textbox ist weg; die gelbe Aufgabe steht unter dem 3D-Objekt (TaskHintView).
+//  • Der "Weiter"-Knopf ist weg; der Ablauf geht automatisch weiter
+//    (siehe JourneyController.setPanel).
+//  Die Datei bleibt bestehen, weil JourneyController sie noch verwendet.
 //
 
 import SwiftUI
@@ -15,43 +15,6 @@ struct InfoPanelView: View {
     let controller: JourneyController
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            if let panel = controller.panel {
-                VStack(alignment: .leading, spacing: 14) {
-                    Text(panel.title)
-                        .font(.title.weight(.bold))
-                    Text(panel.body)
-                        .font(.title3)
-                        .fixedSize(horizontal: false, vertical: true)
-                    // NEU: nur zeigen, wenn die Aufgabe NICHT unter dem Modell steht
-                    if let hint = panel.hint, !controller.hintBelowObject {
-                        Label(hint, systemImage: "hand.pinch.fill")
-                            .font(.title3.weight(.semibold))
-                            .foregroundStyle(.yellow)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    if let title = panel.continueTitle {
-                        Button {
-                            controller.continueTapped()
-                        } label: {
-                            Label(title, systemImage: "arrow.right")
-                                .font(.title3.weight(.semibold))
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 4)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.red)
-                        .padding(.top, 4)
-                    }
-                }
-                .padding(32)
-                .frame(width: 520, alignment: .leading)
-                .glassBackgroundEffect()
-                .id(panel.id)
-                .transition(.opacity)
-            }
-        }
-        .animation(.easeInOut(duration: 0.4), value: controller.panel)
-        .animation(.easeInOut(duration: 0.3), value: controller.hintBelowObject)
+        EmptyView()
     }
 }

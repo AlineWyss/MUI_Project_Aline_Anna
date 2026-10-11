@@ -486,14 +486,43 @@ final class JourneyController {
         }
     }
 
+    /// Setzt den Inhalt des aktuellen Schritts.
+    /// NEU: Titel und Erklärung werden nicht mehr angezeigt (keine Box mehr).
+    /// panel wird trotzdem gesetzt, weil die Aufgabe (hint) und der "Weiter"-Knopf
+    /// (continueTitle) daraus gelesen werden.
+    /// Wartezeit, bevor es automatisch weitergeht (Sekunden).
+    /// 0 = sofort. Ein kleiner Wert lässt das neue Modell kurz wirken,
+    /// bevor der nächste Schritt beginnt.
+    private static let autoContinueDelay: Double = 1.0
+
+    /// Setzt den Inhalt des aktuellen Schritts.
+    /// Titel und Erklärung werden nicht mehr angezeigt (keine Box mehr).
+    /// panel wird trotzdem gesetzt, weil die Aufgabe (hint) daraus gelesen wird.
+    ///
+    /// NEU: Hat ein Schritt einen "Weiter"-Knopf (continueTitle), wird dieser nicht
+    /// mehr angezeigt. Stattdessen geht es nach autoContinueDelay automatisch weiter –
+    /// genau so, als hätte die Person den Knopf gedrückt (continueTapped).
     func setPanel(_ content: PanelContent?) {
+        let isNew = content != panel   // nur bei einem wirklich neuen Schritt weiterschalten
         panel = content
         if content != nil {
             panelSlot.show(at: Layout.panelSlot)
         } else {
             panelSlot.hide()
         }
-        updateTaskHint()   // NEU: neuer Text → Aufgabe unter dem Modell anpassen
+        updateTaskHint()   // neuer Text → Aufgabe unter dem Modell anpassen
+
+        // Automatisch weiter statt "Next"-Knopf
+        if isNew, let content, content.continueTitle != nil {
+            let id = runID
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(Self.autoContinueDelay))
+                // Nur weiter, wenn inzwischen nicht neu gestartet wurde
+                // und noch derselbe Schritt angezeigt wird.
+                guard id == self.runID, self.panel == content else { return }
+                self.continueTapped()
+            }
+        }
     }
 
     func setMainLabel(_ content: LabelContent?, on item: StageItem?, height: Float? = nil) {
@@ -546,12 +575,18 @@ final class JourneyController {
     }
 
     // MARK: - Aufgabe unter dem Modell (NEU)
+    //
+    // Die Textbox rechts gibt es nicht mehr. Die gelbe Aufgabe (panel.hint), die
+    // vorher in der Box stand, erscheint jetzt als Label UNTER einem 3D-Objekt.
+    // Welches Objekt, wird so entschieden:
+    //   1. das Objekt, das zum Schritt gehört (hintTarget)
+    //   2. sonst das erste gerade sichtbare Objekt auf der Bühne
+    //   3. nur wenn gar kein Objekt sichtbar ist: dort, wo früher die Box war
 
     /// Abstand zwischen der Unterkante eines Modells und dem Aufgaben-Label darunter (Meter).
     private static let hintGap: Float = 0.03
 
     /// Unter welchem Modell steht die Aufgabe in welchem Schritt?
-    /// nil = kein passendes Modell → die Aufgabe bleibt wie bisher im Textfeld rechts.
     /// HIER kannst du die Zuordnung anpassen.
     func hintTarget(for step: JourneyStep) -> StageItem? {
         switch step {
@@ -568,24 +603,52 @@ final class JourneyController {
         }
     }
 
+    /// true, wenn ein Objekt gerade in der Szene und sichtbar ist.
+    private func isVisible(_ item: StageItem?) -> Bool {
+        guard let item, item.container.parent != nil, item.container.isEnabledInHierarchy else { return false }
+        return (item.container.components[OpacityComponent.self]?.opacity ?? 1) > 0.05
+    }
+
+    /// Ersatz, wenn der Schritt kein eigenes Objekt hat: das erste sichtbare Objekt.
+    private var firstVisibleItem: StageItem? {
+        [redBloodCell, developingCell, bodyCell, capillary, hemoglobin, oxygen, carbonDioxide]
+            .first { isVisible($0) } ?? nil
+    }
+
     /// Zeigt die Aufgabe (panel.hint) unter dem passenden Modell an oder blendet sie aus.
-    /// Wird bei jedem Schrittwechsel (step.didSet), jedem neuen Panel-Text (setPanel)
+    /// Wird bei jedem Schrittwechsel (step.didSet), jedem neuen Text (setPanel)
     /// und jedem neu platzierten Modell (place) aufgerufen.
     func updateTaskHint() {
-        guard panel?.hint != nil,                            // gibt es überhaupt eine Aufgabe?
-              let item = hintTarget(for: step),              // gibt es ein passendes Modell?
-              item.container.parent != nil else {            // ist es schon in der Szene?
+        // Keine Aufgabe zeigen, solange der Start-Knopf sichtbar ist:
+                // Der Knopf sagt schon, was zu tun ist, und beide lägen übereinander.
+                guard panel?.hint != nil, !showsStartButton else {
             hintBelowObject = false
             hintSlot?.hide()
             return
         }
-        hintBelowObject = true
-        let entity = hintSlot.show()
-        // Wie beim Start-Knopf: Die Oberkante des Labels hängt unter der Unterkante
-        // des Modells und wandert mit, wenn sich das Modell bewegt.
-        follow(entity, item.container,
-               offset: SIMD3<Float>(0, -(item.halfHeight + Self.hintGap), 0),
-               anchor: .top)
+
+        // 1. Objekt des Schritts, 2. sonst irgendein sichtbares Objekt
+        //    (Beim Objekt des Schritts reicht es, dass es in der Szene ist – es kann
+        //    gerade noch einblenden. Beim Ersatz muss es schon sichtbar sein.)
+        let mapped = hintTarget(for: step)
+        let item = mapped?.container.parent != nil ? mapped : firstVisibleItem
+
+        if let item {
+            hintBelowObject = true
+            let entity = hintSlot.show()
+            // Wie beim Start-Knopf: Die Oberkante des Labels hängt unter der Unterkante
+            // des Modells und wandert mit, wenn sich das Modell bewegt.
+            follow(entity, item.container,
+                   offset: SIMD3<Float>(0, -(item.halfHeight + Self.hintGap), 0),
+                   anchor: .top)
+        } else {
+            // 3. Kein Objekt sichtbar (z. B. während das Blutkörperchen im
+            //    Anatomie-Modell unterwegs ist): an der Stelle der früheren Box.
+            hintBelowObject = false
+            let entity = hintSlot.show(at: Layout.panelSlot)
+            entity.components.remove(FollowComponent.self)
+            entity.position = Layout.panelSlot
+        }
     }
 
     /// Keeps an attachment (child of the focus area) next to `target` every frame.
@@ -817,6 +880,18 @@ final class JourneyController {
         infoCard = nil
         setPanel(nil)
         showStartButton(below: nil)
+        func showStartButton(below item: StageItem?) {
+            showsStartButton = item != nil
+            if let item {
+                let entity = startButtonSlot.show()
+                follow(entity, item.container,
+                       offset: SIMD3<Float>(0, -(item.halfHeight + Layout.buttonGap), 0),
+                       anchor: .top)
+            } else {
+                startButtonSlot.hide()
+            }
+            updateTaskHint()   // NEU: Start-Knopf erscheint/verschwindet → Aufgabe ein-/ausblenden
+        }
         hideHeartCounter()
         setStartPromptVisible(false)
     }
