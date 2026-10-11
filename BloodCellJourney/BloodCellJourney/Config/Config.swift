@@ -103,6 +103,8 @@ enum Layout {
     static let labelGap: Float = 0.02
     /// Gap between the bottom of a model and the top edge of the start button.
     static let buttonGap: Float = 0.035
+    /// Abstand zwischen der Unterkante eines Modells und dem Aufgaben-Label darunter.
+    static let hintGap: Float = 0.03
 
 
     static let squeezeStart = SIMD3<Float>(-0.2, 0, -0.05)

@@ -28,7 +28,9 @@ final class JourneyController {
 
     // MARK: - UI state (read by the SwiftUI views)
 
-    var step: JourneyStep = .searching
+    var step: JourneyStep = .searching {
+        didSet { updateTaskHint() }   // neuer Schritt → Aufgabe unter das richtige Modell
+    }
     var panel: PanelContent?
     var mainLabel: LabelContent?
     var secondaryLabel: LabelContent?
@@ -36,6 +38,9 @@ final class JourneyController {
     var infoCard: LabelContent?
     /// True while the person holds a model.
     var isHolding = false
+    /// true = die Aufgabe steht gerade als Label unter einem Modell
+    /// (dann blendet InfoPanelView sie im Textfeld aus).
+    var hintBelowObject = false
     var heartBeats = 0
     let requiredHeartBeats = Timing.requiredHeartBeats
     var message: MessageContent? = StoryText.Messages.loading
@@ -63,6 +68,7 @@ final class JourneyController {
     @ObservationIgnored var startPromptSlot: AttachmentSlot!
     @ObservationIgnored var messageSlot: AttachmentSlot!
     @ObservationIgnored var finalPanelSlot: AttachmentSlot!
+    @ObservationIgnored var hintSlot: AttachmentSlot!
 
     // MARK: - Stage items
 
@@ -457,11 +463,16 @@ final class JourneyController {
         finalPanelSlot = AttachmentSlot(name: "FinalPanel", parent: focusRoot) { [unowned self] in
             FinalPanelView(controller: self)
         }
+        // NEU: Die Aufgabe ("Zieh … in …") als Label unter dem Modell, mit dem
+        // die Person gerade etwas tun soll (siehe updateTaskHint).
+        hintSlot = AttachmentSlot(name: "TaskHint", parent: focusRoot) { [unowned self] in
+            TaskHintView(controller: self)
+        }
     }
 
     var attachmentSlots: [AttachmentSlot] {
         [panelSlot, mainLabelSlot, secondaryLabelSlot, startButtonSlot, heartSlot, startPromptSlot,
-         messageSlot, finalPanelSlot]
+         messageSlot, finalPanelSlot, hintSlot]   // NEU: hintSlot
     }
 
     // MARK: - UI helpers
@@ -482,6 +493,7 @@ final class JourneyController {
         } else {
             panelSlot.hide()
         }
+        updateTaskHint()   // NEU: neuer Text → Aufgabe unter dem Modell anpassen
     }
 
     func setMainLabel(_ content: LabelContent?, on item: StageItem?, height: Float? = nil) {
@@ -531,6 +543,49 @@ final class JourneyController {
         } else {
             startButtonSlot.hide()
         }
+    }
+
+    // MARK: - Aufgabe unter dem Modell (NEU)
+
+    /// Abstand zwischen der Unterkante eines Modells und dem Aufgaben-Label darunter (Meter).
+    private static let hintGap: Float = 0.03
+
+    /// Unter welchem Modell steht die Aufgabe in welchem Schritt?
+    /// nil = kein passendes Modell → die Aufgabe bleibt wie bisher im Textfeld rechts.
+    /// HIER kannst du die Zuordnung anpassen.
+    func hintTarget(for step: JourneyStep) -> StageItem? {
+        switch step {
+        case .addHemoglobin:        return hemoglobin       // Hämoglobin in die Zelle ziehen
+        case .ejectNucleus:         return developingCell   // Kern sitzt IN der Zelle → Label unter die Zelle
+        case .lungsOxygen:          return oxygen           // O₂ zum Blutkörperchen ziehen
+        case .organsExchange,                               // Moleküle hängen am Blutkörperchen
+             .lungsCarbonDioxide,
+             .squeezeIntoBlood,                             // Blutkörperchen durch die Kapillare
+             .aging:
+            return redBloodCell
+        default:
+            return nil
+        }
+    }
+
+    /// Zeigt die Aufgabe (panel.hint) unter dem passenden Modell an oder blendet sie aus.
+    /// Wird bei jedem Schrittwechsel (step.didSet), jedem neuen Panel-Text (setPanel)
+    /// und jedem neu platzierten Modell (place) aufgerufen.
+    func updateTaskHint() {
+        guard panel?.hint != nil,                            // gibt es überhaupt eine Aufgabe?
+              let item = hintTarget(for: step),              // gibt es ein passendes Modell?
+              item.container.parent != nil else {            // ist es schon in der Szene?
+            hintBelowObject = false
+            hintSlot?.hide()
+            return
+        }
+        hintBelowObject = true
+        let entity = hintSlot.show()
+        // Wie beim Start-Knopf: Die Oberkante des Labels hängt unter der Unterkante
+        // des Modells und wandert mit, wenn sich das Modell bewegt.
+        follow(entity, item.container,
+               offset: SIMD3<Float>(0, -(item.halfHeight + Self.hintGap), 0),
+               anchor: .top)
     }
 
     /// Keeps an attachment (child of the focus area) next to `target` every frame.
@@ -636,6 +691,7 @@ final class JourneyController {
     func place(_ item: StageItem, at position: SIMD3<Float>) {
         focusRoot.addChild(item.container)
         item.container.position = position
+        updateTaskHint()   // NEU: neues Modell → evtl. gehört die Aufgabe jetzt darunter
     }
 
     func popIn(_ item: StageItem, duration: TimeInterval = Timing.pop) {
@@ -668,9 +724,10 @@ final class JourneyController {
         }
     }
 
-    /// Stops labels and the Start button from following an item that is about to be removed.
+    /// Stops labels, the Start button and the task hint from following an item that is about to be removed.
     func detachUI(from item: StageItem) {
-        for entity in [mainLabelSlot.entity, secondaryLabelSlot.entity, startButtonSlot.entity].compactMap({ $0 }) {
+        for entity in [mainLabelSlot.entity, secondaryLabelSlot.entity, startButtonSlot.entity,
+                       hintSlot.entity].compactMap({ $0 }) {   // NEU: hintSlot.entity
             if let target = entity.components[FollowComponent.self]?.target, target.isInside(item.container) {
                 entity.components.remove(FollowComponent.self)
             }

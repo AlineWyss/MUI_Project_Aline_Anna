@@ -5,6 +5,9 @@
 //  The text panel on the right: what is happening and what to do next.
 //  (The facts behind (i) open inside the label itself, see CellLabelView.)
 //
+//  NEU: Steht die Aufgabe (hint) schon als Label unter einem Modell
+//  (controller.hintBelowObject), wird sie hier nicht nochmals angezeigt.
+//
 
 import SwiftUI
 
@@ -20,7 +23,8 @@ struct InfoPanelView: View {
                     Text(panel.body)
                         .font(.title3)
                         .fixedSize(horizontal: false, vertical: true)
-                    if let hint = panel.hint {
+                    // NEU: nur zeigen, wenn die Aufgabe NICHT unter dem Modell steht
+                    if let hint = panel.hint, !controller.hintBelowObject {
                         Label(hint, systemImage: "hand.pinch.fill")
                             .font(.title3.weight(.semibold))
                             .foregroundStyle(.yellow)
@@ -48,5 +52,6 @@ struct InfoPanelView: View {
             }
         }
         .animation(.easeInOut(duration: 0.4), value: controller.panel)
+        .animation(.easeInOut(duration: 0.3), value: controller.hintBelowObject)
     }
 }
