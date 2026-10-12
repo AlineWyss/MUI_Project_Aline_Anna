@@ -8,6 +8,9 @@
 //    left heart → arteries → capillaries (slow, cells turn dark red) → veins → right heart
 //    → pulmonary artery → lung capillaries (cells turn bright red again) → pulmonary veins → left heart
 //
+//  The colour change is gradual inside the capillaries: body capillaries hand over oxygen steadily
+//  along their length, lung capillaries are fully loaded a third of the way through.
+//
 //  Arterial blood moves in pulses with every heart beat; capillaries are slow; veins flow steadily.
 //
 //  Size: a real red blood cell is 7–8 µm wide – far too small to see on the model. Instead the
@@ -53,6 +56,9 @@ struct BloodCircuit {
     let path: SampledPath
     /// One entry per segment: `kinds[i]` lies between `path.points[i]` and `path.points[i + 1]`.
     let kinds: [VesselKind]
+    /// Where the body capillaries and the lung capillaries lie on the path (metres from the start).
+    var systemicBed: ClosedRange<Float>? = nil
+    var lungBed: ClosedRange<Float>? = nil
 }
 
 enum CirculationBuilder {
@@ -108,17 +114,71 @@ enum CirculationBuilder {
 private struct CircuitBuilder {
     private var points: [SIMD3<Float>] = []
     private var kinds: [VesselKind] = []
+    /// First and last segment of each vessel kind (to find the capillary beds).
+    private var segmentRanges: [VesselKind: (first: Int, last: Int)] = [:]
 
     mutating func append(_ segment: [SIMD3<Float>], kind: VesselKind) {
         for point in segment {
             if let last = points.last, simd_distance(last, point) < 0.0005 { continue }
-            if !points.isEmpty { kinds.append(kind) }
+            if !points.isEmpty {
+                kinds.append(kind)
+                let index = kinds.count - 1
+                segmentRanges[kind] = (first: segmentRanges[kind]?.first ?? index, last: index)
+            }
             points.append(point)
         }
     }
 
     func build() -> BloodCircuit {
-        BloodCircuit(path: SampledPath(points), kinds: kinds.isEmpty ? [.artery] : kinds)
+        let path = SampledPath(points)
+        func bed(_ kind: VesselKind) -> ClosedRange<Float>? {
+            guard let range = segmentRanges[kind], range.last + 1 < path.cumulative.count else { return nil }
+            return path.cumulative[range.first]...path.cumulative[range.last + 1]
+        }
+        return BloodCircuit(path: path, kinds: kinds.isEmpty ? [.artery] : kinds,
+                            systemicBed: bed(.capillary), lungBed: bed(.lungCapillary))
+    }
+}
+
+extension BloodCircuit {
+    /// Oxygen state at a point of the circuit. Inside the capillary beds the change is gradual:
+    /// body capillaries hand over oxygen steadily along their length, lung capillaries are fully
+    /// loaded a third of the way through. `threshold` (0…1, different for every cell) spreads the
+    /// switch, so the two colours blend into a gradient. 0.5 = an average cell (used for the tubes).
+    func isOxygenRich(_ kind: VesselKind, at distance: Float, threshold: Float) -> Bool {
+        func progress(through bed: ClosedRange<Float>?) -> Float? {
+            guard let bed, bed.upperBound > bed.lowerBound else { return nil }
+            return min(max((distance - bed.lowerBound) / (bed.upperBound - bed.lowerBound), 0), 1)
+        }
+        switch kind {
+        case .capillary:
+            guard let f = progress(through: systemicBed) else { return false }
+            return f < threshold
+        case .lungCapillary:
+            guard let f = progress(through: lungBed) else { return true }
+            return f * 3 >= threshold
+        default:
+            return kind.isOxygenRich
+        }
+    }
+
+    /// The path cut into stretches of one colour (for the glowing vessel tubes).
+    func colorRuns() -> [(points: [SIMD3<Float>], oxygenRich: Bool)] {
+        var runs: [(points: [SIMD3<Float>], oxygenRich: Bool)] = []
+        let points = path.points
+        guard points.count > 1 else { return runs }
+        for segment in 0..<(points.count - 1) {
+            let kind = kinds[min(segment, kinds.count - 1)]
+            let middle = (path.cumulative[segment] + path.cumulative[segment + 1]) / 2
+            let rich = isOxygenRich(kind, at: middle, threshold: 0.5)
+            if var last = runs.last, last.oxygenRich == rich {
+                last.points.append(points[segment + 1])
+                runs[runs.count - 1] = last
+            } else {
+                runs.append((points: [points[segment], points[segment + 1]], oxygenRich: rich))
+            }
+        }
+        return runs
     }
 }
 
@@ -137,6 +197,8 @@ final class BloodStream {
         let offset: SIMD3<Float>
         /// Rotation and size of the cell; the position is written into it every frame.
         let basis: simd_float4x4
+        /// Where inside a capillary this cell changes colour (0…1); spreads the switch into a gradient.
+        let threshold: Float
     }
 
     let root = Entity()
@@ -179,7 +241,8 @@ final class BloodStream {
                                   distance: distance,
                                   speed: Config.flowSpeed * random.next(in: 0.85...1.15),
                                   offset: offset,
-                                  basis: basis))
+                                  basis: basis,
+                                  threshold: random.next()))
             }
         }
 
@@ -243,6 +306,7 @@ final class BloodStream {
                     let circuit = circuits[cell.circuit]
                     let located = circuit.path.locate(distance: cell.distance)
                     let kind = circuit.kinds[min(located.segment, circuit.kinds.count - 1)]
+                    let oxygenRich = circuit.isOxygenRich(kind, at: cell.distance, threshold: cell.threshold)
 
                     var pulse: Float = 1
                     if kind.isPulsatile {
@@ -259,7 +323,7 @@ final class BloodStream {
                     var matrix = cell.basis
                     let position = located.point + cell.offset
                     matrix.columns.3 = SIMD4<Float>(position.x, position.y, position.z, 1)
-                    if kind.isOxygenRich {
+                    if oxygenRich {
                         rich[index] = matrix
                         poor[index] = Self.hidden
                     } else {

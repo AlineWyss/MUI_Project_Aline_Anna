@@ -26,6 +26,8 @@ final class StageItem {
     }
 
     let container = Entity()
+    /// Turned by the hand while the item is held (see JourneyController+Interaction).
+    let spin = Entity()
     let motion = Entity()
     let body = Entity()
 

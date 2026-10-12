@@ -105,10 +105,13 @@ final class AnatomyOverlay {
     private func buildVesselTubes() {
         let tubes = Entity()
         tubes.name = "VesselTubes"
-        let material = MaterialTools.glow(Palette.artery, opacity: Config.vesselTubeOpacity)
+        let rich = MaterialTools.glow(Palette.rbcOxygenated, opacity: Config.vesselTubeOpacity)
+        let poor = MaterialTools.glow(Palette.rbcDeoxygenated, opacity: Config.vesselTubeOpacity)
         for (index, circuit) in CirculationBuilder.circuits().enumerated() where index % 2 == 0 {
-            if let mesh = try? TubeMesh.generate(along: circuit.path.points, radius: 0.003) {
-                tubes.addChild(ModelEntity(mesh: mesh, materials: [material]))
+            for run in circuit.colorRuns() {
+                if let mesh = try? TubeMesh.generate(along: run.points, radius: 0.003) {
+                    tubes.addChild(ModelEntity(mesh: mesh, materials: [run.oxygenRich ? rich : poor]))
+                }
             }
         }
         // Part of the stream, so the tubes show and hide together with it.

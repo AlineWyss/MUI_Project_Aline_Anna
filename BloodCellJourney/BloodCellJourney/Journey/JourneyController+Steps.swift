@@ -333,6 +333,8 @@ extension JourneyController {
             guard await self.pause(0.7, id) else { return }
             self.remove(molecule, duration: 0.4)
             self.oxygen = nil
+            // The oxygen has left the red blood cell: it turns dark red now, while the CO₂ is on its way.
+            self.setLook(cell, .withoutOxygen, animated: true, duration: 1.6)
             guard await self.pause(0.5, id) else { return }
 
             // Carbon dioxide comes out of the body cell and travels to the red blood cell by itself.
@@ -347,7 +349,6 @@ extension JourneyController {
             self.move(waste.container, to: slot, duration: 1.1)
             guard await self.pause(1.15, id) else { return }
             self.bind(waste, to: cell, at: self.carbonDioxideSlot(on: cell), duration: 0.2)
-            self.setLook(cell, .withoutOxygen, animated: true, duration: 1.6)
             self.interactionLocked = false
             self.enterPump(toOrgans: false)
         }

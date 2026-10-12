@@ -90,6 +90,12 @@ final class JourneyController {
         let startLocation: SIMD3<Float>
         /// Identifies the gesture; a new start location means the old gesture was cancelled.
         let gestureStart: Point3D
+        /// Wrist rotation when the grab started (nil if the input device reports no pose).
+        let handStart: Rotation3D?
+        /// Orientation of the item's spin entity when the grab started.
+        let spinStart: simd_quatf
+        /// False where the item must keep its orientation (red blood cell in the squeeze steps).
+        let rotates: Bool
         var blocked = false
     }
 
@@ -582,12 +588,14 @@ final class JourneyController {
         updateTaskHint()   // Start-Knopf erscheint/verschwindet → Aufgabe ein-/ausblenden
     }
 
-    // MARK: - Aufgabe (TaskHint)
+    // MARK: - Aufgabe unter dem Modell (NEU)
     //
-    // Die Aufgabe (panel.hint) steht als Label an einer festen Stelle auf der Bühne.
-    // Die Stelle wird in Config.swift eingestellt: Layout.hintSlot.
-    // (hintTarget, isVisible und firstVisibleItem werden dafür nicht mehr gebraucht,
-    //  sie stören aber nicht.)
+    // Die Textbox rechts gibt es nicht mehr. Die gelbe Aufgabe (panel.hint), die
+    // vorher in der Box stand, erscheint jetzt als Label UNTER einem 3D-Objekt.
+    // Welches Objekt, wird so entschieden:
+    //   1. das Objekt, das zum Schritt gehört (hintTarget)
+    //   2. sonst das erste gerade sichtbare Objekt auf der Bühne
+    //   3. nur wenn gar kein Objekt sichtbar ist: dort, wo früher die Box war
 
     /// Abstand zwischen der Unterkante eines Modells und dem Aufgaben-Label darunter (Meter).
     private static let hintGap: Float = 0.03
@@ -621,23 +629,40 @@ final class JourneyController {
             .first { isVisible($0) } ?? nil
     }
 
-    /// Zeigt die Aufgabe (panel.hint) an einer FESTEN Stelle an: Layout.hintSlot in Config.swift.
-    /// Das Label wandert nicht mehr mit den Objekten mit.
-    /// Sobald die Person ein Objekt nimmt, blendet TaskHintView das Label aus (isHolding).
+    /// Zeigt die Aufgabe (panel.hint) unter dem passenden Modell an oder blendet sie aus.
+    /// Wird bei jedem Schrittwechsel (step.didSet), jedem neuen Text (setPanel)
+    /// und jedem neu platzierten Modell (place) aufgerufen.
     func updateTaskHint() {
-        // Keine Aufgabe, oder der Start-Knopf ist sichtbar → kein Label
-        // (der Knopf sagt schon, was zu tun ist, und beide lägen übereinander).
-        guard panel?.hint != nil, !showsStartButton else {
+        // Keine Aufgabe zeigen, solange der Start-Knopf sichtbar ist:
+                // Der Knopf sagt schon, was zu tun ist, und beide lägen übereinander.
+                guard panel?.hint != nil, !showsStartButton else {
             hintBelowObject = false
             hintSlot?.hide()
             return
         }
-        hintBelowObject = true
-        let entity = hintSlot.show(at: Layout.hintSlot)
-        // Falls das Label vorher einem Objekt gefolgt ist: diese Verbindung lösen,
-        // damit es fest an seiner Stelle bleibt.
-        entity.components.remove(FollowComponent.self)
-        entity.position = Layout.hintSlot
+
+        // 1. Objekt des Schritts, 2. sonst irgendein sichtbares Objekt
+        //    (Beim Objekt des Schritts reicht es, dass es in der Szene ist – es kann
+        //    gerade noch einblenden. Beim Ersatz muss es schon sichtbar sein.)
+        let mapped = hintTarget(for: step)
+        let item = mapped?.container.parent != nil ? mapped : firstVisibleItem
+
+        if let item {
+            hintBelowObject = true
+            let entity = hintSlot.show()
+            // Wie beim Start-Knopf: Die Oberkante des Labels hängt unter der Unterkante
+            // des Modells und wandert mit, wenn sich das Modell bewegt.
+            follow(entity, item.container,
+                   offset: SIMD3<Float>(0, -(item.halfHeight + Self.hintGap), 0),
+                   anchor: .top)
+        } else {
+            // 3. Kein Objekt sichtbar (z. B. während das Blutkörperchen im
+            //    Anatomie-Modell unterwegs ist): an der Stelle der früheren Box.
+            hintBelowObject = false
+            let entity = hintSlot.show(at: Layout.panelSlot)
+            entity.components.remove(FollowComponent.self)
+            entity.position = Layout.panelSlot
+        }
     }
 
     /// Keeps an attachment (child of the focus area) next to `target` every frame.
@@ -681,14 +706,15 @@ final class JourneyController {
         overlay.setZone(zone)
     }
 
+    /// Shows the "Tap the heart" counter next to the heart of the anatomy model, on the side
+    /// facing the person and the focus area, so it never covers the heart.
     /// Where the scanned heart floats while it is pumped: in front of the model's heart, towards the person.
     func heartPopOutPosition() -> SIMD3<Float> {
         let heartWorld = anatomyRoot.convert(position: AnatomyMap.p(.heart), to: nil)
         let toPerson = horizontalDirectionToPerson(from: heartWorld)
         return anatomyRoot.convert(position: heartWorld + toPerson * Layout.heartPopOutDistance, from: nil)
     }
-    /// Shows the "Tap the heart" counter next to the heart of the anatomy model, on the side
-    /// facing the person and the focus area, so it never covers the heart.
+
     func showHeartCounter() {
         showsHeart = true
         let heartWorld = anatomyRoot.convert(position: AnatomyMap.p(.heart), to: nil)
@@ -704,8 +730,6 @@ final class JourneyController {
         showsHeart = false
         heartSlot.hide()
     }
-    
-
 
     // MARK: - Attention: the cell travels inside the anatomy model
 
@@ -810,6 +834,7 @@ final class JourneyController {
         item.container.components.remove(HoverEffectComponent.self)
         draggables[ObjectIdentifier(item.container)] = nil
         if drag?.item === item {
+            returnSpin(item)
             drag = nil
             isHolding = false
         }
@@ -825,6 +850,7 @@ final class JourneyController {
         }
         item.currentColor = target
     }
+
     /// Shows a red blood cell with or without oxygen (its two base-colour PNGs). animated = crossfade.
     /// The marker in the anatomy model takes the same look.
     func setLook(_ item: StageItem, _ look: CellLook, animated: Bool, duration: Double = 1.2) {
@@ -945,4 +971,3 @@ extension Entity {
         return false
     }
 }
-

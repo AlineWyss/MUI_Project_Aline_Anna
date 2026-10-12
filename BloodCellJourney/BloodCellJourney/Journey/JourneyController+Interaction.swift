@@ -4,6 +4,9 @@
 //
 //  Drag and tap handling. Every draggable model is a StageItem whose container has a
 //  DraggableComponent, a collision sphere and an input target (see makeDraggable).
+//  While an item is held, turning the wrist turns it (amplified by Layout.grabRotationGain);
+//  the turn goes on the item's spin entity, so labels stay upright and the idle motion keeps running.
+//  On release it turns smoothly back.
 //
 
 import Foundation
@@ -31,6 +34,7 @@ extension JourneyController {
         // SwiftUI does not call onEnded when a gesture is cancelled (e.g. hand tracking lost).
         // A different start location means a new gesture: drop the stale session.
         if let stale = drag, stale.gestureStart != value.startLocation3D {
+            returnSpin(stale.item)
             drag = nil
             isHolding = false
         }
@@ -43,7 +47,10 @@ extension JourneyController {
             drag = DragSession(item: item,
                                startPosition: item.container.position,
                                startLocation: start,
-                               gestureStart: value.startLocation3D)
+                               gestureStart: value.startLocation3D,
+                               handStart: value.startInputDevicePose3D?.rotation,
+                               spinStart: item.spin.orientation,
+                               rotates: canRotate(item))
         }
 
         guard var session = drag, let parent = session.item.container.parent else { return }
@@ -51,6 +58,12 @@ extension JourneyController {
         let proposed = session.startPosition + (location - session.startLocation)
         let position = constrain(session.item, proposed, session: &session)
         session.item.container.position = position
+        if session.rotates, let handStart = session.handStart, let hand = value.inputDevicePose3D?.rotation {
+            let turn = handTurn(from: handStart, to: hand)
+            // The turn is in scene space; the spin entity lives in the container's space.
+            let frame = session.item.container.orientation(relativeTo: nil)
+            session.item.spin.orientation = frame.inverse * turn * frame * session.spinStart
+        }
         // `constrain` may have finished the step (and ended the drag) – only keep a running session.
         if drag != nil {
             drag = session
@@ -61,6 +74,7 @@ extension JourneyController {
         guard let session = drag else { return }
         drag = nil
         isHolding = false
+        returnSpin(session.item)
         finishDrag(session)
     }
 
@@ -73,8 +87,30 @@ extension JourneyController {
         return nil
     }
 
+    /// The red blood cell has to fit the gap in the two squeeze steps, so it can't be turned there.
+    private func canRotate(_ item: StageItem) -> Bool {
+        !(item === redBloodCell && (step == .squeezeIntoBlood || step == .aging))
+    }
+
+    /// How far the wrist has turned since the grab started, in scene space, amplified by Layout.grabRotationGain.
+    private func handTurn(from start: Rotation3D, to current: Rotation3D) -> simd_quatf {
+        var delta = simd_quatf(current) * simd_quatf(start).inverse
+        if delta.real < 0 { delta = simd_quatf(vector: -delta.vector) }   // shortest way round
+        // Gesture values use SwiftUI's space (y down); negating x and z gives RealityKit's scene space.
+        let turn = simd_quatf(ix: -delta.imag.x, iy: delta.imag.y, iz: -delta.imag.z, r: delta.real)
+        guard turn.angle > 0.0001 else { return simd_quatf(angle: 0, axis: SIMD3<Float>(0, 1, 0)) }
+        return simd_quatf(angle: turn.angle * Layout.grabRotationGain, axis: turn.axis)
+    }
+
+    /// Turns an item smoothly back to how it was before it was grabbed.
+    func returnSpin(_ item: StageItem) {
+        item.spin.move(to: Transform(), relativeTo: item.container,
+                       duration: Timing.grabRotationReturn, timingFunction: .easeInOut)
+    }
+
     private func beginDrag(_ item: StageItem) {
         item.container.stopAllAnimations()
+        item.spin.stopAllAnimations()
         item.container.scale = SIMD3<Float>(repeating: 1)
         // Molecules attached to the red blood cell are lifted out into the focus area.
         // The nucleus stays inside its cell so its distance from the centre can be measured.
@@ -155,4 +191,3 @@ extension JourneyController {
         }
     }
 }
-

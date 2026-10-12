@@ -99,7 +99,7 @@ enum Layout {
     /// The scanned heart while it is pumped: 2 = twice its real size (~16 cm).
     static let heartModelScale: Float = 0.8
     /// How far the heart floats out of the model, towards the person.
-    static let heartPopOutDistance: Float = 0.25
+    static let heartPopOutDistance: Float = 0.6
     /// Turn the scan around its vertical axis if its front doesn't face you (radians, e.g. .pi / 2).
     static let heartModelYaw: Float = 0
     /// Size of the red blood cell while it flies into / out of the anatomy model.
@@ -118,6 +118,8 @@ enum Layout {
           ///   z = nach hinten (−) / zur Person hin (+)
         static let hintSlot = SIMD3<Float>(-0.1, -0.15, 0.02)
     static let squeezeStart = SIMD3<Float>(-0.2, 0, -0.05)
+    /// A held object turns this many times as far as the wrist (2 = a small turn shows the back).
+    static let grabRotationGain: Float = 2
 
     /// Longest side of each model in the focus area, in metres.
     enum Size {
@@ -154,11 +156,13 @@ enum Timing {
     static let squeezeRelax: Double = 0.8
     /// Seconds for the old cell to spring back after it got stuck.
     static let springBack: Double = 0.45
+    /// Seconds a released object takes to turn back to how it was.
+    static let grabRotationReturn: Double = 0.4
 }
 
 enum Palette {
-    static let rbcOxygenated = UIColor(red: 0.96, green: 0.07, blue: 0.09, alpha: 1)    // scarlet
-    static let rbcDeoxygenated = UIColor(red: 0.60, green: 0.03, blue: 0.09, alpha: 1)  // dark burgundy
+    static let rbcOxygenated = UIColor(red: 0.63, green: 0.08, blue: 0.08, alpha: 1)    // average of RBC_withOxygen.png
+    static let rbcDeoxygenated = UIColor(red: 0.43, green: 0.04, blue: 0.04, alpha: 1)  // average of RBC_withoutOxygen.png // dark burgundy
     static let rbcAged = UIColor(red: 0.62, green: 0.25, blue: 0.21, alpha: 1)          // dull brown-red
     static let hemoglobinFill = UIColor(red: 0.85, green: 0.10, blue: 0.12, alpha: 1)
 
