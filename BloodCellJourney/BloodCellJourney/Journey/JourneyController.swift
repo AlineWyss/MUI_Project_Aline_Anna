@@ -165,7 +165,11 @@ final class JourneyController {
 
         switch mode {
         case .physicalModel:
-            updateSearchMessage()
+            if hasAnatomyPose && step == .searching {
+                enterIntro()          // the model was already found while the models were loading
+            } else {
+                updateSearchMessage()
+            }
         case .virtualModel:
             await startVirtualModel()
         }
