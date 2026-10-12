@@ -21,7 +21,7 @@ struct TaskHintView: View {
         if let hint = controller.panel?.hint, !controller.isHolding {
             Label(hint, systemImage: "hand.pinch.fill")
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(.yellow)
+                .foregroundStyle(Color(uiColor: Palette.taskHint))
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 320)                              // lange Texte umbrechen
                 .fixedSize(horizontal: false, vertical: true)
