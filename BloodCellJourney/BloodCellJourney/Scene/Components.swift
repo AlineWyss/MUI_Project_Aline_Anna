@@ -300,6 +300,7 @@ struct MarkerSystem: System {
                     trailPoint = marker.path.point(at: max(distance, 0) / length)
                 }
                 piece.position = trailPoint - point
+                piece.isEnabled = moving        // no trail while the marker stands still
             }
             entity.components.set(marker)
         }

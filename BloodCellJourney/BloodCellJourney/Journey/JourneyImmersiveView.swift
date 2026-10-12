@@ -55,4 +55,5 @@ struct JourneyImmersiveView: View {
                 controller.tapped(value.entity)
             }
     }
+
 }

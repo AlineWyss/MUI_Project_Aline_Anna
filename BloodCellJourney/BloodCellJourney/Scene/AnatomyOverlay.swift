@@ -13,7 +13,6 @@
 import Foundation
 import RealityKit
 import UIKit
-import RealityKitContent
 import simd
 
 @MainActor
@@ -152,176 +151,105 @@ final class AnatomyOverlay {
         }
     }
 
-    /* private func buildMarker() {
-        let core = ModelEntity(mesh: .generateSphere(radius: 0.010), materials: [MaterialTools.glow(Palette.marker)])
-        let halo = ModelEntity(mesh: .generateSphere(radius: 0.024),
-                               materials: [MaterialTools.glow(Palette.markerHalo, opacity: 0.45)])
-        halo.components.set(PulseComponent(baseScale: SIMD3<Float>(repeating: 1), amount: 0.25, speed: 5))
-        marker.addChild(core)
-        marker.addChild(halo)
+    // MARK: - Marker ("our" red blood cell on the anatomy model)
+
+    /// The marker: a glowing disc behind the cell and a fading trail. The 3D red blood cell itself is
+    /// added later with `setMarkerCell(_:)`, as soon as ModelLibrary has loaded it (see prepare()).
+    private func buildMarker() {
+
+        // MARK: Glowing disc BEHIND the blood cell
+        // A flat round glow that always faces the person and sits 1.5 cm behind the cell's centre
+        // (seen from the person), so it can never cover the cell.
+
+        let haloPivot = Entity()
+        haloPivot.name = "MarkerHaloPivot"
+        haloPivot.components.set(BillboardComponent())          // +z always points at the person
+
+        let halo = ModelEntity(
+            mesh: .generatePlane(width: 0.048, height: 0.048, cornerRadius: 0.024),
+            materials: [
+                MaterialTools.glow(
+                    Palette.markerHalo,
+                    opacity: 0.45
+                )
+            ]
+        )
+        halo.name = "MarkerHalo"
+        halo.position = SIMD3<Float>(0, 0, -0.015)
+        halo.components.set(
+            PulseComponent(
+                baseScale: SIMD3<Float>(repeating: 1),
+                amount: 0.25,
+                speed: 5
+            )
+        )
+
+        haloPivot.addChild(halo)
+        marker.addChild(haloPivot)
         glowEntities.append(halo)
 
-        // A fading light trail that shows where the cell has just been.
-        let trail = Entity()
-        trail.name = "MarkerTrail"
+        // MARK: Fading trail behind the blood cell
+        // Small spheres that start behind the cell (see trailSpacing in setMarker), so they don't cover it.
+
         let pieces = 10
+
         for index in 0..<pieces {
+
             let fraction = Float(index) / Float(pieces)
-            let piece = ModelEntity(mesh: .generateSphere(radius: 0.008 * (1 - fraction * 0.7)),
-                                    materials: [MaterialTools.glow(Palette.markerHalo, opacity: 0.55 * (1 - fraction))])
+
+            let piece = ModelEntity(
+                mesh: .generateSphere(
+                    radius: 0.008 * (1 - fraction * 0.7)
+                ),
+                materials: [
+                    MaterialTools.glow(
+                        Palette.markerHalo,
+                        opacity: 0.55 * (1 - fraction)
+                    )
+                ]
+            )
+
             marker.addChild(piece)
             markerTrail.append(piece)
             glowEntities.append(piece)
         }
-        setMarker(path: SampledPath([AnatomyMap.p(.rMarrow)]), progress: 0, target: 0, speed: 0.3, loops: false)
+
+        // MARK: Start position (hidden until the story needs it)
+
+        setMarker(
+            path: SampledPath([AnatomyMap.p(.rMarrow)]),
+            progress: 0,
+            target: 0,
+            speed: 0.3,
+            loops: false
+        )
+
         marker.isEnabled = false
         root.addChild(marker)
-    } */
-
-
-private func buildMarker() {
-
-    // MARK: - Glowing halo behind the 3D blood cell
-
-    let halo = ModelEntity(
-        mesh: .generateSphere(radius: 0.024),
-        materials: [
-            MaterialTools.glow(
-                Palette.markerHalo,
-                opacity: 0.45
-            )
-        ]
-    )
-
-    halo.name = "MarkerHalo"
-
-    halo.components.set(
-        PulseComponent(
-            baseScale: SIMD3<Float>(repeating: 1),
-            amount: 0.25,
-            speed: 5
-        )
-    )
-
-    marker.addChild(halo)
-    glowEntities.append(halo)
-    
-
-    // MARK: - Fading trail behind the blood cell
-
-    let pieces = 10
-
-    for index in 0..<pieces {
-
-        let fraction = Float(index) / Float(pieces)
-
-        let piece = ModelEntity(
-            mesh: .generateSphere(
-                radius: 0.008 * (1 - fraction * 0.7)
-            ),
-            materials: [
-                MaterialTools.glow(
-                    Palette.markerHalo,
-                    opacity: 0.55 * (1 - fraction)
-                )
-            ]
-        )
-
-        marker.addChild(piece)
-        markerTrail.append(piece)
-        glowEntities.append(piece)
     }
 
+    /// Puts the red blood cell model on the marker (a copy of the one ModelLibrary has already loaded,
+    /// so nothing is loaded a second time). Called from JourneyController.prepare().
+    func setMarkerCell(_ cell: Entity, diameter: Float = 0.020) {
+        marker.findEntity(named: "RedBloodCellVisual")?.removeFromParent()
 
-    // MARK: - Existing marker movement
+        let visual = Entity()
+        visual.name = "RedBloodCellVisual"
+        visual.addChild(cell)
 
-    setMarker(
-        path: SampledPath([AnatomyMap.p(.rMarrow)]),
-        progress: 0,
-        target: 0,
-        speed: 0.3,
-        loops: false
-    )
-
-    marker.isEnabled = false
-    root.addChild(marker)
-
-
-    // MARK: - Load the Reality Composer Pro 3D model
-
-    Task { [weak self] in
-
-        guard let self else { return }
-
-        do {
-            let library = try await Entity(
-                named: "BloodCellModels",
-                in: realityKitContentBundle
-            )
-
-            guard let redCell = library.findEntity(
-                named: ModelLibrary.Model.redBloodCell.rawValue
-            ) else {
-                print("RedBloodCell not found in BloodCellModels")
-                return
-            }
-
-            // Container for adjusting the model.
-            let visual = Entity()
-            visual.name = "RedBloodCellVisual"
-            visual.addChild(redCell)
-
-
-            // MARK: - Adjust blood cell size
-
-            let bounds = visual.visualBounds(
-                recursive: true,
-                relativeTo: visual
-            )
-
-            let maxDimension = max(
-                bounds.extents.x,
-                max(bounds.extents.y, bounds.extents.z)
-            )
-
-            if maxDimension > 0 {
-
-                // Change this to adjust the size.
-                let desiredDiameter: Float = 0.020
-
-                let scaleFactor = desiredDiameter / maxDimension
-
-                visual.scale = SIMD3<Float>(
-                    repeating: scaleFactor
-                )
-
-                // Center the model on the marker.
-                visual.position = -bounds.center * scaleFactor
-            }
-
-
-            // MARK: - Render model in front of halo and trail
-
-            let solid = ModelSortGroupComponent(
-                group: sortGroup,
-                order: Self.solidOrder
-            )
-
-            visual.forEachModelEntity {
-                $0.components.set(solid)
-            }
-
-
-            // MARK: - Attach model to moving marker
-
-            marker.addChild(visual)
-
-        } catch {
-            print("Failed to load RedBloodCell: \(error)")
+        let bounds = visual.visualBounds(recursive: true, relativeTo: visual)
+        let maxDimension = max(bounds.extents.x, max(bounds.extents.y, bounds.extents.z))
+        if maxDimension > 0 {
+            let scale = diameter / maxDimension
+            visual.scale = SIMD3<Float>(repeating: scale)
+            visual.position = -bounds.center * scale      // centred on the marker
         }
-    }
-}
 
+        // Drawn with the solid models, before the glow (see sortGroup).
+        let solid = ModelSortGroupComponent(group: sortGroup, order: Self.solidOrder)
+        visual.forEachModelEntity { $0.components.set(solid) }
+        marker.addChild(visual)
+    }
 
     private func buildTapTarget() {
         // Box around the whole figure (scan bounds: 0.48 × 0.94 × 0.26 m).
@@ -403,9 +331,10 @@ private func buildMarker() {
         heart.components.set(beat)
     }
 
-    // MARK: - Marker
+    // MARK: - Marker movement
 
     private func setMarker(path: SampledPath, progress: Float, target: Float, speed: Float, loops: Bool) {
+        // trailSpacing 0.018: the first trail sphere starts behind the 2 cm cell instead of overlapping it.
         marker.components.set(MarkerComponent(path: path, progress: progress, target: target, speed: speed,
                                               loops: loops, trail: markerTrail, trailSpacing: 0.012))
     }
@@ -462,12 +391,6 @@ private func buildMarker() {
     }
 
     /// Lets the marker run round and round (the cycle repeats).
-    /*func loop(_ route: AnatomyMap.Route, lapDuration: Double) {
-        marker.isEnabled = true
-        setMarker(path: path(for: route), progress: 0, target: 1, speed: Float(1 / max(lapDuration, 0.5)), loops: true)
-    } */
-
-    
     func loop(_ route: AnatomyMap.Route, lapDuration: Double) {
 
         marker.isEnabled = true

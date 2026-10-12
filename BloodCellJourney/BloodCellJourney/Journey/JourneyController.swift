@@ -157,6 +157,7 @@ final class JourneyController {
 
         do {
             try await library.load()
+            overlay.setMarkerCell(library.redBloodCellModel())
             // Read the baked squeeze animation now, so the squeeze step starts without a hitch.
             _ = try? SqueezeAnimation.shared()
         } catch {
@@ -494,7 +495,7 @@ final class JourneyController {
     /// Wartezeit, bevor es automatisch weitergeht (Sekunden).
     /// 0 = sofort. Ein kleiner Wert lässt das neue Modell kurz wirken,
     /// bevor der nächste Schritt beginnt.
-    private static let autoContinueDelay: Double = 1.0
+    private static let autoContinueDelay: Double = 5.0
 
     /// Setzt den Inhalt des aktuellen Schritts.
     /// Titel und Erklärung werden nicht mehr angezeigt (keine Box mehr).

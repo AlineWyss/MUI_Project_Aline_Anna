@@ -127,6 +127,11 @@ final class ModelLibrary {
         item.install(clone(.bodyCellInner), scale: fit.scale, rotation: fit.rotation)
         return item
     }
+    
+    /// A plain copy of the red blood cell model (for the marker on the anatomy model). Nothing is loaded again.
+    func redBloodCellModel() -> Entity {
+        clone(.redBloodCell)
+    }
 
     /// A capillary lying left-to-right, `length` metres long. Its centre line is measured from the mesh.
     func capillary(length: Float) -> StageItem {
