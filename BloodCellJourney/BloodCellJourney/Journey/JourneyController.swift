@@ -41,8 +41,6 @@ final class JourneyController {
     /// true = die Aufgabe steht gerade als Label unter einem Modell
     /// (dann blendet InfoPanelView sie im Textfeld aus).
     var hintBelowObject = false
-    /// NEU: Kurze Rückmeldung beim Herzpumpen ("Too early" …), erscheint statt der Aufgabe.
-    var pumpFeedback: String?
     var heartBeats = 0
     let requiredHeartBeats = Timing.requiredHeartBeats
     var message: MessageContent? = StoryText.Messages.loading
@@ -71,8 +69,6 @@ final class JourneyController {
     @ObservationIgnored var messageSlot: AttachmentSlot!
     @ObservationIgnored var finalPanelSlot: AttachmentSlot!
     @ObservationIgnored var hintSlot: AttachmentSlot!
-    /// NEU: Das 3D-Herz, das im Takt gedrückt werden muss (siehe PumpHeart.swift).
-    @ObservationIgnored var pumpHeart: PumpHeart?
 
     // MARK: - Stage items
 
@@ -188,7 +184,6 @@ final class JourneyController {
     func shutDown() {
         runID += 1
         tracking.stop()
-        stopPumpHeart(animated: false)   // NEU
         // The SwiftUI views hold the controller; removing them lets the closed scene be freed.
         attachmentSlots.forEach { $0.hide() }
     }
@@ -492,6 +487,10 @@ final class JourneyController {
         }
     }
 
+    /// Setzt den Inhalt des aktuellen Schritts.
+    /// NEU: Titel und Erklärung werden nicht mehr angezeigt (keine Box mehr).
+    /// panel wird trotzdem gesetzt, weil die Aufgabe (hint) und der "Weiter"-Knopf
+    /// (continueTitle) daraus gelesen werden.
     /// Wartezeit, bevor es automatisch weitergeht (Sekunden).
     /// 0 = sofort. Ein kleiner Wert lässt das neue Modell kurz wirken,
     /// bevor der nächste Schritt beginnt.
@@ -501,7 +500,7 @@ final class JourneyController {
     /// Titel und Erklärung werden nicht mehr angezeigt (keine Box mehr).
     /// panel wird trotzdem gesetzt, weil die Aufgabe (hint) daraus gelesen wird.
     ///
-    /// Hat ein Schritt einen "Weiter"-Knopf (continueTitle), wird dieser nicht
+    /// NEU: Hat ein Schritt einen "Weiter"-Knopf (continueTitle), wird dieser nicht
     /// mehr angezeigt. Stattdessen geht es nach autoContinueDelay automatisch weiter –
     /// genau so, als hätte die Person den Knopf gedrückt (continueTapped).
     func setPanel(_ content: PanelContent?) {
@@ -574,7 +573,6 @@ final class JourneyController {
         } else {
             startButtonSlot.hide()
         }
-        updateTaskHint()   // Start-Knopf erscheint/verschwindet → Aufgabe ein-/ausblenden
     }
 
     // MARK: - Aufgabe unter dem Modell (NEU)
@@ -622,22 +620,11 @@ final class JourneyController {
     /// Wird bei jedem Schrittwechsel (step.didSet), jedem neuen Text (setPanel)
     /// und jedem neu platzierten Modell (place) aufgerufen.
     func updateTaskHint() {
-        // Keine Aufgabe → Label ausblenden
         // Keine Aufgabe zeigen, solange der Start-Knopf sichtbar ist:
-        // Der Knopf sagt schon, was zu tun ist, und beide lägen übereinander.
-        guard panel?.hint != nil, !showsStartButton else {
+                // Der Knopf sagt schon, was zu tun ist, und beide lägen übereinander.
+                guard panel?.hint != nil, !showsStartButton else {
             hintBelowObject = false
             hintSlot?.hide()
-            return
-        }
-
-        // NEU: Ist das 3D-Herz zum Pumpen da, steht die Aufgabe immer darunter.
-        if let heart = pumpHeart {
-            hintBelowObject = true
-            let entity = hintSlot.show()
-            follow(entity, heart.root,
-                   offset: SIMD3<Float>(0, -(heart.labelDistance + Self.hintGap), 0),
-                   anchor: .top)
             return
         }
 
@@ -717,13 +704,11 @@ final class JourneyController {
             + SIMD3<Float>(0, 0.02, 0)
         let counter = heartSlot.show(at: anatomyRoot.convert(position: position, from: nil))
         counter.components.set(BillboardComponent())   // always turned towards the person
-        startPumpHeart()   // NEU: 3D-Herz kommt aus der Statue hervor
     }
 
     func hideHeartCounter() {
         showsHeart = false
         heartSlot.hide()
-        stopPumpHeart()    // NEU: 3D-Herz fliegt zurück in die Statue
     }
 
     // MARK: - Attention: the cell travels inside the anatomy model
@@ -896,6 +881,18 @@ final class JourneyController {
         infoCard = nil
         setPanel(nil)
         showStartButton(below: nil)
+        func showStartButton(below item: StageItem?) {
+            showsStartButton = item != nil
+            if let item {
+                let entity = startButtonSlot.show()
+                follow(entity, item.container,
+                       offset: SIMD3<Float>(0, -(item.halfHeight + Layout.buttonGap), 0),
+                       anchor: .top)
+            } else {
+                startButtonSlot.hide()
+            }
+            updateTaskHint()   // NEU: Start-Knopf erscheint/verschwindet → Aufgabe ein-/ausblenden
+        }
         hideHeartCounter()
         setStartPromptVisible(false)
     }

@@ -5,8 +5,6 @@
 //  Drag and tap handling. Every draggable model is a StageItem whose container has a
 //  DraggableComponent, a collision sphere and an input target (see makeDraggable).
 //
-//  NEU: Tippen auf das 3D-Herz (PumpHeart) wird hier an pumpHeartTapped() weitergegeben.
-//
 
 import Foundation
 import RealityKit
@@ -18,17 +16,8 @@ extension JourneyController {
     // MARK: - Tap
 
     func tapped(_ entity: Entity) {
-        // NEU: Das 3D-Herz zum Pumpen wurde angetippt → Takt prüfen (PumpHeart.swift)
-        if let heart = pumpHeart, entity.isInside(heart.root) {
-            pumpHeartTapped()
-            return
-        }
         if overlay.isHeart(entity) {
-            // NEU: Solange das 3D-Herz da ist, zählt nur dieses (im Takt).
-            // Das kleine Herz in der Statue wirkt dann nicht mehr.
-            if pumpHeart == nil {
-                heartTapped()
-            }
+            heartTapped()
         } else if entity.isInside(overlay.tapTarget) {
             bloodstreamTapped()
         }
@@ -166,3 +155,4 @@ extension JourneyController {
         }
     }
 }
+
