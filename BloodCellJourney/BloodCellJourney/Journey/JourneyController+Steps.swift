@@ -46,7 +46,7 @@ extension JourneyController {
     func enterMeetCell() {
         step = .meetCell
         let cell = library.redBloodCell()
-        setColor(cell, Palette.rbcOxygenated, animated: false)
+        setLook(cell, .withOxygen, animated: false)
 
         // The cell comes out of the heart of the physical model and flies to the person.
         let heartWorld = anatomyRoot.convert(position: AnatomyMap.p(.heart), to: nil)
@@ -179,7 +179,7 @@ extension JourneyController {
             guard await self.pause(0.6, id) else { return }
             // The developing cell turns into a red blood cell.
             let newCell = self.library.redBloodCell()
-            self.setColor(newCell, Palette.rbcDeoxygenated, animated: false)
+            self.setLook(newCell, .withoutOxygen, animated: false)
             self.place(newCell, at: Layout.mainSlot)
             self.remove(cell, duration: 0.8)
             self.developingCell = nil
@@ -238,7 +238,7 @@ extension JourneyController {
         molecule.stopIdleMotion()
         setSecondaryLabel(nil, on: nil)
         bind(molecule, to: cell, at: oxygenSlot(on: cell))
-        setColor(cell, Palette.rbcOxygenated, animated: true)
+        setLook(cell, .withOxygen, animated: true)
         interactionLocked = true
 
         sequence { id in
@@ -347,7 +347,7 @@ extension JourneyController {
             self.move(waste.container, to: slot, duration: 1.1)
             guard await self.pause(1.15, id) else { return }
             self.bind(waste, to: cell, at: self.carbonDioxideSlot(on: cell), duration: 0.2)
-            self.setColor(cell, Palette.rbcDeoxygenated, animated: true, duration: 1.6)
+            self.setLook(cell, .withoutOxygen, animated: true, duration: 1.6)
             self.interactionLocked = false
             self.enterPump(toOrgans: false)
         }
@@ -386,7 +386,7 @@ extension JourneyController {
             self.oxygen = fresh
             guard await self.pause(0.4, id) else { return }
             self.bind(fresh, to: cell, at: self.oxygenSlot(on: cell), duration: 0.8)
-            self.setColor(cell, Palette.rbcOxygenated, animated: true)
+            self.setLook(cell, .withOxygen, animated: true)
             guard await self.pause(1.4, id) else { return }
             self.interactionLocked = false
             self.enterCycleRepeats()
@@ -423,7 +423,7 @@ extension JourneyController {
         remove(oxygen, duration: 0.8)
         oxygen = nil
         // The cell ages while it is inside the body.
-        setColor(cell, Palette.rbcAged, animated: false)
+        setLook(cell, .withoutOxygen, animated: false)
 
         sequence { id in
             await self.overlay.travel(.lungsToSpleen, duration: Timing.travelToSpleen)

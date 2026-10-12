@@ -153,6 +153,7 @@ final class JourneyController {
 
         do {
             try await library.load()
+            await CellTextures.load()
             overlay.setMarkerCell(library.redBloodCellModel())
             if let heart = try? await library.pumpHeart() { overlay.setHeartModel(heart) }
             // Read the baked squeeze animation now, so the squeeze step starts without a hitch.
@@ -823,6 +824,31 @@ final class JourneyController {
             MaterialTools.setBaseColor(item.body, color)
         }
         item.currentColor = target
+    }
+    /// Shows a red blood cell with or without oxygen (its two base-colour PNGs). animated = crossfade.
+    /// The marker in the anatomy model takes the same look.
+    func setLook(_ item: StageItem, _ look: CellLook, animated: Bool, duration: Double = 1.2) {
+        item.look = look
+        overlay.setMarkerLook(look)
+        item.body.parent?.findEntity(named: "CellLookFade")?.removeFromParent()
+        guard animated, let motion = item.body.parent else {
+            CellTextures.apply(look, to: item.body)
+            return
+        }
+        // A copy with the new texture fades in just over the cell, then the cell takes the texture.
+        let fade = item.body.clone(recursive: true)
+        fade.name = "CellLookFade"
+        fade.scale = item.body.scale * 1.01          // a hair larger, so the two surfaces don't flicker
+        CellTextures.apply(look, to: fade)
+        fade.components.set(OpacityComponent(opacity: 0))
+        fade.components.set(FadeComponent(target: 1, speed: Float(1 / max(duration, 0.1)), disableWhenHidden: false))
+        motion.addChild(fade)
+        Task { @MainActor [weak item] in
+            try? await Task.sleep(for: .seconds(duration))
+            guard let item, item.look == look, fade.parent != nil else { return }
+            CellTextures.apply(look, to: item.body)
+            fade.removeFromParent()
+        }
     }
 
     /// Attaches a molecule to the red blood cell so it travels with it.

@@ -35,6 +35,8 @@ final class StageItem {
     private(set) var halfHeight: Float = 0.05
     /// Current base colour (only tracked for items that change colour).
     var currentColor: SIMD4<Float>?
+    /// Current look of a red blood cell (with / without oxygen), nil for other items.
+    var look: CellLook?
     /// Centre line for tube-shaped models (capillary), container space.
     var centerline: [SIMD3<Float>] = []
 

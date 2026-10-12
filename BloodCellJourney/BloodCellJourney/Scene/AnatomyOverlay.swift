@@ -258,7 +258,11 @@ final class AnatomyOverlay {
         visual.forEachModelEntity { $0.components.set(solid) }
         marker.addChild(visual)
     }
-    
+    /// Gives the marker's cell the same look as the cell in front of the person.
+    func setMarkerLook(_ look: CellLook) {
+        guard let visual = marker.findEntity(named: "RedBloodCellVisual") else { return }
+        CellTextures.apply(look, to: visual)
+    }
     /// Puts the heart scan into the overlay, enlarged and centred so it beats around its middle.
     func setHeartModel(_ model: Entity) {
         heartBeatPivot.children.removeAll()
