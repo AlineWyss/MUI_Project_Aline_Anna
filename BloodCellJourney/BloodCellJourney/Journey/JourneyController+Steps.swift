@@ -270,7 +270,8 @@ extension JourneyController {
             guard id == self.runID else { return }
             // The heart of the anatomy model becomes the button; it only beats when tapped.
             self.overlay.stream.autoBeat = false
-            self.highlight(.heart)
+            self.highlight(nil)
+            self.overlay.showHeartModel(at: self.heartPopOutPosition())
             self.overlay.setHeartTappable(true)
             self.showHeartCounter()
             self.interactionLocked = false
@@ -290,6 +291,7 @@ extension JourneyController {
         sequence { id in
             guard await self.pause(Timing.heartStep + 0.3, id) else { return }
             self.hideHeartCounter()
+            self.overlay.hideHeartModel()
             self.overlay.stream.autoBeat = true
             self.highlight(toOrgans ? .organs : .lungs)
             guard let cell = self.redBloodCell else { return }

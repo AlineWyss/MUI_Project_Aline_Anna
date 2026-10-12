@@ -36,11 +36,19 @@ final class AnatomyOverlay {
     private static let glowOrder: Int32 = 2
     private static let bodyOrder: Int32 = 3
     private var glowEntities: [Entity] = []
+    /// The scanned heart that comes out of the model's heart while it has to be pumped.
+    private let heartModel = Entity()
+    /// Inner pivot that contracts on every beat (BeatSystem sets its scale every frame).
+    private let heartBeatPivot = Entity()
 
     init() {
         root.name = "AnatomyOverlay"
         tapTarget.name = "BloodstreamTapTarget"
         marker.name = "JourneyMarker"
+        heartModel.name = "PumpHeart"
+        heartModel.addChild(heartBeatPivot)
+        heartModel.isEnabled = false
+        root.addChild(heartModel)
     }
 
     // MARK: - Build
@@ -250,6 +258,45 @@ final class AnatomyOverlay {
         visual.forEachModelEntity { $0.components.set(solid) }
         marker.addChild(visual)
     }
+    
+    /// Puts the heart scan into the overlay, enlarged and centred so it beats around its middle.
+    func setHeartModel(_ model: Entity) {
+        heartBeatPivot.children.removeAll()
+        let visual = Entity()
+        visual.addChild(model)
+        let bounds = visual.visualBounds(recursive: true, relativeTo: visual)
+        let scale = Layout.heartModelScale
+        visual.scale = SIMD3<Float>(repeating: scale)
+        visual.orientation = simd_quatf(angle: Layout.heartModelYaw, axis: SIMD3<Float>(0, 1, 0))
+        visual.position = -visual.orientation.act(bounds.center * scale)
+        let solid = ModelSortGroupComponent(group: sortGroup, order: Self.solidOrder)
+        visual.forEachModelEntity { $0.components.set(solid) }
+        heartBeatPivot.addChild(visual)
+        heartBeatPivot.components.set(BeatComponent(amount: -0.18))   // negative = contracts, like a real beat
+    }
+
+    /// The heart comes out of the model's heart (real size) and floats to `target` (2× size).
+    func showHeartModel(at target: SIMD3<Float>) {
+        guard !heartBeatPivot.children.isEmpty else { return }
+        heartModel.position = AnatomyMap.p(.heart)
+        heartModel.scale = SIMD3<Float>(repeating: 1 / Layout.heartModelScale)
+        heartModel.isEnabled = true
+        let end = Transform(scale: .one, rotation: heartModel.orientation, translation: target)
+        heartModel.move(to: end, relativeTo: root, duration: Timing.heartPopOut, timingFunction: .easeOut)
+    }
+
+    /// The heart goes back into the model and disappears.
+    func hideHeartModel(animated: Bool = true) {
+        guard heartModel.isEnabled else { return }
+        guard animated else { heartModel.isEnabled = false; return }
+        let back = Transform(scale: SIMD3<Float>(repeating: 1 / Layout.heartModelScale),
+                             rotation: heartModel.orientation, translation: AnatomyMap.p(.heart))
+        heartModel.move(to: back, relativeTo: root, duration: Timing.heartPopOut, timingFunction: .easeIn)
+        Task { @MainActor [heartModel] in
+            try? await Task.sleep(for: .seconds(Timing.heartPopOut))
+            if simd_distance(heartModel.position, AnatomyMap.p(.heart)) < 0.01 { heartModel.isEnabled = false }
+        }
+    }
 
     private func buildTapTarget() {
         // Box around the whole figure (scan bounds: 0.48 × 0.94 × 0.26 m).
@@ -304,9 +351,9 @@ final class AnatomyOverlay {
 
     /// Turns the heart outline into a button (gaze + pinch on the heart of the model).
     func setHeartTappable(_ tappable: Bool) {
-        guard let heart = zoneEntities[.heart] else { return }
+        let heart = heartModel
         if tappable {
-            heart.components.set(CollisionComponent(shapes: [ShapeResource.generateSphere(radius: 0.04)]))
+            heart.components.set(CollisionComponent(shapes: [ShapeResource.generateSphere(radius: 0.045*Layout.heartModelScale)]))
             heart.components.set(InputTargetComponent())
             heart.components.set(HoverEffectComponent())
             heart.components.set(TapTargetComponent())
@@ -319,16 +366,15 @@ final class AnatomyOverlay {
     }
 
     func isHeart(_ entity: Entity) -> Bool {
-        guard let heart = zoneEntities[.heart] else { return false }
-        return entity.isInside(heart)
+        entity.isInside(heartModel)
     }
 
     /// One heart beat: the heart outline swells and the blood surges.
     func beatHeart() {
         stream.beat()
-        guard let heart = zoneEntities[.heart], var beat = heart.components[BeatComponent.self] else { return }
+        guard var beat = heartBeatPivot.components[BeatComponent.self] else { return }
         beat.beatStart = beat.time
-        heart.components.set(beat)
+        heartBeatPivot.components.set(beat)
     }
 
     // MARK: - Marker movement

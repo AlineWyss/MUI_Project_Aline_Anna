@@ -96,6 +96,12 @@ enum Layout {
     /// The "Tap the heart" counter sits this far to the side of the model's heart (towards the focus area).
     /// It is attached to the anatomy model, so it stays next to the heart.
     static let heartCounterSideOffset: Float = 0.12
+    /// The scanned heart while it is pumped: 2 = twice its real size (~16 cm).
+    static let heartModelScale: Float = 0.8
+    /// How far the heart floats out of the model, towards the person.
+    static let heartPopOutDistance: Float = 0.25
+    /// Turn the scan around its vertical axis if its front doesn't face you (radians, e.g. .pi / 2).
+    static let heartModelYaw: Float = 0
     /// Size of the red blood cell while it flies into / out of the anatomy model.
     static let cellScaleInModel: Float = 0.07
     /// Gap between the top of a model and the bottom edge of its name label.
@@ -127,6 +133,7 @@ enum Timing {
     static let travelToLungs: Double = 4.5
     static let travelToSpleen: Double = 3.5
     static let heartStep: Double = 0.7
+    static let heartPopOut: Double = 0.8
     static let requiredHeartBeats = 5
     static let requiredAgingAttempts = 2
     /// Seconds the "a red blood cell is born" text stays before the capillary appears.

@@ -62,6 +62,11 @@ final class ModelLibrary {
         model.removeFromParent()
         return model
     }
+    
+    /// The scanned heart (PumpHeart.usdz in RealityKitContent.rkassets).
+    func pumpHeart() async throws -> Entity {
+        try await Entity(named: "PumpHeart", in: realityKitContentBundle)
+    }
 
     private func clone(_ model: Model) -> Entity {
         guard let prototype = prototypes[model] else { return Entity() }

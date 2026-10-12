@@ -154,6 +154,7 @@ final class JourneyController {
         do {
             try await library.load()
             overlay.setMarkerCell(library.redBloodCellModel())
+            if let heart = try? await library.pumpHeart() { overlay.setHeartModel(heart) }
             // Read the baked squeeze animation now, so the squeeze step starts without a hitch.
             _ = try? SqueezeAnimation.shared()
         } catch {
@@ -693,6 +694,12 @@ final class JourneyController {
         overlay.setZone(zone)
     }
 
+    /// Where the scanned heart floats while it is pumped: in front of the model's heart, towards the person.
+    func heartPopOutPosition() -> SIMD3<Float> {
+        let heartWorld = anatomyRoot.convert(position: AnatomyMap.p(.heart), to: nil)
+        let toPerson = horizontalDirectionToPerson(from: heartWorld)
+        return anatomyRoot.convert(position: heartWorld + toPerson * Layout.heartPopOutDistance, from: nil)
+    }
     /// Shows the "Tap the heart" counter next to the heart of the anatomy model, on the side
     /// facing the person and the focus area, so it never covers the heart.
     func showHeartCounter() {
@@ -700,7 +707,7 @@ final class JourneyController {
         let heartWorld = anatomyRoot.convert(position: AnatomyMap.p(.heart), to: nil)
         let toPerson = horizontalDirectionToPerson(from: heartWorld)
         let personRight = simd_normalize(simd_cross(SIMD3<Float>(0, 1, 0), toPerson))
-        let position = heartWorld + toPerson * 0.08 + personRight * Layout.heartCounterSideOffset
+        let position = heartWorld + toPerson * Layout.heartPopOutDistance + personRight * Layout.heartCounterSideOffset
             + SIMD3<Float>(0, 0.02, 0)
         let counter = heartSlot.show(at: anatomyRoot.convert(position: position, from: nil))
         counter.components.set(BillboardComponent())   // always turned towards the person
@@ -710,6 +717,8 @@ final class JourneyController {
         showsHeart = false
         heartSlot.hide()
     }
+    
+
 
     // MARK: - Attention: the cell travels inside the anatomy model
 
@@ -894,6 +903,7 @@ final class JourneyController {
             updateTaskHint()   // NEU: Start-Knopf erscheint/verschwindet → Aufgabe ein-/ausblenden
         }
         hideHeartCounter()
+        overlay.hideHeartModel(animated: false)
         setStartPromptVisible(false)
     }
 
