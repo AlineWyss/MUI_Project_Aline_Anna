@@ -18,7 +18,7 @@ struct TaskHintView: View {
         // Während die Person ein Objekt hält, wird die Aufgabe ausgeblendet –
         // sie weiss dann ja schon, was zu tun ist (das Namens-Label zeigt
         // in diesem Moment den holdText).
-        if let hint = controller.panel?.hint, !controller.isHolding {
+        if let hint = controller.panel?.hint, !controller.isHolding, !controller.hintDismissed {
             Label(hint, systemImage: "hand.pinch.fill")
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(Color(uiColor: Palette.taskHint))

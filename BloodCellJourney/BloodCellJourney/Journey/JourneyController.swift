@@ -37,7 +37,33 @@ final class JourneyController {
     /// The label whose facts are open (tapped (i)); the facts appear inside that label.
     var infoCard: LabelContent?
     /// True while the person holds a model.
-    var isHolding = false
+    /// Beim Greifen wird das Aufgaben-Label ausgeblendet. Nach dem Loslassen
+    /// kommt es nur zurück, wenn die Aktion NICHT geklappt hat.
+    var isHolding = false {
+        didSet {
+            guard isHolding != oldValue else { return }
+            if isHolding {
+                hintDismissed = true
+                draggablesAtGrab = draggables.count
+            } else {
+                // Kurz warten, bis der Ablauf reagiert hat. Wurde ein Objekt danach
+                // unbeweglich gemacht (makeStatic), hat die Aktion geklappt → Label bleibt weg.
+                // Sonst war es ein Fehlversuch → Label wieder zeigen.
+                let panelAtRelease = panel
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(0.4))
+                    guard !self.isHolding, self.panel == panelAtRelease else { return }
+                    if self.draggables.count >= self.draggablesAtGrab {
+                        self.hintDismissed = false
+                    }
+                }
+            }
+        }
+    }
+    /// true = Aufgabe dieses Schritts ist erledigt bzw. wurde begonnen → Label ausblenden.
+    var hintDismissed = false
+    /// Wie viele Objekte beim Greifen ziehbar waren (zum Erkennen, ob die Aktion geklappt hat).
+    @ObservationIgnored var draggablesAtGrab = 0
     /// true = die Aufgabe steht gerade als Label unter einem Modell
     /// (dann blendet InfoPanelView sie im Textfeld aus).
     var hintBelowObject = false
@@ -517,6 +543,9 @@ final class JourneyController {
     /// genau so, als hätte die Person den Knopf gedrückt (continueTapped).
     func setPanel(_ content: PanelContent?) {
         let isNew = content != panel   // nur bei einem wirklich neuen Schritt weiterschalten
+        if content?.hint != panel?.hint {
+                   hintDismissed = false
+               }
         panel = content
         if content != nil {
             panelSlot.show(at: Layout.panelSlot)
