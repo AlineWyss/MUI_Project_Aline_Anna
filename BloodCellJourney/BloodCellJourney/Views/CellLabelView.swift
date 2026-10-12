@@ -41,7 +41,7 @@ struct CellLabelView: View {
             let holdText = controller.isHolding ? content.holdText : nil
             let factsAvailable = !content.facts.isEmpty && holdText == nil
 
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .center, spacing: 10) {
 
                 // 1) Fakten-Karte (oben, unsichtbar bis zum Hinschauen)
                 if factsAvailable {
