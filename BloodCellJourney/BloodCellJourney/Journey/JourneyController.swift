@@ -588,14 +588,12 @@ final class JourneyController {
         updateTaskHint()   // Start-Knopf erscheint/verschwindet → Aufgabe ein-/ausblenden
     }
 
-    // MARK: - Aufgabe unter dem Modell (NEU)
+    // MARK: - Aufgabe (TaskHint)
     //
-    // Die Textbox rechts gibt es nicht mehr. Die gelbe Aufgabe (panel.hint), die
-    // vorher in der Box stand, erscheint jetzt als Label UNTER einem 3D-Objekt.
-    // Welches Objekt, wird so entschieden:
-    //   1. das Objekt, das zum Schritt gehört (hintTarget)
-    //   2. sonst das erste gerade sichtbare Objekt auf der Bühne
-    //   3. nur wenn gar kein Objekt sichtbar ist: dort, wo früher die Box war
+    // Die Aufgabe (panel.hint) steht als Label an einer FESTEN Stelle auf der Bühne.
+    // Die Stelle wird in Config.swift eingestellt: Layout.hintSlot.
+    // (hintTarget, isVisible und firstVisibleItem werden dafür nicht mehr gebraucht,
+    //  sie stören aber nicht.)
 
     /// Abstand zwischen der Unterkante eines Modells und dem Aufgaben-Label darunter (Meter).
     private static let hintGap: Float = 0.03
@@ -629,40 +627,23 @@ final class JourneyController {
             .first { isVisible($0) } ?? nil
     }
 
-    /// Zeigt die Aufgabe (panel.hint) unter dem passenden Modell an oder blendet sie aus.
-    /// Wird bei jedem Schrittwechsel (step.didSet), jedem neuen Text (setPanel)
-    /// und jedem neu platzierten Modell (place) aufgerufen.
+    /// Zeigt die Aufgabe (panel.hint) an einer FESTEN Stelle an: Layout.hintSlot in Config.swift.
+    /// Das Label wandert NICHT mit den Objekten mit.
+    /// Sobald die Person ein Objekt nimmt, blendet TaskHintView das Label aus (isHolding).
     func updateTaskHint() {
-        // Keine Aufgabe zeigen, solange der Start-Knopf sichtbar ist:
-                // Der Knopf sagt schon, was zu tun ist, und beide lägen übereinander.
-                guard panel?.hint != nil, !showsStartButton else {
+        // Keine Aufgabe, oder der Start-Knopf ist sichtbar → kein Label
+        // (der Knopf sagt schon, was zu tun ist, und beide lägen übereinander).
+        guard panel?.hint != nil, !showsStartButton else {
             hintBelowObject = false
             hintSlot?.hide()
             return
         }
-
-        // 1. Objekt des Schritts, 2. sonst irgendein sichtbares Objekt
-        //    (Beim Objekt des Schritts reicht es, dass es in der Szene ist – es kann
-        //    gerade noch einblenden. Beim Ersatz muss es schon sichtbar sein.)
-        let mapped = hintTarget(for: step)
-        let item = mapped?.container.parent != nil ? mapped : firstVisibleItem
-
-        if let item {
-            hintBelowObject = true
-            let entity = hintSlot.show()
-            // Wie beim Start-Knopf: Die Oberkante des Labels hängt unter der Unterkante
-            // des Modells und wandert mit, wenn sich das Modell bewegt.
-            follow(entity, item.container,
-                   offset: SIMD3<Float>(0, -(item.halfHeight + Self.hintGap), 0),
-                   anchor: .top)
-        } else {
-            // 3. Kein Objekt sichtbar (z. B. während das Blutkörperchen im
-            //    Anatomie-Modell unterwegs ist): an der Stelle der früheren Box.
-            hintBelowObject = false
-            let entity = hintSlot.show(at: Layout.panelSlot)
-            entity.components.remove(FollowComponent.self)
-            entity.position = Layout.panelSlot
-        }
+        hintBelowObject = true
+        let entity = hintSlot.show(at: Layout.hintSlot)
+        // Falls das Label vorher einem Objekt gefolgt ist: diese Verbindung lösen,
+        // damit es fest an seiner Stelle bleibt.
+        entity.components.remove(FollowComponent.self)
+        entity.position = Layout.hintSlot
     }
 
     /// Keeps an attachment (child of the focus area) next to `target` every frame.

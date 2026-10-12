@@ -36,9 +36,9 @@ struct CellLabelView: View {
 
     var body: some View {
         if let content {
-            // Während ein Objekt gehalten wird, zeigt das Label einen anderen Text
-            // und die Fakten werden nicht angeboten (wie bisher).
-            let holdText = controller.isHolding ? content.holdText : nil
+            // Beim Greifen bleibt der Name des Objekts stehen.
+            // (Die Anweisung steht schon im Aufgaben-Label, siehe TaskHintView.)
+            let holdText: String? = nil
             let factsAvailable = !content.facts.isEmpty && holdText == nil
 
             VStack(alignment: .center, spacing: 10) {
