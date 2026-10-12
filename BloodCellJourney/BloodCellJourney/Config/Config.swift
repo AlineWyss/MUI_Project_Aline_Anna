@@ -111,8 +111,12 @@ enum Layout {
     static let buttonGap: Float = 0.035
     /// Abstand zwischen der Unterkante eines Modells und dem Aufgaben-Label darunter.
     static let hintGap: Float = 0.03
-
-
+    /// Feste Position der Aufgaben-Labels (TaskHint) auf der Bühne, in Metern.
+          /// Gleiches Koordinatensystem wie mainSlot/sideSlot:
+          ///   x = links (−) / rechts (+)
+          ///   y = unten (−) / oben (+)  – 0 ist die Höhe, auf der die Zellen schweben
+          ///   z = nach hinten (−) / zur Person hin (+)
+        static let hintSlot = SIMD3<Float>(-0.1, -0.15, 0.02)
     static let squeezeStart = SIMD3<Float>(-0.2, 0, -0.05)
 
     /// Longest side of each model in the focus area, in metres.
