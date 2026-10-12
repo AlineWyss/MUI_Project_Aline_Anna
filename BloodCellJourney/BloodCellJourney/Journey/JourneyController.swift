@@ -698,13 +698,6 @@ final class JourneyController {
 
     func showHeartCounter() {
         showsHeart = true
-        let heartWorld = anatomyRoot.convert(position: AnatomyMap.p(.heart), to: nil)
-        let toPerson = horizontalDirectionToPerson(from: heartWorld)
-        let personRight = simd_normalize(simd_cross(SIMD3<Float>(0, 1, 0), toPerson))
-        let position = heartWorld + toPerson * Layout.heartPopOutDistance + personRight * Layout.heartCounterSideOffset
-            + SIMD3<Float>(0, 0.02, 0)
-        let counter = heartSlot.show(at: anatomyRoot.convert(position: position, from: nil))
-        counter.components.set(BillboardComponent())   // always turned towards the person
     }
 
     func hideHeartCounter() {
