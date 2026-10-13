@@ -476,12 +476,31 @@ extension JourneyController {
         setMainLabel(nil, on: nil)
         setSecondaryLabel(nil, on: nil)
         setPanel(nil)
-        dissolve(cell)
-        remove(capillary, duration: 1.0)
+        makeStatic(cell)
+        cell.stopIdleMotion()
+
+        // 1. The capillary shrinks a little and fades away.
+        if let capillary {
+            move(capillary.container, to: capillary.container.position, scale: 0.85,
+                 duration: Timing.recycleCapillaryFade)
+            remove(capillary, duration: Timing.recycleCapillaryFade)
+        }
         capillary = nil
+        let scene = squeezeScene
         squeezeScene = nil
 
         sequence { id in
+            // 2. The cell relaxes out of its squeezed shape and turns smoothly to face the person,
+            //    then blends into its normal model (which faces the person the same way).
+            if let scene {
+                scene.faceFront(duration: 0.9)
+                await scene.animate(to: scene.firstFrame, duration: 0.9, includeCapillary: false)
+                guard id == self.runID else { return }
+            }
+            guard await self.pause(0.3, id) else { return }
+
+            // 3. It dissolves (unchanged animation, see dissolve).
+            self.dissolve(cell)
             guard await self.pause(Double(Config.dissolveDuration) + 0.4, id) else { return }
             self.enterFinished()
         }

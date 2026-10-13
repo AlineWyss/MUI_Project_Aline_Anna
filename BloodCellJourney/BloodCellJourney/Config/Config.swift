@@ -63,7 +63,7 @@ enum Config {
     // MARK: The old red blood cell dissolves
 
     /// Seconds the old red blood cell takes to crumble away (front sweeps up, pieces drift up like ash).
-    static let dissolveDuration: Float = 2.5
+    static let dissolveDuration: Float = 4.0
     /// How high the pieces rise before they vanish, in metres.
     static let dissolveRise: Float = 0.08
     static let vesselTubeOpacity: Float = 0.25
@@ -172,7 +172,9 @@ enum Timing {
     /// Seconds the "a red blood cell is born" text stays before the capillary appears.
     static let afterBirth: Double = 3.0
     /// Seconds to read the explanation why the old cell gets stuck before it dissolves.
-    static let readTooStiff: Double = 5.0
+    static let readTooStiff: Double = 2.0
+    /// Seconds the capillary takes to fade away before the old cell turns to the person and dissolves.
+    static let recycleCapillaryFade: Double = 0.8
     /// Seconds for one lap of the marker while the cycle repeats.
     static let lapDuration: Double = 40.0  //6.0
     /// How far the old cell gets into the squeeze animation (a frame of claudeAniamtion.blend).

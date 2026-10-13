@@ -43,6 +43,8 @@ final class SqueezeScene {
 
     /// Transform of `cellModel` that matches the normal red blood cell model (size, facing the person).
     private let normalTransform: Transform
+    /// Same size as the normal model, turned so the cell's flat side faces the person.
+    private let facingTransform: Transform
     /// Transform of `cellModel` inside the scene: rotation and scale of "Squeeze" in Reality Composer Pro.
     private let sceneTransform: Transform
     private let cellShapes: Entity?
@@ -103,6 +105,10 @@ final class SqueezeScene {
             SqueezeScene.tint(holder, cellColor)
         }
         self.normalTransform = normalTransform
+        let flatSide = SqueezeScene.flatSideNormal(of: holder)
+        self.facingTransform = Transform(scale: SIMD3<Float>(repeating: normalScale),
+                                         rotation: simd_quatf(from: flatSide.z < 0 ? -flatSide : flatSide,
+                                                              to: SIMD3<Float>(0, 0, 1)))
         self.cellModel = holder
         self.cellShapes = SqueezeScene.blendShapeEntity(in: cellRoot)
 
@@ -140,6 +146,60 @@ final class SqueezeScene {
     func restoreSize(duration: TimeInterval) {
         guard let parent = cellModel.parent else { return }
         cellModel.move(to: normalTransform, relativeTo: parent, duration: duration, timingFunction: .easeInOut)
+    }
+    
+    /// Turns the cell smoothly (normal size) so its flat side faces the person – like the normal model.
+    func faceFront(duration: TimeInterval) {
+        guard let parent = cellModel.parent else { return }
+        cellModel.move(to: facingTransform, relativeTo: parent, duration: duration, timingFunction: .easeInOut)
+    }
+
+    /// Back to the normal model with a crossfade; after faceFront both face the same way.
+    func crossfadeBack(to cell: StageItem, duration: TimeInterval) {
+        let model = cellModel
+        let speed = Float(1 / max(duration, 0.1))
+        cell.body.isEnabled = true
+        cell.body.components.set(OpacityComponent(opacity: 0))
+        cell.body.components.set(FadeComponent(target: 1, speed: speed, disableWhenHidden: false))
+        model.components.set(FadeComponent(target: 0, speed: speed, disableWhenHidden: false))
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(duration))
+            model.removeFromParent()
+        }
+    }
+
+    /// Direction of the cell's flat side (where its vertices spread least), in `root`'s space.
+    private static func flatSideNormal(of root: Entity) -> SIMD3<Float> {
+        var points: [SIMD3<Float>] = []
+        root.forEachModelEntity { entity in
+            guard let mesh = entity.components[ModelComponent.self]?.mesh else { return }
+            let toRoot = entity.transformMatrix(relativeTo: root)
+            for model in mesh.contents.models {
+                for part in model.parts {
+                    for p in part.positions.elements {
+                        let w = toRoot * SIMD4<Float>(p, 1)
+                        points.append(SIMD3<Float>(w.x, w.y, w.z))
+                    }
+                }
+            }
+        }
+        guard points.count > 3 else { return SIMD3<Float>(0, 0, 1) }
+        let mean = points.reduce(SIMD3<Float>.zero, +) / Float(points.count)
+        var spread = simd_float3x3()
+        for p in points {
+            let d = p - mean
+            spread = spread + simd_float3x3(columns: (d * d.x, d * d.y, d * d.z))
+        }
+        // Smallest spread = largest eigenvector of (trace·I − spread), found by repeated multiplication.
+        let trace = spread[0][0] + spread[1][1] + spread[2][2]
+        let flipped = simd_float3x3(diagonal: SIMD3<Float>(repeating: trace)) - spread
+        var normal = simd_normalize(SIMD3<Float>(0.3, 0.5, 0.8))
+        for _ in 0..<40 {
+            let next = flipped * normal
+            if simd_length(next) < 1e-12 { break }
+            normal = simd_normalize(next)
+        }
+        return normal
     }
 
     /// Back to the cell's normal model.
