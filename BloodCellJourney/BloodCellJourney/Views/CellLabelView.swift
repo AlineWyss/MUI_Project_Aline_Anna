@@ -26,54 +26,48 @@ struct CellLabelView: View {
     let controller: JourneyController
     let slot: Slot
 
-    /// Verbindet (i)-Symbol und Fakten-Karte zu einer Hover-Gruppe:
-    /// Wird ein Teil angeschaut, reagieren beide.
-    @Namespace private var hoverNamespace
-
     private var content: LabelContent? {
         slot == .main ? controller.mainLabel : controller.secondaryLabel
     }
 
     var body: some View {
         if let content {
-            // Beim Greifen bleibt der Name des Objekts stehen.
-            // (Die Anweisung steht schon im Aufgaben-Label, siehe TaskHintView.)
+            // Beim Greifen bleibt der Objektname stehen (kein anderer Text)
             let holdText: String? = nil
+            // Hat dieses Objekt überhaupt Fakten?
             let factsAvailable = !content.facts.isEmpty && holdText == nil
+            // Ist die Karte gerade offen? (per Antippen auf das (i))
+            let showsFacts = factsAvailable && controller.infoCard == content
 
             VStack(alignment: .center, spacing: 10) {
 
-                // 1) Fakten-Karte (oben, unsichtbar bis zum Hinschauen)
+                // 1) Fakten-Karte (oben). Sie ist IMMER da, aber unsichtbar,
+                //    solange sie zu ist. So bleibt das Namens-Label immer an derselben Stelle.
                 if factsAvailable {
                     facts(content)
                         .padding(.horizontal, 22)
                         .padding(.vertical, 20)
                         .frame(width: 360, alignment: .leading)
                         .glassBackgroundEffect(in: RoundedRectangle(cornerRadius: 30, style: .continuous))
-                        .hoverEffect(in: HoverEffectGroup(hoverNamespace)) { effect, isActive, _ in
-                            // isActive = true, solange der Blick auf dem (i) liegt.
-                            // delay: erst nach 0.3 s Hinschauen einblenden, damit die
-                            // Karte bei einem flüchtigen Blick nicht aufflackert.
-                            effect.animation(.easeOut(duration: 0.25).delay(isActive ? 0.3 : 0)) {
-                                $0.opacity(isActive ? 1 : 0)
-                                  .scaleEffect(isActive ? 1 : 0.94, anchor: .bottomLeading)
-                            }
-                        }
+                        .opacity(showsFacts ? 1 : 0)                                  // ein-/ausblenden
+                        .scaleEffect(showsFacts ? 1 : 0.94, anchor: .bottom)  // leicht "aufploppen"
+                        .allowsHitTesting(showsFacts)                                 // unsichtbar = nicht antippbar
                 }
 
-                // 2) Namens-Label (unten, direkt über dem Modell)
-                header(content, holdText: holdText, factsAvailable: factsAvailable)
+                // 2) Namens-Label (unten, direkt über dem Modell) – bewegt sich nie
+                header(content, holdText: holdText, showsFacts: showsFacts)
                     .padding(.horizontal, 22)
                     .padding(.vertical, 12)
                     .glassBackgroundEffect(in: RoundedRectangle(cornerRadius: 30, style: .continuous))
             }
+            // Weiches Ein- und Ausblenden der Karte (wie beim Hover)
+            .animation(.easeOut(duration: 0.25), value: showsFacts)
             .animation(.easeInOut(duration: 0.25), value: holdText)
         }
     }
-
-    private func header(_ content: LabelContent, holdText: String?, factsAvailable: Bool) -> some View {
+    private func header(_ content: LabelContent, holdText: String?, showsFacts: Bool) -> some View {
         HStack(spacing: 14) {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .center, spacing: 2) {
                 Text(holdText ?? content.title)
                     .font(.title3.weight(.semibold))
                     .contentTransition(.opacity)
@@ -83,27 +77,29 @@ struct CellLabelView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            if factsAvailable {
-                // Das (i) bleibt ein Button, weil visionOS Hover-Effekte auf
-                // Buttons zuverlässig auslöst. Die Aktion ist bewusst leer:
-                // Die Fakten erscheinen durch Hinschauen, nicht durch Klicken.
+            if !content.facts.isEmpty && holdText == nil {
+                // Wenn die Fakten offen sind, schiebt der Spacer das (x) nach rechts
+
                 Button {
+                    // Antippen öffnet bzw. schliesst die Fakten
+                    controller.toggleInfo(for: slot)
                 } label: {
-                    Image(systemName: "info.circle")
+                    // (i) wenn zu, (x) wenn offen
+                    Image(systemName: showsFacts ? "xmark.circle.fill" : "info.circle")
                         .font(.title2)
                 }
                 .buttonStyle(.borderless)
                 .buttonBorderShape(.circle)
-                // Gleiche Hover-Gruppe wie die Fakten-Karte, mit dem
-                // üblichen Aufleuchten des Symbols
-                .hoverEffect(.highlight, in: HoverEffectGroup(hoverNamespace))
-                .accessibilityLabel("\(StoryText.Buttons.moreAbout) \(content.title)")
+                .accessibilityLabel(showsFacts
+                                    ? StoryText.Buttons.closeFacts
+                                    : "\(StoryText.Buttons.moreAbout) \(content.title)")
             }
         }
     }
 
     private func facts(_ content: LabelContent) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .center, spacing: 10) {
+            Divider()
             ForEach(content.facts, id: \.self) { fact in
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     Text("•")
