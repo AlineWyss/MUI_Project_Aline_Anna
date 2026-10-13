@@ -85,6 +85,12 @@ extension JourneyController {
         popIn(parts.cell)
         developingCell = parts.cell
         nucleus = parts.nucleus
+        // Very subtle idle movement of the nucleus inside the cell.
+        parts.nucleus.updateMotion {
+            $0.rockAngle = 0.08    // turns about ±5° back and forth
+            $0.rockSpeed = 0.45    // slowly, about one sway every 14 seconds
+            $0.hover = 0.0015      // floats 1.5 mm up and down
+        }
 
         setMainLabel(StoryText.Labels.erythroblast, on: parts.cell)
         setPanel(StoryText.Panels.boneMarrow)

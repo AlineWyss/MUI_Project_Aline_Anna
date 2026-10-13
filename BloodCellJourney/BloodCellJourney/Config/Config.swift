@@ -57,6 +57,11 @@ enum Config {
     /// false = exactly the material set in Reality Composer Pro.
     static let squeezeCellUsesStoryColor = true
     static let vesselTubeOpacity: Float = 0.25
+    /// The developing cell's shell turns slowly and endlessly: degrees per second
+    /// (10 ≈ one turn in 36 s). 0 = still.
+    static let shellSpinSpeed: Float = 5
+    /// How far its turning axis leans, in degrees, so the turn shows more of the surface.
+    static let shellSpinTilt: Float = 20
 
     /// The O2 and CO2 models were exported with 10–14 % opacity and are hard to see in the headset.
     /// These values replace the exported opacity. Remove an entry to keep the original look.

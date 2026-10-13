@@ -91,12 +91,27 @@ final class ModelLibrary {
         let shell = clone(.shell)
         let fit = StageItem.fit(shell, size: Layout.Size.developingCell, orientation: .keep)
         cell.install(shell, scale: fit.scale, rotation: fit.rotation)
+        // Play the wobble from Blender (shape keys Key_1 / Key_2) in an endless loop.
+        if let animated = Self.firstAnimated(in: shell), let animation = animated.availableAnimations.first {
+            animated.playAnimation(animation.repeat())
+            shell.components.set(SlowSpinComponent(current: shell.orientation,
+                                                   speed: Config.shellSpinSpeed,
+                                                   tilt: Config.shellSpinTilt))
+        }
 
         let nucleus = StageItem(name: "Nucleus")
         nucleus.install(clone(.nucleus), scale: fit.scale, rotation: fit.rotation)
         cell.container.addChild(nucleus.container)
         nucleus.container.position = SIMD3<Float>(0, 0, 0)
         return (cell, nucleus)
+    }
+    /// The entity below `entity` that carries an animation from the USDZ.
+    private static func firstAnimated(in entity: Entity) -> Entity? {
+        if !entity.availableAnimations.isEmpty { return entity }
+        for child in entity.children {
+            if let found = firstAnimated(in: child) { return found }
+        }
+        return nil
     }
 
     func hemoglobin() -> StageItem {

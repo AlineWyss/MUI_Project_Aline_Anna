@@ -333,6 +333,41 @@ struct PulseSystem: System {
     }
 }
 
+// MARK: - Slow spin
+
+/// Turns a model slowly and endlessly around a slightly tilted axis, so it never looks static.
+/// Put it on the model itself (not on `motion`, which MotionSystem turns).
+struct SlowSpinComponent: Component {
+    var current: simd_quatf
+    /// Degrees per second (10 ≈ one full turn in 36 seconds).
+    var speed: Float = 10
+    /// How far the turning axis leans away from vertical, in degrees.
+    var tilt: Float = 20
+    var time: Float = 0
+}
+
+struct SlowSpinSystem: System {
+    static let query = EntityQuery(where: .has(SlowSpinComponent.self))
+
+    init(scene: RealityKit.Scene) {}
+
+    func update(context: SceneUpdateContext) {
+        let dt = Float(context.deltaTime)
+        for entity in context.entities(matching: Self.query, updatingSystemWhen: .rendering) {
+            guard var spin = entity.components[SlowSpinComponent.self] else { continue }
+            spin.time += dt
+            // The axis leans a little and slowly circles around, so the turn feels organic.
+            let lean = simd_quatf(angle: spin.tilt * .pi / 180, axis: SIMD3<Float>(1, 0, 0))
+            let circle = simd_quatf(angle: spin.time * 0.15, axis: SIMD3<Float>(0, 1, 0))
+            let axis = (circle * lean).act(SIMD3<Float>(0, 1, 0))
+            // Turn a small step every frame, so the movement stays smooth however long it runs.
+            let step = simd_quatf(angle: spin.speed * .pi / 180 * dt, axis: axis)
+            spin.current = simd_normalize(step * spin.current)
+            entity.orientation = spin.current
+            entity.components.set(spin)
+        }
+    }
+}
 // MARK: - Registration
 
 enum JourneySystems {
@@ -348,6 +383,7 @@ enum JourneySystems {
         MarkerComponent.registerComponent()
         PulseComponent.registerComponent()
         FollowComponent.registerComponent()
+        SlowSpinComponent.registerComponent()
 
         MotionSystem.registerSystem()
         FadeSystem.registerSystem()
@@ -357,5 +393,6 @@ enum JourneySystems {
         MarkerSystem.registerSystem()
         PulseSystem.registerSystem()
         FollowSystem.registerSystem()
+        SlowSpinSystem.registerSystem()
     }
 }
