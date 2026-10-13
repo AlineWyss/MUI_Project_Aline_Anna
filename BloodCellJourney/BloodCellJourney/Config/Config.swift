@@ -116,9 +116,9 @@ enum Layout {
     /// It is attached to the anatomy model, so it stays next to the heart.
     static let heartCounterSideOffset: Float = 0.12
     /// The scanned heart while it is pumped: 2 = twice its real size (~16 cm).
-    static let heartModelScale: Float = 0.8
+    static let heartModelScale: Float = 1.0
     /// How far the heart floats out of the model, towards the person.
-    static let heartPopOutDistance: Float = 0.6
+    static let heartPopOutDistance: Float = 0.45
     /// Turn the scan around its vertical axis if its front doesn't face you (radians, e.g. .pi / 2).
     static let heartModelYaw: Float = 0
     /// Size of the red blood cell while it flies into / out of the anatomy model.
