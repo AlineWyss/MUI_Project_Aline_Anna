@@ -33,9 +33,10 @@ final class AnatomyOverlay {
     /// marker halo, then a see-through body (virtual model / ghost) – so nothing hides the cells.
     private let sortGroup = ModelSortGroup(depthPass: nil)
     private static let solidOrder: Int32 = 1
-    private static let glowOrder: Int32 = 2
-    /// Die dünne outline wird nach outline2 gezeichnet, damit sie immer sichtbar ist.
-    private static let outlineOrder: Int32 = 3
+    /// Die dünne outline wird VOR outline2 gezeichnet. So liegt der durchsichtige
+    /// outline2-Schlauch darüber, und die Linie scheint durch ihn hindurch.
+    private static let outlineOrder: Int32 = 2
+    private static let glowOrder: Int32 = 3
     private static let bodyOrder: Int32 = 4
     private var glowEntities: [Entity] = []
     /// Alle Teile der dünnen Linie 1 (outline), damit sie zuletzt gezeichnet werden können.
@@ -97,10 +98,10 @@ final class AnatomyOverlay {
             }
         }
 
-        // MARK: - Dünne outline zuletzt (nach outline2), damit sie nie verdeckt wird
-        let outlineLast = ModelSortGroupComponent(group: sortGroup, order: Self.outlineOrder)
+        // MARK: - Dünne outline vor outline2 zeichnen, damit sie durchscheint
+        let outlineFirst = ModelSortGroupComponent(group: sortGroup, order: Self.outlineOrder)
         for line in outlineEntities {
-            line.components.set(outlineLast)
+            line.components.set(outlineFirst)
         }
     }
 
