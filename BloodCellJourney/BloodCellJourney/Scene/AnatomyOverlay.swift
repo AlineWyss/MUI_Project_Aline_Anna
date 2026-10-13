@@ -28,6 +28,9 @@ final class AnatomyOverlay {
     private var zoneEntities: [AnatomyMap.Zone: Entity] = [:]
     private(set) var activeZone: AnatomyMap.Zone?
     private var markerTrail: [Entity] = []
+    /// The final body loop while it runs, and where it passes the left heart (metres along it).
+    private var finalTour: SampledPath?
+    private var finalTourHeartStops: [Float] = []
 
     /// Draw order (lower first): solid blood cells and marker core, then the glowing outlines and
     /// marker halo, then a see-through body (virtual model / ghost) – so nothing hides the cells.
@@ -419,16 +422,27 @@ final class AnatomyOverlay {
         SampledPath(Curves.catmullRom(AnatomyMap.points(for: route), samplesPerSegment: 8))
     }
 
-    /// World position where a route starts.
+    /// World position where the marker's next journey starts: where the marker is now (see
+    /// pathFromMarker), so the red blood cell flies to the right spot and nothing jumps.
     func startPosition(of route: AnatomyMap.Route) -> SIMD3<Float> {
-        root.convert(position: path(for: route).point(at: 0), to: nil)
+        root.convert(position: pathFromMarker(to: route).point(at: 0), to: nil)
     }
 
-    /// Moves the marker along a route and returns when it arrives.
+    /// Moves the marker along a route and returns when it arrives. It always sets off from where it is
+    /// now (see pathFromMarker), so it never jumps, wherever it was.
     func travel(_ route: AnatomyMap.Route, duration: Double) async {
         marker.isEnabled = true
-        setMarker(path: path(for: route), progress: 0, target: 1, speed: Float(1 / max(duration, 0.1)), loops: false)
-        let deadline = Date().addingTimeInterval(duration + 1.5)
+        let way = pathFromMarker(to: route)
+        // The route's usual speed. Coming from the body loop it keeps at least the speed it had there,
+        // so a longer way (first round to the heart) neither drags nor rushes.
+        var metresPerSecond = path(for: route).length / Float(max(duration, 0.1))
+        if let tour = finalTour, let current = marker.components[MarkerComponent.self], current.loops {
+            metresPerSecond = max(metresPerSecond, current.speed * tour.length)
+        }
+        let seconds = max(Double(way.length / max(metresPerSecond, 0.001)), 0.1)
+        finalTour = nil
+        setMarker(path: way, progress: 0, target: 1, speed: Float(1 / seconds), loops: false)
+        let deadline = Date().addingTimeInterval(seconds + 1.5)
         while Date() < deadline {
             try? await Task.sleep(for: .milliseconds(100))
             guard let component = marker.components[MarkerComponent.self] else { break }
@@ -437,9 +451,58 @@ final class AnatomyOverlay {
     }
 
     /// Puts the marker at the start of a route that is then walked step by step (heart beats).
+    /// The route starts where the marker is now, so it doesn't jump.
     func prepareSteps(along route: AnatomyMap.Route) {
         marker.isEnabled = true
-        setMarker(path: path(for: route), progress: 0, target: 0, speed: 0.3, loops: false)
+        let way = pathFromMarker(to: route)
+        finalTour = nil
+        setMarker(path: way, progress: 0, target: 0, speed: 0.3, loops: false)
+    }
+
+    /// The way from where the marker is now to the end of `route`, without a jump:
+    /// - on the final body loop, when the route leaves from the left heart, the marker first follows its
+    ///   current vessel round to the left heart and takes the route from there – the way blood goes;
+    /// - anywhere else, a smooth curve joins the route from the marker's current position.
+    private func pathFromMarker(to route: AnatomyMap.Route) -> SampledPath {
+        let controls = AnatomyMap.points(for: route)
+        let here = marker.position
+
+        if let tour = finalTour, tour.length > 0,
+           let current = marker.components[MarkerComponent.self], current.loops,
+           let heart = controls.firstIndex(where: { simd_distance($0, AnatomyMap.leftHeart) < 0.0005 }) {
+            let from = current.progress * tour.length
+            let stop = finalTourHeartStops.first(where: { $0 >= from - 0.0001 })
+                ?? (finalTourHeartStops.first.map { $0 + tour.length } ?? tour.length)
+            var points = tourPoints(tour, from: from, to: stop)
+            for point in Curves.catmullRom(Array(controls[heart...]), samplesPerSegment: 8) {
+                if let last = points.last, simd_distance(last, point) < 0.0001 { continue }
+                points.append(point)
+            }
+            return SampledPath(points)
+        }
+
+        let routePoints = Curves.catmullRom(controls, samplesPerSegment: 8)
+        guard let first = routePoints.first, simd_distance(here, first) > 0.001 else {
+            return SampledPath(routePoints)
+        }
+        return SampledPath(Curves.catmullRom([here] + controls, samplesPerSegment: 8))
+    }
+
+    /// Points of the final body loop between two distances (metres along it). `end` may run past the
+    /// end of the loop and continue from its start – the loop is closed at the left heart.
+    private func tourPoints(_ tour: SampledPath, from start: Float, to end: Float) -> [SIMD3<Float>] {
+        var points = [tour.point(at: start / tour.length)]
+        for (index, distance) in tour.cumulative.enumerated()
+        where distance > start && distance <= min(end, tour.length) {
+            points.append(tour.points[index])
+        }
+        if end > tour.length {
+            for (index, distance) in tour.cumulative.enumerated()
+            where distance > 0 && distance <= end - tour.length {
+                points.append(tour.points[index])
+            }
+        }
+        return points
     }
 
     /// Moves the marker to `fraction` (0...1) of the prepared route.
@@ -677,17 +740,28 @@ final class AnatomyOverlay {
             return
         }
 
-        marker.position = tour.point(at: 0)
+        // Join the loop where the marker is now (the nearest point of the tour), so it doesn't jump.
+        let here = marker.position
+        var nearest = 0
+        for index in tour.points.indices
+        where simd_distance(tour.points[index], here) < simd_distance(tour.points[nearest], here) {
+            nearest = index
+        }
 
         setMarker(
             path: tour,
-            progress: 0,
+            progress: tour.cumulative[nearest] / tour.length,
             target: 1,
             speed: Float(1 / max(lapDuration, 0.5)),
             loops: true
         )
 
         marker.isEnabled = true
+        // Remember the loop and where it passes the left heart, so the next journey can leave from it.
+        finalTour = tour
+        finalTourHeartStops = tour.points.indices
+            .filter { simd_distance(tour.points[$0], AnatomyMap.leftHeart) < 0.0005 }
+            .map { tour.cumulative[$0] }
     }
 
     // MARK: - Reset
@@ -695,6 +769,7 @@ final class AnatomyOverlay {
     func reset() {
         setZone(nil)
         hideMarker()
+        finalTour = nil
         setHeartTappable(false)
         tapTarget.isEnabled = false
         stream.autoBeat = true
