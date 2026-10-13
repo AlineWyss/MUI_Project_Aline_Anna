@@ -133,6 +133,8 @@ enum Layout {
 }
 
 enum Timing {
+    /// Seconds a released object takes to turn back to how it was.
+    static let grabRotationReturn: Double = 0.4
     static let pop: TimeInterval = 0.45
     /// Seconds for the red blood cell to fly into or out of the anatomy model.
     static let flyToModel: TimeInterval = 1.1
@@ -157,7 +159,6 @@ enum Timing {
     /// Seconds for the old cell to spring back after it got stuck.
     static let springBack: Double = 0.45
     /// Seconds a released object takes to turn back to how it was.
-    static let grabRotationReturn: Double = 0.4
 }
 
 enum Palette {

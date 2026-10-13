@@ -27,6 +27,7 @@ final class StageItem {
 
     let container = Entity()
     /// Turned by the hand while the item is held (see JourneyController+Interaction).
+    ///     /// Turned by the hand while the item is held (see JourneyController+Interaction).
     let spin = Entity()
     let motion = Entity()
     let body = Entity()
@@ -46,7 +47,9 @@ final class StageItem {
         container.name = name
         motion.name = name + "-motion"
         body.name = name + "-body"
-        container.addChild(motion)
+        spin.name = name + "-spin"
+        container.addChild(spin)
+        spin.addChild(motion)
         motion.addChild(body)
         motion.components.set(MotionComponent())
     }
