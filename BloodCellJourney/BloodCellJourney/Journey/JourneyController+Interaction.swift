@@ -111,6 +111,8 @@ extension JourneyController {
     private func beginDrag(_ item: StageItem) {
         item.container.stopAllAnimations()
         item.spin.stopAllAnimations()
+        // The first cell is looked at on its own: its label and the Start button stay where they are.
+        if step == .meetCell, item === redBloodCell { detachUI(from: item) }
         // Grabbed for squeezing: the red blood cell settles straight.
         if item === redBloodCell { item.stopIdleMotion() }
         item.container.scale = SIMD3<Float>(repeating: 1)
@@ -187,10 +189,34 @@ extension JourneyController {
             if session.blocked {
                 agingAttemptFailed()
             }
-
+        case .meetCell where item === redBloodCell:
+            // Looked at: it floats back to its place and rocks gently again, as before.
+            move(item.container, to: Layout.mainSlot, duration: 0.6)
+            item.updateMotion { $0.idleFadeTarget = 1 }
+            // Once it is back, label and Start button follow it again.
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.6))
+                guard self.step == .meetCell, self.redBloodCell === item else { return }
+                self.reattachStartUI(to: item)
+            }
+            // Looked at: it floats back to its place and rocks gently again, as before.
+            move(item.container, to: Layout.mainSlot, duration: 0.6)
+            item.updateMotion { $0.idleFadeTarget = 1 }
         default:
             // Squeezing: the cell simply stays where it was released.
             break
+        }
+    }
+    
+    /// Label and Start button follow the first cell again, at the same places as in enterMeetCell.
+    private func reattachStartUI(to cell: StageItem) {
+        if mainLabel != nil, let label = mainLabelSlot.entity {
+            follow(label, cell.container,
+                   offset: SIMD3<Float>(0, cell.halfHeight + Layout.labelGap, 0), anchor: .bottom)
+        }
+        if showsStartButton, let button = startButtonSlot.entity {
+            follow(button, cell.container,
+                   offset: SIMD3<Float>(0, -(cell.halfHeight + Layout.buttonGap), 0), anchor: .top)
         }
     }
 }

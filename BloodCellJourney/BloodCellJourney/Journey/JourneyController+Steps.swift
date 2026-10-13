@@ -60,6 +60,7 @@ extension JourneyController {
             $0.hover = 0.006
         }
         redBloodCell = cell
+        makeDraggable(cell)
 
         setMainLabel(StoryText.Labels.redBloodCell, on: cell)
         showStartButton(below: cell)
