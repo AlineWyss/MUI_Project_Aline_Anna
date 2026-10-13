@@ -60,6 +60,12 @@ enum Config {
     /// (a little calmer than on the start screen, which uses 0.45 / 0.006).
     static let cellIdleRock: Float = 0.2     // radians, about ±9°
     static let cellIdleHover: Float = 0.004   // metres
+    // MARK: The old red blood cell dissolves
+
+    /// Seconds the old red blood cell takes to crumble away (front sweeps up, pieces drift up like ash).
+    static let dissolveDuration: Float = 2.5
+    /// How high the pieces rise before they vanish, in metres.
+    static let dissolveRise: Float = 0.08
     static let vesselTubeOpacity: Float = 0.25
     /// The developing cell's shell turns slowly and endlessly: degrees per second
     /// (10 ≈ one turn in 36 s). 0 = still.

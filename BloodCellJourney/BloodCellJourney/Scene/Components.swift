@@ -395,6 +395,7 @@ enum JourneySystems {
         MarkerComponent.registerComponent()
         PulseComponent.registerComponent()
         FollowComponent.registerComponent()
+        DisintegrateComponent.registerComponent()
         SlowSpinComponent.registerComponent()
 
         MotionSystem.registerSystem()
@@ -405,6 +406,7 @@ enum JourneySystems {
         MarkerSystem.registerSystem()
         PulseSystem.registerSystem()
         FollowSystem.registerSystem()
+        DisintegrateSystem.registerSystem()
         SlowSpinSystem.registerSystem()
     }
 }

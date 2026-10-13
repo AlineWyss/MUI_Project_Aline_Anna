@@ -482,40 +482,34 @@ extension JourneyController {
         squeezeScene = nil
 
         sequence { id in
-            guard await self.pause(2.4, id) else { return }
+            guard await self.pause(Double(Config.dissolveDuration) + 0.4, id) else { return }
             self.enterFinished()
         }
     }
 
     private func dissolve(_ cell: StageItem) {
-        let emitter = Entity()
-        emitter.position = cell.container.position
-        var particles = ParticleEmitterComponent()
-        particles.emitterShape = .sphere
-        particles.emitterShapeSize = SIMD3<Float>(repeating: cell.radius)
-        particles.speed = 0.05
-        particles.mainEmitter.birthRate = 1500
-        particles.mainEmitter.lifeSpan = 1.4
-        particles.mainEmitter.size = 0.004
-        particles.mainEmitter.color = .evolving(start: .single(Palette.rbcAged),
-                                                end: .single(Palette.rbcAged.withAlphaComponent(0)))
-        particles.isEmitting = true
-        emitter.components.set(particles)
-        focusRoot.addChild(emitter)
-
-        // The cell shrinks and fades while the particles drift apart.
-        move(cell.container, to: cell.container.position, scale: 0.2, duration: 1.2)
-        remove(cell, duration: 1.2)
+        detachUI(from: cell)
+        makeStatic(cell)
+        cell.container.stopAllAnimations()
         redBloodCell = nil
 
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(0.8))
-            if var component = emitter.components[ParticleEmitterComponent.self] {
-                component.isEmitting = false
-                emitter.components.set(component)
+        let duration = Config.dissolveDuration
+        // Dust in the cell's own colour (the old cell is tinted with Palette.rbcAged).
+        let color = cell.currentColor.map {
+            UIColor(red: CGFloat($0.x), green: CGFloat($0.y), blue: CGFloat($0.z), alpha: 1)
+        } ?? Palette.rbcAged
+
+        // The cell crumbles from the bottom up; its pieces drift upwards like ash.
+        if Disintegrate.start(on: cell.container, duration: duration) {
+            Disintegrate.addDust(for: cell, in: focusRoot, color: color, duration: duration)
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(Double(duration) + 0.2))
+                cell.container.removeFromParent()
             }
-            try? await Task.sleep(for: .seconds(2.0))
-            emitter.removeFromParent()
+        } else {
+            // The mesh can't be split: shrink and fade as before.
+            move(cell.container, to: cell.container.position, scale: 0.2, duration: 1.2)
+            remove(cell, duration: 1.2)
         }
     }
 
