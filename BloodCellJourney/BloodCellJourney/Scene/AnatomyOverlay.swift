@@ -34,8 +34,12 @@ final class AnatomyOverlay {
     private let sortGroup = ModelSortGroup(depthPass: nil)
     private static let solidOrder: Int32 = 1
     private static let glowOrder: Int32 = 2
-    private static let bodyOrder: Int32 = 3
+    /// Die dünne outline wird nach outline2 gezeichnet, damit sie immer sichtbar ist.
+    private static let outlineOrder: Int32 = 3
+    private static let bodyOrder: Int32 = 4
     private var glowEntities: [Entity] = []
+    /// Alle Teile der dünnen Linie 1 (outline), damit sie zuletzt gezeichnet werden können.
+    private var outlineEntities: [Entity] = []
     /// The scanned heart that comes out of the model's heart while it has to be pumped.
     private let heartModel = Entity()
     /// Inner pivot that contracts on every beat (BeatSystem sets its scale every frame).
@@ -92,6 +96,12 @@ final class AnatomyOverlay {
                 $0.components.set(glow)
             }
         }
+
+        // MARK: - Dünne outline zuletzt (nach outline2), damit sie nie verdeckt wird
+        let outlineLast = ModelSortGroupComponent(group: sortGroup, order: Self.outlineOrder)
+        for line in outlineEntities {
+            line.components.set(outlineLast)
+        }
     }
 
 
@@ -119,7 +129,6 @@ final class AnatomyOverlay {
         glowEntities.append(tubes)
     }
 
-    /// Glowing outlines of the organs, each with two lights running around it.
     private func buildZones() {
         for zone in AnatomyMap.Zone.allCases {
             let outlines = AnatomyMap.outlines(for: zone)
@@ -127,23 +136,31 @@ final class AnatomyOverlay {
             guard !allPoints.isEmpty else { continue }
             let center = allPoints.reduce(SIMD3<Float>(0, 0, 0), +) / Float(allPoints.count)
 
-            // The zone entity sits at the centre so it can swell around it (BeatComponent).
             let zoneEntity = Entity()
             zoneEntity.name = "Zone-\(zone.rawValue)"
             zoneEntity.position = center
             let color = Palette.zone(zone)
-            let core = MaterialTools.glow(color, opacity: 0.95)
-            let halo = MaterialTools.glow(color, opacity: 0.22)
 
+            // ── Linie 1: outline (dünn, gut sichtbar) ──
+            let outlineMaterial = MaterialTools.glow(color, opacity: Config.outlineOpacity)
             for outline in outlines {
                 let loop = Curves.closedCatmullRom(outline.points3D.map { $0 - center }, samplesPerSegment: 6)
                 if let mesh = try? TubeMesh.generate(along: loop, radius: Config.outlineThickness) {
-                    zoneEntity.addChild(ModelEntity(mesh: mesh, materials: [core]))
-                }
-                if let mesh = try? TubeMesh.generate(along: loop, radius: Config.outlineThickness * 3.2) {
-                    zoneEntity.addChild(ModelEntity(mesh: mesh, materials: [halo]))
+                    let line = ModelEntity(mesh: mesh, materials: [outlineMaterial])
+                    zoneEntity.addChild(line)
+                    outlineEntities.append(line)   // merken für die Zeichen-Reihenfolge
                 }
             }
+
+            // ── Linie 2: outline2 (dicker, durchsichtiger) ──
+            let outline2Material = MaterialTools.glow(color, opacity: Config.outline2Opacity)
+            for outline2 in outlines {
+                let loop2 = Curves.closedCatmullRom(outline2.points3D.map { $0 - center }, samplesPerSegment: 6)
+                if let mesh = try? TubeMesh.generate(along: loop2, radius: Config.outline2Thickness) {
+                    zoneEntity.addChild(ModelEntity(mesh: mesh, materials: [outline2Material]))
+                }
+            }
+
             zoneEntity.components.set(BeatComponent())
             zoneEntity.components.set(OpacityComponent(opacity: 0))
             zoneEntity.isEnabled = false

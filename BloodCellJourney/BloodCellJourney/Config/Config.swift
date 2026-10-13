@@ -37,8 +37,18 @@ enum Config {
     static let flowSpeed: Float = 0.09
     /// Heart beats per minute when the heart beats by itself (not while the person pumps it).
     static let restingHeartRate: Float = 72
-    /// Thickness (radius) of the glowing organ outlines in metres.
-    static let outlineThickness: Float = 0.0016
+
+    // MARK: Organ-Umrandungen
+    // Dicke = Radius in Metern. Opacity: 0 = unsichtbar, 1 = voll sichtbar.
+    // outline2Thickness muss grösser sein als outlineThickness, sonst sieht man outline2 nicht.
+
+    // Linie 1 (outline): dünn und gut sichtbar
+    static let outlineThickness: Float = 0.0015
+    static let outlineOpacity: Float = 1.0
+    // Linie 2 (outline2): dicker und durchsichtiger
+    static let outline2Thickness: Float = 0.005
+    static let outline2Opacity: Float = 0.15
+
     /// Also draw the circulation as thin tubes behind the flowing cells.
     static let showVesselTubes = true
 
@@ -176,7 +186,7 @@ enum Palette {
 
     static func zone(_ zone: AnatomyMap.Zone) -> UIColor {
         switch zone {
-        case .boneMarrow: return UIColor(red: 1.00, green: 1.00, blue: 1.00, alpha: 1)
+        case .boneMarrow: return UIColor(red: 10.00, green: 10.00, blue: 10.00, alpha: 1)
         case .lungs: return UIColor(red: 1.00, green: 1.00, blue: 1.00, alpha: 1)
         case .heart: return UIColor(red: 1.00, green: 0.30, blue: 0.40, alpha: 1)
         case .organs: return UIColor(red: 1.00, green: 1.00, blue: 1.00, alpha: 1)
