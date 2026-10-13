@@ -111,9 +111,8 @@ final class StageItem {
 
     func stopIdleMotion() {
         updateMotion {
-            $0.rockAngle = 0
-            $0.hover = 0
             $0.wiggle = 0
+            $0.idleFadeTarget = 0   // rocking and hovering fade out smoothly (MotionSystem)
         }
     }
 }

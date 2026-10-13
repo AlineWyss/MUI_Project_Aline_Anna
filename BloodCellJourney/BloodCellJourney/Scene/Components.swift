@@ -31,6 +31,10 @@ struct MotionComponent: Component {
     var rockSpeed: Float = 0.8
     /// Gentle up/down floating in metres.
     var hover: Float = 0
+    /// 0…1: scales rocking and hovering, so they fade in and out instead of jumping.
+    var idleFade: Float = 1
+    /// Where idleFade is heading (stopIdleMotion sets 0, calmIdle sets 1).
+    var idleFadeTarget: Float = 1
     /// Start time of a bounce (heart beat), negative = inactive.
     var bounceStart: Float = -1
     var bounceHeight: Float = 0.035
@@ -51,6 +55,13 @@ struct MotionSystem: System {
             guard var motion = entity.components[MotionComponent.self] else { continue }
             motion.time += dt
             let t = motion.time
+            // Rocking and hovering ease in slowly (1.5 s) and settle quicker (0.5 s) instead of jumping.
+            if motion.idleFade < motion.idleFadeTarget {
+                motion.idleFade = min(motion.idleFade + dt / 1.5, motion.idleFadeTarget)
+            } else if motion.idleFade > motion.idleFadeTarget {
+                motion.idleFade = max(motion.idleFade - dt / 0.5, motion.idleFadeTarget)
+            }
+            let idle = motion.idleFade * motion.idleFade * (3 - 2 * motion.idleFade)   // soft start and end
 
             var offset = SIMD3<Float>(0, 0, 0)
             var rotation = simd_quatf(angle: 0, axis: SIMD3<Float>(0, 1, 0))
@@ -62,12 +73,13 @@ struct MotionSystem: System {
                 rotation = simd_quatf(angle: sin(t * 11) * 0.12, axis: SIMD3<Float>(0, 0, 1)) * rotation
             }
             if motion.rockAngle > 0 {
-                let yaw = simd_quatf(angle: sin(t * motion.rockSpeed) * motion.rockAngle, axis: SIMD3<Float>(0, 1, 0))
-                let pitch = simd_quatf(angle: sin(t * motion.rockSpeed * 0.7) * motion.rockAngle * 0.35, axis: SIMD3<Float>(1, 0, 0))
+                let rock = motion.rockAngle * idle
+                let yaw = simd_quatf(angle: sin(t * motion.rockSpeed) * rock, axis: SIMD3<Float>(0, 1, 0))
+                let pitch = simd_quatf(angle: sin(t * motion.rockSpeed * 0.7) * rock * 0.35, axis: SIMD3<Float>(1, 0, 0))
                 rotation = yaw * pitch * rotation
             }
             if motion.hover > 0 {
-                offset.y += sin(t * 1.6) * motion.hover
+                offset.y += sin(t * 1.6) * motion.hover * idle
             }
             if motion.bounceStart >= 0 {
                 let progress = (t - motion.bounceStart) / 0.5

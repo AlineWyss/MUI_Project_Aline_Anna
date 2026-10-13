@@ -40,7 +40,7 @@ extension JourneyController {
         popIn(scene.capillary)
         capillary = scene.capillary
 
-        cell.stopIdleMotion()
+        calmIdle(cell)   // keeps moving gently at the capillary until it is grabbed
         cell.container.stopAllAnimations()
         cell.container.scale = SIMD3<Float>(repeating: 1)
         scene.attach(to: cell, duration: 0.8)

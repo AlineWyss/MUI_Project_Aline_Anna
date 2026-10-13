@@ -56,6 +56,10 @@ enum Config {
     /// its material from Reality Composer Pro (only for physically based materials; textures are kept).
     /// false = exactly the material set in Reality Composer Pro.
     static let squeezeCellUsesStoryColor = true
+    /// The red blood cell's gentle idle movement whenever it is on stage
+    /// (a little calmer than on the start screen, which uses 0.45 / 0.006).
+    static let cellIdleRock: Float = 0.2     // radians, about ±9°
+    static let cellIdleHover: Float = 0.004   // metres
     static let vesselTubeOpacity: Float = 0.25
     /// The developing cell's shell turns slowly and endlessly: degrees per second
     /// (10 ≈ one turn in 36 s). 0 = still.

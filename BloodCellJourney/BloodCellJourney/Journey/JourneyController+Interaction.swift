@@ -111,6 +111,8 @@ extension JourneyController {
     private func beginDrag(_ item: StageItem) {
         item.container.stopAllAnimations()
         item.spin.stopAllAnimations()
+        // Grabbed for squeezing: the red blood cell settles straight.
+        if item === redBloodCell { item.stopIdleMotion() }
         item.container.scale = SIMD3<Float>(repeating: 1)
         // Molecules attached to the red blood cell are lifted out into the focus area.
         // The nucleus stays inside its cell so its distance from the centre can be measured.
@@ -181,6 +183,7 @@ extension JourneyController {
 
         case .aging where item === redBloodCell:
             springBack(item)
+            calmIdle(item)   // back at the start: eases into its gentle movement again
             if session.blocked {
                 agingAttemptFailed()
             }

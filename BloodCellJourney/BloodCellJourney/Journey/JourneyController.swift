@@ -750,7 +750,21 @@ final class JourneyController {
         cell.container.components.set(FadeComponent(target: 0, speed: 4, disableWhenHidden: false))
         try? await Task.sleep(for: .seconds(Timing.flyToModel * 0.25))
     }
-
+    /// The red blood cell's gentle "alive" movement whenever it is on stage – a little calmer than on
+    /// the start screen (enterMeetCell). Fades in smoothly.
+    /// The red blood cell's gentle "alive" movement during the journey – calmer than on the start
+    /// screen (enterMeetCell). It always eases in softly (MotionSystem).
+    func calmIdle(_ cell: StageItem) {
+        cell.updateMotion {
+            if $0.rockAngle == 0 && $0.hover == 0 {
+                $0.idleFade = 0          // a cell that wasn't moving yet starts from stillness
+            }
+            $0.rockAngle = Config.cellIdleRock
+            $0.rockSpeed = 0.6
+            $0.hover = Config.cellIdleHover
+            $0.idleFadeTarget = 1
+        }
+    }
     /// The red blood cell comes back out of the anatomy model to the focus area.
     func flyOutOfModel(_ cell: StageItem, from worldPoint: SIMD3<Float>, to slot: SIMD3<Float>,
                        label: LabelContent?) async {
@@ -761,6 +775,7 @@ final class JourneyController {
         cell.container.components.set(FadeComponent(target: 1, speed: 4, disableWhenHidden: false))
         move(cell.container, to: slot, scale: 1, duration: Timing.flyToModel)
         try? await Task.sleep(for: .seconds(Timing.flyToModel + 0.05))
+        calmIdle(cell)
         if let label {
             setMainLabel(label, on: cell)
         }

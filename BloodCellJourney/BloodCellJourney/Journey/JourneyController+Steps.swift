@@ -191,6 +191,7 @@ extension JourneyController {
             self.developingCell = nil
             self.hemoglobinFill = nil
             self.popIn(newCell, duration: 0.9)
+            self.calmIdle(newCell)
             self.redBloodCell = newCell
             self.setMainLabel(StoryText.Labels.youngRedBloodCell, on: newCell)
             self.setPanel(StoryText.Panels.cellBorn)
