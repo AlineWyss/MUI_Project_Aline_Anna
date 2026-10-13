@@ -121,8 +121,6 @@ final class AnatomyOverlay {
 
     /// Glowing outlines of the organs, each with two lights running around it.
     private func buildZones() {
-        let lightMaterial = MaterialTools.glow(UIColor.white)
-        let lightMesh = MeshResource.generateSphere(radius: Config.outlineThickness * 2.4)
         for zone in AnatomyMap.Zone.allCases {
             let outlines = AnatomyMap.outlines(for: zone)
             let allPoints = outlines.flatMap { $0.points3D }
@@ -144,13 +142,6 @@ final class AnatomyOverlay {
                 }
                 if let mesh = try? TubeMesh.generate(along: loop, radius: Config.outlineThickness * 3.2) {
                     zoneEntity.addChild(ModelEntity(mesh: mesh, materials: [halo]))
-                }
-                let path = SampledPath(loop)
-                for lightIndex in 0..<2 {
-                    let light = ModelEntity(mesh: lightMesh, materials: [lightMaterial])
-                    light.components.set(MarkerComponent(path: path, progress: Float(lightIndex) * 0.5,
-                                                         target: 1, speed: 0.35, loops: true))
-                    zoneEntity.addChild(light)
                 }
             }
             zoneEntity.components.set(BeatComponent())
