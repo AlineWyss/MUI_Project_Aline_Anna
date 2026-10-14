@@ -19,7 +19,7 @@ struct StartPromptView: View {
     }
 
     private var content: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 30) {
             Image(systemName: "drop.fill")
                 .font(.system(size: 44))
                 .foregroundStyle(.red)
@@ -27,9 +27,9 @@ struct StartPromptView: View {
                 .font(.largeTitle.weight(.bold))
                 .multilineTextAlignment(.center)
             Text(StoryText.StartPrompt.description)
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: 17, weight: .bold))
                 .multilineTextAlignment(.center)
-            HStack(spacing: 30){
+            HStack(spacing: 40){
                 Label(StoryText.StartPrompt.duration, systemImage: "clock.arrow.circlepath")
                 Label(StoryText.StartPrompt.distance, systemImage: "ruler")
                 Label(StoryText.StartPrompt.age, systemImage: "person.circle")

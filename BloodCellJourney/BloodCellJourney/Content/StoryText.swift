@@ -83,7 +83,7 @@ enum StoryText {
     }
     
     enum Buttons {
-        static let start = "Start the the lifecycle of a red blood cell"
+        static let start = "Discover the lifecycle"
         static let restart = "Start again the Journey of a Red Blood Cell"
         static let moreAbout = "More about"
         static let closeFacts = "Close facts"
@@ -95,12 +95,8 @@ enum StoryText {
         static let redBloodCell = LabelContent(
             title: "Red Blood Cell",
             subtitle: "Erythrocyte",
-            facts: [
-                "Shape: a flexible disc that is thinner in the middle (biconcave).",
-                "Only about 6–8 micrometres wide.",
-                "Has no nucleus.",
-                "Contains about 270 million hemoglobin molecules.",
-                "Oxygen-rich blood is scarlet, oxygen-poor blood is dark red."
+            facts:[
+                "A flexible, biconcave disc only 6–8 µm wide. It has no nucleus and carries up to 270 million hemoglobin molecules. Bright red means oxygen-rich, dark red means oxygen-poor.",
             ])
 
         static let youngRedBloodCell = LabelContent(
@@ -121,68 +117,53 @@ enum StoryText {
             title: "Erythroblast",
             subtitle: "a developing red blood cell",
             facts: [
-                "Develops from a stem cell in the red bone marrow.",
-                "In adults, red bone marrow is found in the vertebrae, ribs, sternum, sacrum, pelvis and the upper end of the thigh bone.",
-                "From stem cell to red blood cell takes about 7 days.",
-                "The kidneys release the hormone erythropoietin (EPO) when oxygen is low – it speeds up production."
+                "Develops in about 7 days from a stem cell in the red bone marrow – in adults mainly in the vertebrae, ribs, sternum and pelvis. When oxygen is low, the kidneys release the hormone EPO to speed up production.",
             ])
 
         static let hemoglobin = LabelContent(
             title: "Hemoglobin",
             holdText: "Drag hemoglobin into the cell",
             facts: [
-                "A protein made of 4 chains, each holding an iron-containing heme group.",
-                "Can bind 4 oxygen molecules.",
-                "Carries more than 98 % of the oxygen in your blood.",
-                "The iron is what makes blood red."
+                "A protein made of 4 chains, each with an iron-containing heme group that can bind one oxygen molecule. It carries over 98 % of the oxygen in your blood – and its heme is what makes blood red."
             ])
 
         static let nucleus = LabelContent(
             title: "Nucleus",
             holdText: "Pull the nucleus out of the cell",
             facts: [
-                "Holds the cell's DNA.",
-                "Mammalian red blood cells push their nucleus out to make room for hemoglobin.",
-                "The ejected nucleus is eaten by macrophages in the bone marrow."
+                "It holds the cell's DNA and pushes out the nucleus to make room for the hemoglobin. The ejected nucleus is eaten by macrophages in the bone marrow."
             ])
 
         static let capillary = LabelContent(
             title: "Capillary",
             facts: [
-                "The smallest blood vessels.",
-                "Many are narrower than a red blood cell – the cell has to bend to pass.",
-                "Here oxygen and carbon dioxide are exchanged."
+                "It is the smallest blood vesel so the red blood cell has to squeeze throught it. Here the oxygen and carbon dioxide are exchanged. "
             ])
 
         static let oxygen = LabelContent(
             title: "Oxygen (O₂)",
             holdText: "Drag oxygen into the red blood cell",
             facts: [
-                "Every cell needs oxygen to release energy from food.",
-                "It binds to the iron in hemoglobin.",
-                "About 21 % of the air you breathe is oxygen."
+                "It helps the cells to release energy from food and bindes the iron in the hemoglobin. About 21 % of the air you breathe is oxygen. ",
+                
             ])
 
         static let bodyCell = LabelContent(
             title: "Body Cell",
             holdText: "Drop the oxygen into this cell",
             facts: [
-                "Cells in organs and muscles use oxygen for cellular respiration.",
-                "This releases energy from sugar and fat.",
-                "Carbon dioxide is left over as waste."
+                "Cells in organs and muscles use oxygen for cellular respiration, wich releases energy from sugar and fat. Carbon dioxide is left over as waste.",
             ])
 
         static let carbonDioxide = LabelContent(
             title: "Carbon Dioxide (CO₂)",
             holdText: "Pull CO₂ out of the red blood cell",
             facts: [
-                "Waste product of cellular respiration.",
-                "About 70 % travels in the blood as bicarbonate, about 23 % bound to hemoglobin and about 7 % dissolved in plasma.",
-                "You breathe it out with every breath."
+                "A waste product of cellular respiration. About 70% of it travels in the blood as bicarbonate, the rest bound to hemoglobin or dissolved in plasma until you breathe it out.",
             ])
     }
 
-    // MARK: - Panels
+    /*// MARK: - Panels
 
     enum Panels {
         static let meetCell = PanelContent(
@@ -290,7 +271,7 @@ enum StoryText {
             id: "tooStiff",
             title: "Too stiff to pass",
             body: "Old red blood cells lose their flexibility. In the spleen, blood must pass through gaps only about 2 micrometres wide – stiff cells get stuck there and are eaten by macrophages. The iron from their hemoglobin is recycled to build new red blood cells.")
-    }
+    }*/
 
     // MARK: - Final panel
 
