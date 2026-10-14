@@ -163,7 +163,7 @@ enum StoryText {
             ])
     }
 
-    /*// MARK: - Panels
+    // MARK: - Panels
 
     enum Panels {
         static let meetCell = PanelContent(
@@ -271,7 +271,7 @@ enum StoryText {
             id: "tooStiff",
             title: "Too stiff to pass",
             body: "Old red blood cells lose their flexibility. In the spleen, blood must pass through gaps only about 2 micrometres wide – stiff cells get stuck there and are eaten by macrophages. The iron from their hemoglobin is recycled to build new red blood cells.")
-    }*/
+    }
 
     // MARK: - Final panel
 
