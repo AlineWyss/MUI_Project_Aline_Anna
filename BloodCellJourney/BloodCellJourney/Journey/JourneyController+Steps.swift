@@ -30,6 +30,8 @@ extension JourneyController {
         labelledItems.removeAll()            // every run shows each label once again
         highlight(nil)
         setStartPromptVisible(true)
+        warmUpRedBloodCell()
+
     }
 
     /// Tap on the bloodstream of the physical model.
@@ -40,11 +42,25 @@ extension JourneyController {
         setStartPromptVisible(false)
         enterMeetCell()
     }
-
+    /// Draws one red blood cell, far too small to see (about 0.3 mm), inside the model's heart while the
+    /// intro runs. The first time a model is drawn, the Vision Pro prepares it on the GPU – that stall
+    /// used to swallow the first flight. enterMeetCell removes it again.
+    func warmUpRedBloodCell() {
+        warmUpCell?.container.removeFromParent()
+        let cell = library.redBloodCell()
+        CellTextures.apply(.withOxygen, to: cell.body)   // same texture as the real cell
+        let heartWorld = anatomyRoot.convert(position: AnatomyMap.p(.heart), to: nil)
+        focusRoot.addChild(cell.container)               // not place(): it must not affect the task hint
+        cell.container.position = focusRoot.convert(position: heartWorld, from: nil)
+        cell.container.scale = SIMD3<Float>(repeating: 0.002)
+        warmUpCell = cell
+    }
     // MARK: - Meet the red blood cell
 
     func enterMeetCell() {
         step = .meetCell
+        warmUpCell?.container.removeFromParent()   // the real cell takes over now
+        warmUpCell = nil
         let cell = library.redBloodCell()
         setLook(cell, .withOxygen, animated: false)
 

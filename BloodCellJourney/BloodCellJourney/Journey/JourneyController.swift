@@ -107,6 +107,7 @@ final class JourneyController {
     @ObservationIgnored var bodyCell: StageItem?
     @ObservationIgnored var capillary: StageItem?
     @ObservationIgnored var hemoglobinFill: Entity?
+    @ObservationIgnored var warmUpCell: StageItem?
 
     // MARK: - Interaction state
 
