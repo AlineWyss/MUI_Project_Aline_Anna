@@ -31,6 +31,7 @@ extension JourneyController {
         highlight(nil)
         setStartPromptVisible(true)
         warmUpRedBloodCell()
+        setPanel(StoryText.Panels.welcome)
 
     }
 

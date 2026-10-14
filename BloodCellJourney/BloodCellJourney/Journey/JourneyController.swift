@@ -1,20 +1,3 @@
-//
-//  JourneyController.swift
-//  BloodCellJourney
-//
-//  Owns the scene and runs the story. The steps are in JourneyController+Steps.swift,
-//  drag & tap handling in JourneyController+Interaction.swift.
-//
-//  Scene graph (world space):
-//    root
-//     ├ anatomyRoot  – follows the physical model (object tracking) or holds the virtual copy:
-//     │   ├ overlay      blood stream, organ outlines, yellow marker
-//     │   └ heartCounter "Tap the heart" counter next to the model's heart while pumping
-//     └ focusRoot    – the stage for the cells, labels, Start button, text panel and end screen.
-//                      It sits at a fixed spot next to the anatomy model (Layout.focusOffsetFromModel),
-//                      not where the person happened to stand when the experience started.
-//
-
 import Foundation
 import Observation
 import RealityKit
@@ -222,6 +205,7 @@ final class JourneyController {
 
     func shutDown() {
         runID += 1
+        VoiceGuide.shared.stop()   // VOICEOVER: Stimme beim Schliessen stoppen
         tracking.stop()
         // The SwiftUI views hold the controller; removing them lets the closed scene be freed.
         attachmentSlots.forEach { $0.hide() }
@@ -533,6 +517,7 @@ final class JourneyController {
     /// Wartezeit, bevor es automatisch weitergeht (Sekunden).
     /// 0 = sofort. Ein kleiner Wert lässt das neue Modell kurz wirken,
     /// bevor der nächste Schritt beginnt.
+    /// VOICEOVER: Mindest-Wartezeit. Spricht die Stimme länger, wird zusätzlich gewartet, bis sie fertig ist.
     private static let autoContinueDelay: Double = 5.0
 
     /// Setzt den Inhalt des aktuellen Schritts.
@@ -555,11 +540,23 @@ final class JourneyController {
         }
         updateTaskHint()   // neuer Text → Aufgabe unter dem Modell anpassen
 
+        // VOICEOVER: Bei einem neuen Schritt den passenden Text sprechen.
+        // Die Texte stehen in VoiceScript.swift (Schlüssel = id des Panels).
+        // Gibt es eine Aufnahme "voice_<id>.m4a" im Projekt, wird diese abgespielt.
+        if isNew, let content, let line = StoryText.Voice.lines[content.id] {
+            VoiceGuide.shared.speak(clip: "voice_\(content.id)", text: line)
+        }
+
         // Automatisch weiter statt "Next"-Knopf
         if isNew, let content, content.continueTitle != nil {
             let id = runID
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(Self.autoContinueDelay))
+                // VOICEOVER: erst weiter, wenn die Stimme fertig gesprochen hat
+                // (sonst würde der Text mitten im Satz abgeschnitten).
+                while VoiceGuide.shared.isSpeaking && id == self.runID && self.panel == content {
+                    try? await Task.sleep(for: .milliseconds(200))
+                }
                 // Nur weiter, wenn inzwischen nicht neu gestartet wurde
                 // und noch derselbe Schritt angezeigt wird.
                 guard id == self.runID, self.panel == content else { return }
@@ -920,6 +917,7 @@ final class JourneyController {
 
     /// Removes everything from the focus area and resets the interaction state.
     func clearStage() {
+        VoiceGuide.shared.stop()   // VOICEOVER: bei Neustart nicht weitersprechen
         let items: [StageItem?] = [redBloodCell, developingCell, nucleus, hemoglobin, oxygen, carbonDioxide, bodyCell, capillary]
         for case let item? in items {
             detachUI(from: item)

@@ -181,16 +181,25 @@ enum StoryText {
     // MARK: - Panels
 
     enum Panels {
+        static let welcome = PanelContent(
+            id: "welcome",
+            title: "Welcome to the Journey of a Red blood Cell",
+            body: """
+            Welcome to the Journey of ared blood cell!
+            """,
+            )
+            
         static let meetCell = PanelContent(
             id: "meetCell",
             title: "Meet the red blood cell",
             body: """
-            You have 20–30 trillion red blood cells – about 70 % of all the cells in your body.
-            Every second your bone marrow makes about 2.4 million new ones.
-            One full lap around your body takes about one minute.
-            Each cell lives about 100–120 days. Its job: carry oxygen from your lungs to every cell and bring carbon dioxide back.
+            Right now, about 25 trillion red blood cells are racing through your body – \
+            seven out of every ten cells you have. \
+            While you listen to this sentence, your bone marrow is making millions of new ones. \
+            Each of them has one job: carry oxygen to every corner of your body. \
+            Let's follow one of them – from its very first day to its last.
             """,
-            hint: "Press Start to follow one red blood cell through its life.")
+            )
 
         static let boneMarrow = PanelContent(
             id: "boneMarrow",
