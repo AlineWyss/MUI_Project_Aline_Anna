@@ -83,7 +83,7 @@ enum StoryText {
     }
     
     enum Buttons {
-        static let start = "Discover the lifecycle"
+        static let start = "Discover the life cycle"
         static let restart = "Start again the Journey of a Red Blood Cell"
         static let moreAbout = "More about"
         static let closeFacts = "Close facts"
@@ -137,14 +137,12 @@ enum StoryText {
         static let capillary = LabelContent(
             title: "Bone marrow sinusoid",
             facts: [
-                "The bone marrow sinusoid is wide blood vessel with a very thin wall inside the bone marrow. New red blood cells squeeze through tiny openings in its wall to get into the blood."
+                "It is a wide blood vessel with a very thin wall inside the bone marrow. New red blood cells squeeze through tiny openings in its wall to get into the blood."
             ])
         static let spleenSinus = LabelContent(
             title: "Spleen sinus",
             facts: [
-                "A blood vessel in the spleen whose wall has very narrow slits between long, thin wall cells.",
-                "Every red blood cell must squeeze through these slits to get back into the blood – a fitness test.",
-                "Old, stiff cells can't bend enough: they get stuck and are broken down by macrophages."
+                "It is a blood vessel in the spleen whose wall has very narrow slits between long, thin wall cells. Every red blood cell must squeeze through these slits to get back into the blood. Old, stiff cells can't bend enough, get stuck and are broken down by macrophages."
             ])
 
         static let oxygen = LabelContent(
@@ -157,14 +155,14 @@ enum StoryText {
 
         static let bodyCell = LabelContent(
             title: "Body Cell",
-            holdText: "Drop the oxygen into this cell",
+            holdText: "Drop the oxygen into the cell",
             facts: [
                 "Cells in organs and muscles use oxygen for cellular respiration, wich releases energy from sugar and fat. Carbon dioxide is left over as waste.",
             ])
 
         static let carbonDioxide = LabelContent(
             title: "Carbon Dioxide (CO₂)",
-            holdText: "Pull CO₂ out of the red blood cell",
+            holdText: "Pull the carbon dioxide out of the red blood cell",
             facts: [
                 "A waste product of cellular respiration. About 70% of it travels in the blood as bicarbonate, the rest bound to hemoglobin or dissolved in plasma until you breathe it out.",
             ])
@@ -214,7 +212,7 @@ enum StoryText {
             id: "squeeze",
             title: "Squeeze into the bloodstream",
             body: "To enter the blood, the cell must pass through the wall of a tiny blood vessel. The gaps in the wall are narrower than the cell – it folds and stretches to squeeze through.",
-            hint: "Push the cell into the capillary wall.")
+            hint: "Squeeze the cell through the vessel wall into the blood.")
 
         static let travelToLungs = PanelContent(
             id: "travelToLungs",
@@ -249,7 +247,7 @@ enum StoryText {
             id: "exhaleCO2",
             title: "Breathing out: carbon dioxide",
             body: "Back in the lungs the exchange runs the other way: carbon dioxide leaves the blood and you breathe it out, while fresh oxygen binds to hemoglobin again.",
-            hint: "Pull the CO₂ out of the red blood cell.")
+            hint: "Pull the carbon dioxide out of the red blood cell.")
 
         static let cycleRepeats = PanelContent(
             id: "cycleRepeats",
@@ -266,7 +264,7 @@ enum StoryText {
             id: "agingTry",
             title: "120 days later",
             body: "In the spleen, blood has to squeeze through narrow gaps in the vessel walls. Let's see if the old cell still fits.",
-            hint: "Push the cell into the capillary wall.")
+            hint: "Squeeze the cell through the vessel wall.")
 
         static let agingTryAgain = PanelContent(
             id: "agingTryAgain",
