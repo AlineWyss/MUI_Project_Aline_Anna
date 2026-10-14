@@ -45,6 +45,17 @@ final class SqueezeScene {
     private let normalTransform: Transform
     /// Same size as the normal model, turned so the cell's flat side faces the person.
     private let facingTransform: Transform
+    /// The pose in which the squeeze cell lies exactly on the normal cell (set in attach).
+    private var normalPose: Transform?
+
+    /// From the squeeze cell's mesh (SqueezeAnimation.usdz, "Cell") to the red blood cell's mesh
+    /// (RedBloodCell.usdz) – the same mesh, stored turned. Measured from all 4,610 vertices (≈ 1 mm apart).
+    private static let squeezeToCell = simd_float4x4(columns: (
+        SIMD4<Float>(-0.148277, -0.979460, 0.133401, 0.000000),
+        SIMD4<Float>(0.094153, -0.148274, -0.984009, 0.000000),
+        SIMD4<Float>(0.984009, -0.133405, 0.114255, 0.000000),
+        SIMD4<Float>(-0.000000, -0.000005, 0.000000, 1.000000)
+    ))
     /// Transform of `cellModel` inside the scene: rotation and scale of "Squeeze" in Reality Composer Pro.
     private let sceneTransform: Transform
     private let cellShapes: Entity?
@@ -132,13 +143,16 @@ final class SqueezeScene {
 
     // MARK: - Swapping the cell's model
 
-    /// Shows the squeezing cell instead of the cell's normal model (same size and facing, so nothing
+    /// Shows the squeezing cell instead of the cell's normal model, lying exactly on it (so nothing
     /// jumps), then shrinks and turns it to fit the scene.
     func attach(to cell: StageItem, duration: TimeInterval) {
         cell.body.isEnabled = false
         cellModel.removeFromParent()
         cell.motion.addChild(cellModel)
-        cellModel.transform = normalTransform
+        // Starts lying exactly on the normal cell, so the swap can't be seen; from there it turns
+        // smoothly into its place in the capillary.
+        normalPose = pose(matching: cell)
+        cellModel.transform = normalPose ?? facingTransform
         cellModel.move(to: sceneTransform, relativeTo: cell.motion, duration: duration, timingFunction: .easeInOut)
     }
 
@@ -147,11 +161,22 @@ final class SqueezeScene {
         guard let parent = cellModel.parent else { return }
         cellModel.move(to: normalTransform, relativeTo: parent, duration: duration, timingFunction: .easeInOut)
     }
-    
-    /// Turns the cell smoothly (normal size) so its flat side faces the person – like the normal model.
+
+    /// Turns the cell smoothly back into the pose of the normal cell (normal size, facing the person).
     func faceFront(duration: TimeInterval) {
         guard let parent = cellModel.parent else { return }
-        cellModel.move(to: facingTransform, relativeTo: parent, duration: duration, timingFunction: .easeInOut)
+        cellModel.move(to: normalPose ?? facingTransform, relativeTo: parent, duration: duration,
+                       timingFunction: .easeInOut)
+    }
+
+    /// The holder's pose (relative to the cell's motion entity) in which the squeeze cell's mesh lies
+    /// exactly where the normal cell's mesh is.
+    private func pose(matching cell: StageItem) -> Transform? {
+        guard let squeezeMesh = Self.firstModel(in: cellModel),
+              let cellMesh = Self.firstModel(in: cell.body) else { return nil }
+        let meshInHolder = squeezeMesh.transformMatrix(relativeTo: cellModel)
+        let cellMeshInMotion = cellMesh.transformMatrix(relativeTo: cell.motion)
+        return Transform(matrix: cellMeshInMotion * Self.squeezeToCell * meshInHolder.inverse)
     }
 
     /// Back to the normal model with a crossfade; after faceFront both face the same way.
