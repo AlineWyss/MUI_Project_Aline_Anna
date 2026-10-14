@@ -194,7 +194,9 @@ extension JourneyController {
     func continueTapped() {
         switch step {
         case .boneMarrow: enterAddHemoglobin()
-        case .cycleRepeats: enterAging()
+        case .cycleRepeats:
+            showSkipButton(false)   // SKIP: Knopf weg, egal ob übersprungen oder automatisch weiter
+            enterAging()
         default: break
         }
     }
@@ -514,6 +516,7 @@ extension JourneyController {
             self.overlay.loopFinalBodyCycle(lapDuration: Timing.lapDuration)
             self.interactionLocked = false
             self.setPanel(StoryText.Panels.cycleRepeats)
+            self.showSkipButton(true)   // SKIP: wer nicht warten will, kann hier weiter tippen
         }
     }
 

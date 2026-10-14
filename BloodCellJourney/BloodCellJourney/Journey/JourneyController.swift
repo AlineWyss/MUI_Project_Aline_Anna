@@ -78,6 +78,8 @@ final class JourneyController {
     @ObservationIgnored var messageSlot: AttachmentSlot!
     @ObservationIgnored var finalPanelSlot: AttachmentSlot!
     @ObservationIgnored var hintSlot: AttachmentSlot!
+    /// SKIP: "Skip ›"-Knopf während der Runde durch den Körper (Schritt cycleRepeats).
+    @ObservationIgnored var skipSlot: AttachmentSlot!
 
     // MARK: - Stage items
 
@@ -492,11 +494,15 @@ final class JourneyController {
         hintSlot = AttachmentSlot(name: "TaskHint", parent: focusRoot) { [unowned self] in
             TaskHintView(controller: self)
         }
+        // SKIP: Knopf zum Überspringen der Runde durch den Körper
+        skipSlot = AttachmentSlot(name: "SkipButton", parent: focusRoot) { [unowned self] in
+            SkipButtonView(controller: self)
+        }
     }
 
     var attachmentSlots: [AttachmentSlot] {
         [panelSlot, mainLabelSlot, secondaryLabelSlot, startButtonSlot, heartSlot, startPromptSlot,
-         messageSlot, finalPanelSlot, hintSlot]   // NEU: hintSlot
+         messageSlot, finalPanelSlot, hintSlot, skipSlot]   // NEU: hintSlot, SKIP: skipSlot
     }
 
     // MARK: - UI helpers
@@ -681,6 +687,28 @@ final class JourneyController {
         if let parent = attachment.parent {
             attachment.position = FollowSystem.position(of: attachment, following: component, in: parent)
         }
+    }
+
+    // MARK: - SKIP: Runde durch den Körper überspringen
+
+    /// Zeigt oder versteckt den "Skip ›"-Knopf.
+    /// Er steht an derselben festen Stelle wie die Aufgaben-Labels (Layout.hintSlot in Config.swift) –
+    /// in diesem Schritt gibt es keine Aufgabe, also ist der Platz frei.
+    func showSkipButton(_ visible: Bool) {
+        if visible {
+            skipSlot.show(at: Layout.hintSlot)
+        } else {
+            skipSlot.hide()
+        }
+    }
+
+    /// "Skip ›" angetippt: Stimme stoppen und sofort zum nächsten Schritt (Altern).
+    /// Wer nicht tippt, erlebt alles wie bisher – es geht automatisch weiter.
+    func skipTapped() {
+        guard step == .cycleRepeats else { return }
+        showSkipButton(false)
+        VoiceGuide.shared.stop()
+        continueTapped()
     }
 
     func setStartPromptVisible(_ visible: Bool) {
@@ -954,6 +982,7 @@ final class JourneyController {
         hideHeartCounter()
         overlay.hideHeartModel(animated: false)
         setStartPromptVisible(false)
+        showSkipButton(false)   // SKIP: Knopf bei Neustart sicher weg
     }
 
     // MARK: - Sequences
