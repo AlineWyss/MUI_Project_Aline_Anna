@@ -116,7 +116,7 @@ extension JourneyController {
 
     /// Called once the old cell has flown out of the anatomy model.
     func startAgingSqueeze(_ cell: StageItem, _ id: Int) async {
-        guard await beginSqueeze(with: cell, id) != nil else {
+        guard let scene = await beginSqueeze(with: cell, id) else {
             guard id == runID else { return }
             // Without the baked animation: straight to the explanation.
             setPanel(StoryText.Panels.tooStiff)
@@ -126,6 +126,7 @@ extension JourneyController {
         }
         interactionLocked = false
         makeDraggable(cell)
+        setSecondaryLabel(StoryText.Labels.spleenSinus, on: scene.capillary, height: scene.labelHeight)
         setPanel(StoryText.Panels.agingTry)
     }
 

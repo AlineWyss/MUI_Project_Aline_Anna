@@ -21,7 +21,7 @@ extension JourneyController {
     func tapped(_ entity: Entity) {
         if overlay.isHeart(entity) {
             heartTapped()
-        } else if entity.isInside(overlay.tapTarget) {
+        } else if entity.isInside(overlay.stream.root) || entity.isInside(overlay.tapTarget) {
             bloodstreamTapped()
         }
     }

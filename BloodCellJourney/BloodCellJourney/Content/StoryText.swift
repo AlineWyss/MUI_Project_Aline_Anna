@@ -79,7 +79,7 @@ enum StoryText {
         static let duration = "10min"
         static let distance = "~ 2m"
         static let age = "6+"
-        static let body = "To get a close-up look on a red blood cell, tap the blood flowing"
+        static let body = "To get a close-up look on a red blood cell, tap the bloodstream"
     }
     
     enum Buttons {
@@ -135,9 +135,16 @@ enum StoryText {
             ])
 
         static let capillary = LabelContent(
-            title: "Capillary",
+            title: "Bone marrow sinusoid",
             facts: [
-                "It is the smallest blood vesel so the red blood cell has to squeeze throught it. Here the oxygen and carbon dioxide are exchanged. "
+                "The bone marrow sinusoid is wide blood vessel with a very thin wall inside the bone marrow. New red blood cells squeeze through tiny openings in its wall to get into the blood."
+            ])
+        static let spleenSinus = LabelContent(
+            title: "Spleen sinus",
+            facts: [
+                "A blood vessel in the spleen whose wall has very narrow slits between long, thin wall cells.",
+                "Every red blood cell must squeeze through these slits to get back into the blood – a fitness test.",
+                "Old, stiff cells can't bend enough: they get stuck and are broken down by macrophages."
             ])
 
         static let oxygen = LabelContent(

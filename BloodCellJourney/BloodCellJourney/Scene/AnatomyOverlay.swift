@@ -318,11 +318,6 @@ final class AnatomyOverlay {
     }
 
     private func buildTapTarget() {
-        // Box around the whole figure (scan bounds: 0.48 × 0.94 × 0.26 m).
-        let box = ShapeResource.generateBox(size: SIMD3<Float>(0.5, 0.86, 0.3))
-        tapTarget.components.set(CollisionComponent(shapes: [box]))
-        tapTarget.components.set(InputTargetComponent())
-        tapTarget.components.set(TapTargetComponent())
         tapTarget.position = SIMD3<Float>(0, 0.5, 0)
         tapTarget.isEnabled = false
         root.addChild(tapTarget)
@@ -339,7 +334,18 @@ final class AnatomyOverlay {
                 streamRoot.isEnabled = true
             }
             streamRoot.components.set(FadeComponent(target: 1, speed: 1.2, disableWhenHidden: true))
+            // Box around the whole figure (scan bounds: 0.48 × 0.94 × 0.26 m), same place as the old tap target.
+            let box = ShapeResource.generateBox(size: SIMD3<Float>(0.5, 0.86, 0.3))
+                .offsetBy(translation: SIMD3<Float>(0, 0.5, 0))
+            streamRoot.components.set(CollisionComponent(shapes: [box]))
+            streamRoot.components.set(InputTargetComponent())
+            streamRoot.components.set(TapTargetComponent())
+            streamRoot.components.set(HoverEffectComponent())
         } else {
+            streamRoot.components.remove(HoverEffectComponent.self)
+            streamRoot.components.remove(TapTargetComponent.self)
+            streamRoot.components.remove(InputTargetComponent.self)
+            streamRoot.components.remove(CollisionComponent.self)
             streamRoot.components.set(FadeComponent(target: 0, speed: 1.2, disableWhenHidden: true))
         }
     }
