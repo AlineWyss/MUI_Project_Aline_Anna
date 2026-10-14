@@ -166,6 +166,14 @@ enum StoryText {
             facts: [
                 "A waste product of cellular respiration. About 70% of it travels in the blood as bicarbonate, the rest bound to hemoglobin or dissolved in plasma until you breathe it out.",
             ])
+        
+        
+        /// Same CO₂ label, shown again in the lungs with the instruction underneath.
+        static let carbonDioxideExhale = LabelContent(
+            title: "Carbon Dioxide (CO₂)",
+            facts: [
+                "A waste product of cellular respiration. About 70% of it travels in the blood as bicarbonate, the rest is bound to hemoglobin or dissolved in plasma until you breathe it out in the lungs.",
+            ])
     }
 
     // MARK: - Panels

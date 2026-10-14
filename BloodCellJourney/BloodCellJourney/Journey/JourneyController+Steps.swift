@@ -448,7 +448,8 @@ extension JourneyController {
         guard let waste = carbonDioxide else { return }
         makeDraggable(waste)
         setMainLabel(nil, on: nil)
-        setSecondaryLabel(StoryText.Labels.carbonDioxide, on: waste)
+        labelledItems.remove(StoryText.Labels.carbonDioxide.title)   // shown in the organs already – show it again here
+        setSecondaryLabel(StoryText.Labels.carbonDioxideExhale, on: waste)
         setPanel(StoryText.Panels.exhaleCO2)
     }
 
