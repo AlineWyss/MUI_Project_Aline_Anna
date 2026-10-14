@@ -27,13 +27,22 @@ struct StartPromptView: View {
                 .font(.largeTitle.weight(.bold))
                 .multilineTextAlignment(.center)
             Text(StoryText.StartPrompt.description)
-                .font(.body.weight(.semibold))
+                .font(.system(size: 20, weight: .bold))
                 .multilineTextAlignment(.center)
-            HStack(spacing: 12) {
-                Image(systemName: "arrow.left")
-                Text(StoryText.StartPrompt.body)
-                    .foregroundStyle(Color(uiColor: Palette.taskHint))
+            HStack(spacing: 30){
+                Label(StoryText.StartPrompt.duration, systemImage: "clock.arrow.circlepath")
+                Label(StoryText.StartPrompt.distance, systemImage: "ruler")
+                Label(StoryText.StartPrompt.age, systemImage: "person.circle")
+                    
             }
+            .font(.system(size: 23))
+            
+            
+            
+                HStack(spacing: 12) {
+                    Label(StoryText.StartPrompt.body, systemImage: "hand.pinch.fill")
+                        .foregroundStyle(Color(uiColor: Palette.taskHint))
+                }
             .font(.title3)
             .multilineTextAlignment(.leading)
         }
