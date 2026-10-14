@@ -83,7 +83,6 @@ extension JourneyController {
 
         let parts = library.developingCell()
         place(parts.cell, at: Layout.mainSlot)
-        popIn(parts.cell)
         developingCell = parts.cell
         nucleus = parts.nucleus
         // Very subtle idle movement of the nucleus inside the cell.
@@ -94,10 +93,61 @@ extension JourneyController {
         }
 
         setMainLabel(StoryText.Labels.erythroblast, on: parts.cell)
-        setPanel(StoryText.Panels.boneMarrow)
 
         highlight(.boneMarrow)
         overlay.showMarker(at: .rMarrow)
+
+        if let development = parts.development {
+            // The cell develops first; the story continues once its shell has settled.
+            develop(development, nucleus: parts.nucleus) { [weak self] in
+                self?.setPanel(StoryText.Panels.boneMarrow)
+            }
+        } else {
+            popIn(parts.cell)
+            setPanel(StoryText.Panels.boneMarrow)
+        }
+    }
+
+    /// The cell develops: the shell and its nucleus grow together from nothing to full size (same time,
+    /// same curve) and fade in, while the shell plays its development from Blender. When that is done,
+    /// the shell's subtle endless wobble takes over and `done` runs.
+    private func develop(_ development: ShellDevelopment, nucleus: StageItem,
+                         then done: @escaping @MainActor () -> Void) {
+        // Both grow until the pop frame of the (faster) development, so they reach full size – and pop –
+        let grow = Float((Timing.shellPopFrame - Timing.shellStartFrame)
+                         / (Timing.shellAnimationFPS * Timing.shellEarlySpeed))
+        // The shell grows calmly and turns half a round. The nucleus tumbles one and a half times the
+        // other way, grows in soft pulses and squashes and stretches a little. Both come to rest exactly
+        // at full size.
+        let shellGrow = GrowComponent(target: development.growing.scale, duration: grow,
+                                      finalOrientation: development.growing.orientation, spin: .pi)
+        var nucleusGrow = GrowComponent(target: nucleus.container.scale, duration: grow,
+                                        finalOrientation: nucleus.container.orientation, spin: -.pi * 3)
+        nucleusGrow.axis = simd_normalize(SIMD3<Float>(0.6, 1, -0.3))
+        nucleusGrow.pulses = 3
+        nucleusGrow.pulseAmount = 0.12
+        nucleusGrow.squash = 0.08
+
+        for (entity, growth) in [(development.growing, shellGrow), (nucleus.container, nucleusGrow)] {
+            entity.components.set(growth)
+            entity.scale = entity.scale * 0.001
+            entity.components.set(OpacityComponent(opacity: 0))
+            entity.components.set(FadeComponent(target: 1, speed: 1 / 0.4, disableWhenHidden: false))
+        }
+
+        let id = runID
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(development.duration))
+            // Back in its rest shape with the same material and normals: the normal shell with its
+            // subtle endless wobble takes over, invisibly.
+            development.shell.isEnabled = true
+            if let animated = development.loopAnimated, let loop = development.loopAnimation {
+                animated.playAnimation(loop.repeat())
+            }
+            development.growing.removeFromParent()
+            guard id == self.runID, self.step == .boneMarrow else { return }
+            done()
+        }
     }
 
     /// "Next" button in the text panel.

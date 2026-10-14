@@ -11,6 +11,18 @@ import RealityKit
 import RealityKitContent
 import simd
 
+/// The developing shell's baked development and the shell with its endless gentle wobble that takes over.
+struct ShellDevelopment {
+    /// A copy of the shell that plays the baked development (ShellBake.swift).
+    let growing: Entity
+    /// Seconds the development takes.
+    let duration: Double
+    /// The normal shell, hidden until the development is done, and its wobble.
+    let shell: Entity
+    let loopAnimated: Entity?
+    let loopAnimation: AnimationResource?
+}
+
 @MainActor
 final class ModelLibrary {
     /// Names of the entities inside BloodCellModels.usda.
@@ -49,6 +61,8 @@ final class ModelLibrary {
             }
             prototypes[model] = entity
         }
+
+        _ = ShellBake.shared
         isLoaded = true
     }
 
@@ -85,25 +99,67 @@ final class ModelLibrary {
         return item
     }
 
-    /// The developing cell (shell) and its nucleus. The nucleus is its own item so it can be pulled out.
-    func developingCell() -> (cell: StageItem, nucleus: StageItem) {
+    func developingCell() -> (cell: StageItem, nucleus: StageItem, development: ShellDevelopment?) {
         let cell = StageItem(name: "DevelopingCell")
         let shell = clone(.shell)
         let fit = StageItem.fit(shell, size: Layout.Size.developingCell, orientation: .keep)
         cell.install(shell, scale: fit.scale, rotation: fit.rotation)
-        // Play the wobble from Blender (shape keys Key_1 / Key_2) in an endless loop.
-        if let animated = Self.firstAnimated(in: shell), let animation = animated.availableAnimations.first {
-            animated.playAnimation(animation.repeat())
-            shell.components.set(SlowSpinComponent(current: shell.orientation,
-                                                   speed: Config.shellSpinSpeed,
-                                                   tilt: Config.shellSpinTilt))
+
+        // A pivot carries the slow turn, so the developing copy and the shell that takes over
+        // afterwards always face the same way.
+        let pivot = Entity()
+        pivot.name = "ShellPivot"
+        shell.parent?.addChild(pivot)
+        pivot.transform = shell.transform
+        shell.transform = Transform()
+        pivot.addChild(shell)
+        pivot.components.set(SlowSpinComponent(current: pivot.orientation,
+                                               speed: Config.shellSpinSpeed,
+                                               tilt: Config.shellSpinTilt))
+
+        // The shell's endless gentle wobble from Blender (shape keys Key_1 / Key_2).
+        let loopAnimated = Self.firstAnimated(in: shell)
+        let loopAnimation = loopAnimated?.availableAnimations.first
+
+        var development: ShellDevelopment?
+        if let bake = ShellBake.shared {
+            // A copy of the shell plays the development from Blender (shape keys + soft-body wobble);
+            // the shell itself (hidden until then) takes over when it is done.
+            let growing = shell.clone(recursive: true)
+            growing.isEnabled = true
+            pivot.addChild(growing)
+            growing.transform = shell.transform
+            let start = Float(Timing.shellStartFrame)
+            let fastUntil = Float(Timing.shellPopFrame)
+            let fastSpeed = Float(Timing.shellEarlySpeed)
+            if ShellBakePlayer.attach(bake, to: growing, startFrame: start, fastUntilFrame: fastUntil,
+                                      fastSpeed: fastSpeed, growBoost: Float(Timing.shellGrowWobbleBoost)) {
+                shell.isEnabled = false
+                let duration = bake.duration(startFrame: start, fastUntilFrame: fastUntil, fastSpeed: fastSpeed)
+                development = ShellDevelopment(growing: growing, duration: Double(duration), shell: shell,
+                                               loopAnimated: loopAnimated, loopAnimation: loopAnimation)
+            } else {
+                growing.removeFromParent()
+            }
+        }
+        if development == nil, let loopAnimated, let loopAnimation {
+            loopAnimated.playAnimation(loopAnimation.repeat())
         }
 
         let nucleus = StageItem(name: "Nucleus")
         nucleus.install(clone(.nucleus), scale: fit.scale, rotation: fit.rotation)
         cell.container.addChild(nucleus.container)
         nucleus.container.position = SIMD3<Float>(0, 0, 0)
-        return (cell, nucleus)
+        return (cell, nucleus, development)
+    }
+
+    /// The first entity below `entity` that shows a mesh.
+    private static func firstModel(in entity: Entity) -> Entity? {
+        if entity.components.has(ModelComponent.self) { return entity }
+        for child in entity.children {
+            if let found = firstModel(in: child) { return found }
+        }
+        return nil
     }
     /// The entity below `entity` that carries an animation from the USDZ.
     private static func firstAnimated(in entity: Entity) -> Entity? {

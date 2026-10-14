@@ -172,7 +172,20 @@ enum Timing {
     /// Seconds the "a red blood cell is born" text stays before the capillary appears.
     static let afterBirth: Double = 3.0
     /// Seconds to read the explanation why the old cell gets stuck before it dissolves.
-    static let readTooStiff: Double = 2.0
+    static let readTooStiff: Double = 5.0
+    /// The cell's development (Resources/ShellDevelopment.json, 24 frames per second): the shell grows
+    /// from nothing to full size until the pop frame, the nucleus until its own frame (as in the .blend).
+    static let shellAnimationFPS: Double = 24
+    static let shellPopFrame: Double = 73
+    static let nucleusGrowFrame: Double = 75
+    /// The development plays this many times faster up to shellPopFrame, then at normal speed
+    /// (1 = as in Blender; the growth takes the same time, so shell and nucleus stay in sync).
+    static let shellEarlySpeed: Double = 1
+    /// The development starts at this frame of the bake (frames before it are still).
+    static let shellStartFrame: Double = 14
+    /// Extra wobble while the cell grows: 1.5 = two and a half times as strong at the start, easing back
+    /// to the original strength by the time it reaches full size. 0 = as in Blender.
+    static let shellGrowWobbleBoost: Double = 1.5
     /// Seconds the capillary takes to fade away before the old cell turns to the person and dissolves.
     static let recycleCapillaryFade: Double = 0.8
     /// Seconds for one lap of the marker while the cycle repeats.
