@@ -40,7 +40,11 @@ final class AnatomyOverlay {
     /// outline2-Schlauch darüber, und die Linie scheint durch ihn hindurch.
     private static let outlineOrder: Int32 = 2
     private static let glowOrder: Int32 = 3
-    private static let bodyOrder: Int32 = 4
+    /// Der rote Punkt (Blutkörperchen im Modell) wird NACH den leuchtenden Linien gezeichnet.
+    private static let markerOrder: Int32 = 4
+    private static let bodyOrder: Int32 = 5
+    /// Wie weit der rote Punkt zur Person hin rückt (Meter), damit er vor den Linien liegt.
+    private static let markerForward: Float = 0.03
     private var glowEntities: [Entity] = []
     /// Alle Teile der dünnen Linie 1 (outline), damit sie zuletzt gezeichnet werden können.
     private var outlineEntities: [Entity] = []
@@ -254,6 +258,7 @@ final class AnatomyOverlay {
     /// Puts the red blood cell model on the marker (a copy of the one ModelLibrary has already loaded,
     /// so nothing is loaded a second time). Called from JourneyController.prepare().
     func setMarkerCell(_ cell: Entity, diameter: Float = 0.020) {
+        marker.findEntity(named: "MarkerCellPivot")?.removeFromParent()
         marker.findEntity(named: "RedBloodCellVisual")?.removeFromParent()
 
         let visual = Entity()
@@ -268,10 +273,16 @@ final class AnatomyOverlay {
             visual.position = -bounds.center * scale      // centred on the marker
         }
 
-        // Drawn with the solid models, before the glow (see sortGroup).
-        let solid = ModelSortGroupComponent(group: sortGroup, order: Self.solidOrder)
-        visual.forEachModelEntity { $0.components.set(solid) }
-        marker.addChild(visual)
+        let pivot = Entity()
+        pivot.name = "MarkerCellPivot"
+        pivot.components.set(BillboardComponent())
+        visual.position.z += Self.markerForward
+        pivot.addChild(visual)
+
+        // Wird nach den Linien gezeichnet (siehe markerOrder).
+        let front = ModelSortGroupComponent(group: sortGroup, order: Self.markerOrder)
+        visual.forEachModelEntity { $0.components.set(front) }
+        marker.addChild(pivot)
     }
     /// Gives the marker's cell the same look as the cell in front of the person.
     func setMarkerLook(_ look: CellLook) {
