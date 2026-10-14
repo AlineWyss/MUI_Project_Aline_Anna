@@ -83,8 +83,10 @@ enum StoryText {
     }
     
     enum Buttons {
+
         static let start = "Discover the life cycle"
-        static let restart = "Start again the Journey of a Red Blood Cell"
+        static let restart = "Restart"
+
         static let moreAbout = "More about"
         static let closeFacts = "Close facts"
         static let continueWithoutModel = "Continue without the model"
@@ -291,10 +293,7 @@ enum StoryText {
     enum Final {
         static let title = "The journey of a red blood cell"
         static let facts = [
-            "About 2.4 million new red blood cells are made every second – and about as many old ones are removed.",
-            "A red blood cell lives about 100–120 days.",
-            "It travels around your body about once a minute – roughly 170,000 laps in its life.",
-            "Old cells are broken down in the spleen and liver; their iron is used again for new cells."
+            "To experience the journey again, click \"Restart\".",
         ]
     }
 
@@ -314,4 +313,7 @@ enum StoryText {
         static let title = "Tap the heart"
     }
 }
+
+// VOICEGUIDE: Voice over Text
+
 
