@@ -1,9 +1,7 @@
 //
 //  Disintegrate.swift
 //  BloodCellJourney
-//
-//  Created by Anna Graf on 13.10.2026.
-//
+///
 //  Dissolve effect for the old red blood cell: the cell breaks into its own small pieces (every triangle
 //  of the mesh is a piece, with the cell's material) and flows away as one soft stream – like smoke or
 //  sand drawn out by a current. The cell erodes from the side the stream leaves from; each loose piece

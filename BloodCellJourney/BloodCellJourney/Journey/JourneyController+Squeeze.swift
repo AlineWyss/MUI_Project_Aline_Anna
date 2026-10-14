@@ -53,13 +53,11 @@ extension JourneyController {
     func endSqueeze(of cell: StageItem, scene: SqueezeScene?, moveTo slot: SIMD3<Float>) async {
         move(cell.container, to: slot, duration: Timing.squeezeRelax)
         guard let scene else { return }
-        scene.restoreSize(duration: Timing.squeezeRelax)
-        // The cell relaxes; the capillary (fading out) keeps its shape.
+        // The cell relaxes and turns smoothly to face the person; the capillary (fading out) keeps its shape.
+        // It stays this model: it flies into the anatomy model as it is and gets its normal model back
+        // there, out of sight (enterLungsOxygen) – no visible switch.
+        scene.faceFront(duration: Timing.squeezeRelax)
         await scene.animate(to: scene.firstFrame, duration: Timing.squeezeRelax, includeCapillary: false)
-        scene.detach(from: cell)
-        if squeezeScene === scene {
-            squeezeScene = nil
-        }
     }
 
     // MARK: - Step "squeeze": into the bloodstream

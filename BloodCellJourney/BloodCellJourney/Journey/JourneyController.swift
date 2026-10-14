@@ -736,17 +736,19 @@ final class JourneyController {
 
     // MARK: - Attention: the cell travels inside the anatomy model
 
-    /// The red blood cell in front of the person shrinks and flies into the anatomy model,
-    /// where it continues as the yellow marker. Labels hide while it is away.
     func flyIntoModel(_ cell: StageItem, at worldPoint: SIMD3<Float>) async {
         setMainLabel(nil, on: nil)
         cell.stopIdleMotion()
-        cell.container.stopAllAnimations()
+        // A short calm moment before take-off: the idle movement settles and a molecule that is just docking
+        // (CO₂) finishes its last bit.
+        try? await Task.sleep(for: .seconds(0.4))
+        // Only the cell's own movement – molecules bound to it keep their animations.
+        cell.container.stopAllAnimations(recursive: false)
         cell.container.components.remove(FadeComponent.self)
-        cell.container.components.set(OpacityComponent(opacity: 1))
         move(cell.container, to: focusRoot.convert(position: worldPoint, from: nil),
              scale: Layout.cellScaleInModel, duration: Timing.flyToModel)
         try? await Task.sleep(for: .seconds(Timing.flyToModel * 0.8))
+        // Only now (small and far away) it becomes see-through and fades out.
         cell.container.components.set(FadeComponent(target: 0, speed: 4, disableWhenHidden: false))
         try? await Task.sleep(for: .seconds(Timing.flyToModel * 0.25))
     }
@@ -885,12 +887,16 @@ final class JourneyController {
         fade.scale = item.body.scale * 1.01          // a hair larger, so the two surfaces don't flicker
         CellTextures.apply(look, to: fade)
         fade.components.set(OpacityComponent(opacity: 0))
-        fade.components.set(FadeComponent(target: 1, speed: Float(1 / max(duration, 0.1)), disableWhenHidden: false))
+        // Fades in to almost solid (it stays see-through, so it never switches how it is drawn) …
+        fade.components.set(FadeComponent(target: 0.99, speed: Float(1 / max(duration, 0.1)), disableWhenHidden: false))
         motion.addChild(fade)
         Task { @MainActor [weak item] in
             try? await Task.sleep(for: .seconds(duration))
             guard let item, item.look == look, fade.parent != nil else { return }
+            // … then the cell takes the new texture underneath and the copy gently fades away – no pop.
             CellTextures.apply(look, to: item.body)
+            fade.components.set(FadeComponent(target: 0, speed: 1 / 0.3, disableWhenHidden: false))
+            try? await Task.sleep(for: .seconds(0.35))
             fade.removeFromParent()
         }
     }

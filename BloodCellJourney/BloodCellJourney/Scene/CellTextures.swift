@@ -2,8 +2,6 @@
 //  CellTextures.swift
 //  BloodCellJourney
 //
-//  Created by Anna Graf on 12.10.2026.
-//
 //  CellTextures.swift
 //  BloodCellJourney
 //

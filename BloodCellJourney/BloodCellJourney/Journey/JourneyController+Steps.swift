@@ -78,7 +78,18 @@ extension JourneyController {
 
     func enterBoneMarrow() {
         step = .boneMarrow
-        remove(redBloodCell)
+        if let first = redBloodCell {
+            // The first cell shrinks away (it stays solid – no see-through fade) while the developing cell
+            // grows in its place.
+            detachUI(from: first)
+            makeStatic(first)
+            first.stopIdleMotion()
+            move(first.container, to: first.container.position, scale: 0.01, duration: 0.5)
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.55))
+                first.container.removeFromParent()
+            }
+        }
         redBloodCell = nil
 
         let parts = library.developingCell()
@@ -266,6 +277,11 @@ extension JourneyController {
         sequence { id in
             // Attention moves to the anatomy model: the cell flies into it and travels on as the yellow marker.
             await self.flyIntoModel(cell, at: self.overlay.startPosition(of: .marrowToLungs))
+            // Inside the anatomy model, out of sight: the cell gets its normal model back.
+            if let scene = self.squeezeScene {
+                scene.detach(from: cell)
+                self.squeezeScene = nil
+            }
             guard id == self.runID else { return }
             self.highlight(nil)
             await self.overlay.travel(.marrowToLungs, duration: Timing.travelToLungs)
