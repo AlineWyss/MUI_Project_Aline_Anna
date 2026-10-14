@@ -4,35 +4,6 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "Oxygen"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
-        "Oxygen",
-        "_materials"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
-        "BodyCellOuter",
-        "_materials"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "18C086B3-62A6-488F-8310-3DC10B3816FE",
-        "Root",
         "CarbonDioxide",
         "_materials"
       ],
@@ -43,7 +14,25 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "Capillary"
+        "CarbonDioxide"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
+        "BodyCellOuter"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
+        "BodyCellInner"
       ],
       {
         "isExpanded" : true,
@@ -62,7 +51,7 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "BodyCellInner"
+        "Oxygen"
       ],
       {
         "isExpanded" : true,
@@ -71,7 +60,8 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "CarbonDioxide"
+        "Oxygen",
+        "_materials"
       ],
       {
         "isExpanded" : true,
@@ -97,7 +87,7 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "Capillary",
+        "BodyCellOuter",
         "_materials"
       ],
       {
@@ -107,7 +97,8 @@
       [
         "18C086B3-62A6-488F-8310-3DC10B3816FE",
         "Root",
-        "BodyCellOuter"
+        "Capillary",
+        "_materials"
       ],
       {
         "isExpanded" : true,
@@ -122,6 +113,15 @@
       {
         "isExpanded" : true,
         "isLocked" : false
+      },
+      [
+        "18C086B3-62A6-488F-8310-3DC10B3816FE",
+        "Root",
+        "Capillary"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
       }
     ]
   },
@@ -130,7 +130,17 @@
       [
         "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
         "Root",
-        "Squeeze"
+        "Squeeze",
+        "Content",
+        "Cell"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
+        "Root"
       ],
       {
         "isExpanded" : true,
@@ -151,29 +161,7 @@
         "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
         "Root",
         "Squeeze",
-        "Content",
-        "Cell"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
-        "Root",
-        "Squeeze",
         "Content"
-      ],
-      {
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
-        "Root",
-        "Squeeze",
-        "Content",
-        "_materials"
       ],
       {
         "isExpanded" : true,
@@ -193,7 +181,19 @@
       },
       [
         "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
-        "Root"
+        "Root",
+        "Squeeze"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "59BD28F3-956D-4B85-BD65-6E78C52A32C1",
+        "Root",
+        "Squeeze",
+        "Content",
+        "_materials"
       ],
       {
         "isExpanded" : true,

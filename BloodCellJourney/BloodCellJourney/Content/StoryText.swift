@@ -74,13 +74,14 @@ enum StoryText {
     }
 
     enum StartPrompt {
-        static let title = "The Journey of a Red Blood Cell"
-        static let body = "Tap the blood flowing through the anatomy model to start."
+        static let title = "Welcome to the Journey of a Red Blood Cell"
+        static let description = "This augmented reality experiment illustrates the life cycle of a red blood cell. It shows how a red blood cell is formed and how it moves through the human body. The shared AR space enables students to engage in interactive learning."
+        static let body = "To get a close-up look on a red blood cell, tap the blood flowing"
     }
-
+    
     enum Buttons {
         static let start = "Start"
-        static let restart = "Start again"
+        static let restart = "Start again the Journey of a Red Blood Cell"
         static let moreAbout = "More about"
         static let closeFacts = "Close facts"
         static let continueWithoutModel = "Continue without the model"

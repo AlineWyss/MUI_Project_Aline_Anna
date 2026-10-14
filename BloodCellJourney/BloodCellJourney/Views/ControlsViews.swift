@@ -26,9 +26,13 @@ struct StartPromptView: View {
             Text(StoryText.StartPrompt.title)
                 .font(.largeTitle.weight(.bold))
                 .multilineTextAlignment(.center)
+            Text(StoryText.StartPrompt.description)
+                .font(.body.weight(.semibold))
+                .multilineTextAlignment(.center)
             HStack(spacing: 12) {
                 Image(systemName: "arrow.left")
                 Text(StoryText.StartPrompt.body)
+                    .foregroundStyle(Color(uiColor: Palette.taskHint))
             }
             .font(.title3)
             .multilineTextAlignment(.leading)
