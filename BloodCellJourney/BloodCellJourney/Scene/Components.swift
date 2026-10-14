@@ -70,7 +70,8 @@ struct MotionSystem: System {
                 offset.x += sin(t * 23) * motion.wiggle
                 offset.y += sin(t * 19 + 1.3) * motion.wiggle * 0.8
                 offset.z += sin(t * 17 + 0.4) * motion.wiggle * 0.5
-                rotation = simd_quatf(angle: sin(t * 11) * 0.12, axis: SIMD3<Float>(0, 0, 1)) * rotation
+                rotation = simd_quatf(angle: sin(t * 11) * 0.12 * min(motion.wiggle / 0.0045, 1),
+                                      axis: SIMD3<Float>(0, 0, 1)) * rotation
             }
             if motion.rockAngle > 0 {
                 let rock = motion.rockAngle * idle

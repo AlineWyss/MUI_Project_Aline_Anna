@@ -132,10 +132,14 @@ final class ModelLibrary {
             let start = Float(Timing.shellStartFrame)
             let fastUntil = Float(Timing.shellPopFrame)
             let fastSpeed = Float(Timing.shellEarlySpeed)
+            let lateSpeed = Float(Timing.shellLateSpeed)
             if ShellBakePlayer.attach(bake, to: growing, startFrame: start, fastUntilFrame: fastUntil,
-                                      fastSpeed: fastSpeed, growBoost: Float(Timing.shellGrowWobbleBoost)) {
+                                      fastSpeed: fastSpeed, lateSpeed: lateSpeed,
+                                      growBoost: Float(Timing.shellGrowWobbleBoost),
+                                      settleSeconds: Float(Timing.shellSettleSeconds)) {
                 shell.isEnabled = false
-                let duration = bake.duration(startFrame: start, fastUntilFrame: fastUntil, fastSpeed: fastSpeed)
+                let duration = bake.duration(startFrame: start, fastUntilFrame: fastUntil,
+                                             fastSpeed: fastSpeed, lateSpeed: lateSpeed)
                 development = ShellDevelopment(growing: growing, duration: Double(duration), shell: shell,
                                                loopAnimated: loopAnimated, loopAnimation: loopAnimation)
             } else {

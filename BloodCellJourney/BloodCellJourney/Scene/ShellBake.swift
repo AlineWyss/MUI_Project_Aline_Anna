@@ -8,10 +8,10 @@
 //  A copy of the shell gets a LowLevelMesh whose vertices follow the baked frames (smoothly in between).
 //  It keeps the shell's material, UVs, tangents and normals, so it looks exactly like the normal shell:
 //  the normals only change by what the movement changes, and at rest they are the shell's own.
-//  Playback can skip the still frames at the start (`startFrame`), play the part up to `fastUntilFrame`
-//  faster (`fastSpeed`) and make the wobble stronger while the cell grows (`growBoost`, fading back to
-//  normal by `fastUntilFrame`) and calm the wobble down between `calmFrom` and `calmTo` (to soften the
-//  pop in the simulation); the rest plays at normal speed.
+//  The JSON holds only the simulation (the shape in every frame). All timing is set in code:
+//  skip the still frames at the start (`startFrame`), play the part up to `fastUntilFrame` at `fastSpeed`
+//  and the rest at `lateSpeed`, make the wobble stronger while the cell grows (`growBoost`, fading back to
+//  normal by `fastUntilFrame`) and ease it back to rest over the last `settleSeconds`.
 //
 //  ShellDevelopment.json: { "fps", "frameCount", "vertexCount",
 //                           "rest":    [x, y, z, …] in metres (the shell's mesh space),
@@ -34,13 +34,13 @@ final class ShellBake {
     /// Seconds from the first to the last frame.
     var duration: Float { Float(max(frameCount - 1, 0)) / fps }
 
-    /// Seconds the playback takes from `startFrame` when the frames up to `fastUntilFrame` play
-    /// `fastSpeed` times faster.
-    func duration(startFrame: Float = 0, fastUntilFrame: Float, fastSpeed: Float) -> Float {
+    /// Seconds the playback takes from `startFrame` when the frames up to `fastUntilFrame` play at
+    /// `fastSpeed` and the rest at `lateSpeed` (1 = as in Blender).
+    func duration(startFrame: Float = 0, fastUntilFrame: Float, fastSpeed: Float, lateSpeed: Float = 1) -> Float {
         let last = Float(max(frameCount - 1, 0))
         let start = min(max(startFrame, 0), last)
         let fast = min(max(fastUntilFrame, start), last)
-        return (fast - start) / (fps * max(fastSpeed, 0.01)) + (last - fast) / fps
+        return (fast - start) / (fps * max(fastSpeed, 0.01)) + (last - fast) / (fps * max(lateSpeed, 0.01))
     }
 
     /// Smooth normals of a shape (one per bake vertex), from the given triangles.
@@ -123,17 +123,15 @@ struct ShellPlaybackComponent: Component {
     let restNormals: [SIMD3<Float>]
     /// Playback starts at this frame (skips the still frames at the beginning).
     let startFrame: Float
-    /// Frames up to here play `fastSpeed` times faster.
+    /// Frames up to here play at `fastSpeed`, the rest at `lateSpeed` (1 = as in Blender).
     let fastUntilFrame: Float
     let fastSpeed: Float
+    let lateSpeed: Float
     /// Extra wobble while the cell grows: 1.5 = two and a half times as strong at the start,
     /// fading back to normal by fastUntilFrame (where the cell reaches full size).
     let growBoost: Float
-    /// Calms the wobble between these frames (soft ramps in and out): 1 = no movement there,
-    /// 0.85 = 15 % of it is left, 0 = untouched. Softens the pop of the simulation.
-    let calmFrom: Float
-    let calmTo: Float
-    let calmStrength: Float
+    /// Over the last seconds of the playback the wobble eases back to rest (0 = it simply stops at the end).
+    let settleSeconds: Float
     /// For every mesh vertex: its vertex in the bake (RealityKit splits vertices at UV seams).
     let bakeIndex: [Int]
     /// The mesh's triangles, as bake vertices (for smooth normals every frame).
@@ -148,16 +146,16 @@ enum ShellBakePlayer {
     /// Lets every mesh below `root` (a copy of the shell) follow the bake. Returns false if the shell's
     /// mesh doesn't match the bake (then nothing is changed).
     static func attach(_ bake: ShellBake, to root: Entity, startFrame: Float = 0,
-                       fastUntilFrame: Float = 0, fastSpeed: Float = 1, growBoost: Float = 0,
-                       calmFrom: Float = 0, calmTo: Float = 0, calmStrength: Float = 0) -> Bool {
+                       fastUntilFrame: Float = 0, fastSpeed: Float = 1, lateSpeed: Float = 1,
+                       growBoost: Float = 0, settleSeconds: Float = 0) -> Bool {
         var made: [(Entity, ModelComponent, ShellPlaybackComponent)] = []
         var fits = true
         root.forEachModelEntity { entity in
             guard fits, var model = entity.components[ModelComponent.self] else { return }
             guard let playback = try? makePlayback(bake, from: model.mesh, startFrame: startFrame,
                                                    fastUntilFrame: fastUntilFrame, fastSpeed: fastSpeed,
-                                                   growBoost: growBoost, calmFrom: calmFrom, calmTo: calmTo,
-                                                   calmStrength: calmStrength) else {
+                                                   lateSpeed: lateSpeed, growBoost: growBoost,
+                                                   settleSeconds: settleSeconds) else {
                 fits = false
                 return
             }
@@ -179,8 +177,8 @@ enum ShellBakePlayer {
     private enum PlaybackError: Error { case doesNotMatch }
 
     private static func makePlayback(_ bake: ShellBake, from source: MeshResource, startFrame: Float,
-                                     fastUntilFrame: Float, fastSpeed: Float, growBoost: Float,
-                                     calmFrom: Float, calmTo: Float, calmStrength: Float)
+                                     fastUntilFrame: Float, fastSpeed: Float, lateSpeed: Float,
+                                     growBoost: Float, settleSeconds: Float)
         throws -> (resource: MeshResource, component: ShellPlaybackComponent) {
         // Find every bake vertex by its rest position (same mesh, so the positions match to a micrometre).
         func bakeVertex(at p: SIMD3<Float>) -> Int? {
@@ -284,9 +282,9 @@ enum ShellBakePlayer {
                                                restNormals: restNormals,
                                                startFrame: max(startFrame, 0),
                                                fastUntilFrame: fastUntilFrame, fastSpeed: max(fastSpeed, 0.01),
+                                               lateSpeed: max(lateSpeed, 0.01),
                                                growBoost: max(growBoost, 0),
-                                               calmFrom: calmFrom, calmTo: calmTo,
-                                               calmStrength: min(max(calmStrength, 0), 1),
+                                               settleSeconds: max(settleSeconds, 0),
                                                bakeIndex: bakeIndex, triangles: triangles,
                                                transform: transform)
         return (resource, component)
@@ -317,20 +315,21 @@ struct ShellPlaybackSystem: System {
             let fastTime = (fastFrames - start) / (bake.fps * playback.fastSpeed)
             let played = playback.time < fastTime
                 ? start + playback.time * bake.fps * playback.fastSpeed
-                : fastFrames + (playback.time - fastTime) * bake.fps
+                : fastFrames + (playback.time - fastTime) * bake.fps * playback.lateSpeed
             let frame = min(played, last)
             // Stronger wobble while growing, fading smoothly back to normal by fastUntilFrame.
             let growth = fastFrames > start ? min(max((frame - start) / (fastFrames - start), 0), 1) : 1
             let boost = 1 + playback.growBoost * (1 - growth * growth * (3 - 2 * growth))
-            // Calmer between calmFrom and calmTo, with soft ramps in and out (no visible edge).
-            var calm: Float = 0
-            if playback.calmStrength > 0, playback.calmTo > playback.calmFrom {
-                let ramp = min(8, (playback.calmTo - playback.calmFrom) / 2)
-                func smooth(_ x: Float) -> Float { let c = min(max(x, 0), 1); return c * c * (3 - 2 * c) }
-                calm = playback.calmStrength
-                    * min(smooth((frame - playback.calmFrom) / ramp), smooth((playback.calmTo - frame) / ramp))
+            // Settle: over the last settleSeconds of the playback the wobble eases back to rest.
+            let total = fastTime + (last - fastFrames) / (bake.fps * playback.lateSpeed)
+            var settle: Float = 1
+            if playback.settleSeconds > 0 {
+                let s = min(max((playback.time - (total - playback.settleSeconds)) / playback.settleSeconds, 0), 1)
+                settle = 1 - s * s * (3 - 2 * s)
+            } else if playback.time >= total {
+                settle = 0
             }
-            let strength = boost * (1 - calm)
+            let strength = boost * settle
             let a = Int(frame)
             let b = min(a + 1, bake.frameCount - 1)
             let t = frame - Float(a)

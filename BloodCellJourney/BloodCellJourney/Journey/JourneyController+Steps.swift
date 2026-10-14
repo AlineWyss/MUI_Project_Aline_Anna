@@ -145,7 +145,19 @@ extension JourneyController {
             entity.components.set(OpacityComponent(opacity: 0))
             entity.components.set(FadeComponent(target: 1, speed: 1 / 0.4, disableWhenHidden: false))
         }
-
+        // The nucleus jiggles while the shell is still wobbling and calms down as the shell settles.
+        nucleus.updateMotion { $0.wiggle = Float(Timing.nucleusDevelopJiggle) }
+        let calmStart = max(development.duration - Timing.shellSettleSeconds, 0)
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(calmStart))
+            let steps = 40
+            for step in 1...steps {
+                try? await Task.sleep(for: .seconds(Timing.shellSettleSeconds / Double(steps)))
+                guard self.step == .boneMarrow else { return }
+                let left = 1 - Double(step) / Double(steps)
+                nucleus.updateMotion { $0.wiggle = Float(Timing.nucleusDevelopJiggle * left * left) }
+            }
+        }
         let id = runID
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(development.duration))

@@ -181,11 +181,18 @@ enum Timing {
     /// The development plays this many times faster up to shellPopFrame, then at normal speed
     /// (1 = as in Blender; the growth takes the same time, so shell and nucleus stay in sync).
     static let shellEarlySpeed: Double = 1
+    /// Speed of the development after full size (1 = as in Blender, 0.5 = slow motion, 2 = twice as fast).
+    static let shellLateSpeed: Double = 1.2
     /// The development starts at this frame of the bake (frames before it are still).
     static let shellStartFrame: Double = 14
     /// Extra wobble while the cell grows: 1.5 = two and a half times as strong at the start, easing back
     /// to the original strength by the time it reaches full size. 0 = as in Blender.
     static let shellGrowWobbleBoost: Double = 1.5
+    /// The nucleus jiggles this much (metres) while the developing shell wobbles …
+    static let nucleusDevelopJiggle: Double = 0.0015
+    /// … and calms down over the last seconds of the development, together with the shell
+    /// (matches the 72-frame settle baked into ShellDevelopment.json).
+    static let shellSettleSeconds: Double = 3.0
     /// Seconds the capillary takes to fade away before the old cell turns to the person and dissolves.
     static let recycleCapillaryFade: Double = 0.8
     /// Seconds for one lap of the marker while the cycle repeats.
