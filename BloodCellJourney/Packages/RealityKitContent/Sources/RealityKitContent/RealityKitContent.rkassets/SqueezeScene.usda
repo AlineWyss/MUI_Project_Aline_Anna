@@ -155,7 +155,7 @@ def Xform "Root"
                     def Shader "diffuseColor"
                     {
                         uniform token info:id = "UsdUVTexture"
-                        asset inputs:file = @neue_Materilien/RedBloodCellNew/Material.005_Base_color.png@
+                        asset inputs:file = @Materials_good/RedBloodCell/Material.005_Base_color.png@
                         float2 inputs:st.connect = </Root/Squeeze/Content/_materials/CellMaterial/diffuseColor/TexCoordReader.outputs:result>
                         color3f outputs:rgb
 

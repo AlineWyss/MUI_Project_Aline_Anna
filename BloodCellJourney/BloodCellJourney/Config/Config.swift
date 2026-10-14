@@ -182,7 +182,7 @@ enum Timing {
     /// (1 = as in Blender; the growth takes the same time, so shell and nucleus stay in sync).
     static let shellEarlySpeed: Double = 1
     /// Speed of the development after full size (1 = as in Blender, 0.5 = slow motion, 2 = twice as fast).
-    static let shellLateSpeed: Double = 1.2
+    static let shellLateSpeed: Double = 1.5
     /// The development starts at this frame of the bake (frames before it are still).
     static let shellStartFrame: Double = 14
     /// Extra wobble while the cell grows: 1.5 = two and a half times as strong at the start, easing back
@@ -196,7 +196,7 @@ enum Timing {
     /// Seconds the capillary takes to fade away before the old cell turns to the person and dissolves.
     static let recycleCapillaryFade: Double = 0.8
     /// Seconds for one lap of the marker while the cycle repeats.
-    static let lapDuration: Double = 40.0  //6.0
+    static let lapDuration: Double = 60.0  //6.0
     /// How far the old cell gets into the squeeze animation (a frame of claudeAniamtion.blend).
     /// 12 = Blender's shape key "Key 1" is complete (blend shapes Squeeze01–03); 9 = it can't bend at all;
     /// 21 = it would get through.

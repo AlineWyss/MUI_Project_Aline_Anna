@@ -57,7 +57,7 @@ extension JourneyController {
         // It stays this model: it flies into the anatomy model as it is and gets its normal model back
         // there, out of sight (enterLungsOxygen) – no visible switch.
         scene.faceFront(duration: Timing.squeezeRelax)
-        await scene.animate(to: scene.firstFrame, duration: Timing.squeezeRelax, includeCapillary: false)
+        await scene.relax(duration: Timing.squeezeRelax)
     }
 
     // MARK: - Step "squeeze": into the bloodstream
@@ -83,22 +83,30 @@ extension JourneyController {
         }
     }
 
-    /// The cell has been pushed all the way into the capillary.
     func squeezeCompleted() {
         guard step == .squeezeIntoBlood, !squeezeDone, let cell = redBloodCell else { return }
         squeezeDone = true
         makeStatic(cell)
         interactionLocked = true
-        let scene = squeezeScene
 
         sequence { id in
             self.setSecondaryLabel(nil, on: nil)
-            // The cell is inside the capillary now: the capillary fades, the cell comes to the centre
-            // and relaxes into its normal shape.
+            // Through: the squeezed cell vanishes almost at once, while the capillary is still fully there …
+            self.move(cell.container, to: cell.container.position, scale: 0.01, duration: 0.15)
+            guard await self.pause(0.15, id) else { return }
+
+            // … becomes round and faces the person out of sight …
+            self.squeezeScene?.snapToNormal()
+
+            // … and grows in, round, right in the middle at the front – fading in – while the capillary
+            // fades away.
             self.remove(self.capillary, duration: 0.6)
             self.capillary = nil
-            await self.endSqueeze(of: cell, scene: scene, moveTo: Layout.mainSlot)
-            guard id == self.runID else { return }
+            cell.container.position = Layout.mainSlot
+            cell.container.components.set(OpacityComponent(opacity: 0))
+            cell.container.components.set(FadeComponent(target: 1, speed: 1 / 0.5, disableWhenHidden: false))
+            self.move(cell.container, to: Layout.mainSlot, scale: 1, duration: 0.8)
+            guard await self.pause(0.8, id) else { return }
             self.interactionLocked = false
             self.enterLungsOxygen()
         }

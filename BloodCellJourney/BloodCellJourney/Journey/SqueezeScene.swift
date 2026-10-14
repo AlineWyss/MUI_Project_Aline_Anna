@@ -168,6 +168,32 @@ final class SqueezeScene {
         cellModel.move(to: normalPose ?? facingTransform, relativeTo: parent, duration: duration,
                        timingFunction: .easeInOut)
     }
+    
+    /// Puts the cell into its normal shape and the normal cell's pose at once (while it is out of sight).
+    func snapToNormal() {
+        show(frame: firstFrame)
+        cellModel.stopAllAnimations()
+        cellModel.transform = normalPose ?? facingTransform
+    }
+    
+    /// Relaxes the cell straight from its current squeezed shape into its normal shape – without playing
+    /// the squeeze backwards (which would pass through its folded, triangle-like shapes).
+    func relax(duration: TimeInterval) async {
+        guard let cellShapes else { return }
+        animationToken += 1
+        let token = animationToken
+        let squeezed = animation.cellWeights(at: frame)
+        let steps = max(Int(duration * 60), 1)
+        for step in 1...steps {
+            try? await Task.sleep(for: .seconds(duration / Double(steps)))
+            guard token == animationToken else { return }
+            let p = Float(step) / Float(steps)
+            let left = 1 - p * p * (3 - 2 * p)
+            SqueezeScene.setWeights(squeezed.map { $0 * left }, names: animation.cellBlendShapes, on: cellShapes)
+        }
+        frame = firstFrame
+        shownFrame = firstFrame
+    }
 
     /// The holder's pose (relative to the cell's motion entity) in which the squeeze cell's mesh lies
     /// exactly where the normal cell's mesh is.
