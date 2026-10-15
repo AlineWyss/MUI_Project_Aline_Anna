@@ -45,7 +45,9 @@ final class JourneyController {
     }
     /// true = Aufgabe dieses Schritts ist erledigt bzw. wurde begonnen → Label ausblenden.
     var hintDismissed = false
-    var waitingForVoice = false
+    var waitingForVoice = false {
+           didSet { updateHoverEffects() }
+       }
     /// Wie viele Objekte beim Greifen ziehbar waren (zum Erkennen, ob die Aktion geklappt hat).
     @ObservationIgnored var draggablesAtGrab = 0
     /// true = die Aufgabe steht gerade als Label unter einem Modell
@@ -905,7 +907,10 @@ final class JourneyController {
         let radius = max(item.radius, 0.035)
         item.container.components.set(CollisionComponent(shapes: [ShapeResource.generateSphere(radius: radius)]))
         item.container.components.set(InputTargetComponent())
-        item.container.components.set(HoverEffectComponent())
+        // Aufleuchten nur, wenn die Stimme fertig ist – sonst denkt man, man könne schon etwas tun.
+        if !waitingForVoice {
+            item.container.components.set(HoverEffectComponent())
+        }
         item.container.components.set(DraggableComponent())
         draggables[ObjectIdentifier(item.container)] = item
     }
@@ -921,6 +926,20 @@ final class JourneyController {
             drag = nil
             isHolding = false
         }
+    }
+    /// Schaltet das Aufleuchten beim Hinschauen ein oder aus:
+    /// aus, solange die Stimme spricht – an, sobald der TaskHint erscheint.
+    /// Greifen und Drehen bleiben in beiden Fällen möglich.
+    func updateHoverEffects() {
+        for item in draggables.values {
+            if waitingForVoice {
+                item.container.components.remove(HoverEffectComponent.self)
+            } else {
+                item.container.components.set(HoverEffectComponent())
+            }
+        }
+        // Das Herz zum Pumpen ebenso
+        overlay.setHeartHover(!waitingForVoice)
     }
 
     func setColor(_ item: StageItem, _ color: UIColor, animated: Bool, duration: Float = 1.2) {

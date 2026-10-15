@@ -56,7 +56,8 @@ final class AnatomyOverlay {
     private let heartModel = Entity()
     /// Inner pivot that contracts on every beat (BeatSystem sets its scale every frame).
     private let heartBeatPivot = Entity()
-
+    private var heartHoverAllowed = true
+    
     init() {
         root.name = "AnatomyOverlay"
         tapTarget.name = "BloodstreamTapTarget"
@@ -446,13 +447,27 @@ final class AnatomyOverlay {
         if tappable {
             heart.components.set(CollisionComponent(shapes: [ShapeResource.generateSphere(radius: 0.045*Layout.heartModelScale)]))
             heart.components.set(InputTargetComponent())
-            heart.components.set(HoverEffectComponent())
+            if heartHoverAllowed {
+                            heart.components.set(HoverEffectComponent())
+                        }
             heart.components.set(TapTargetComponent())
         } else {
             heart.components.remove(TapTargetComponent.self)
             heart.components.remove(HoverEffectComponent.self)
             heart.components.remove(InputTargetComponent.self)
             heart.components.remove(CollisionComponent.self)
+        }
+    }
+    
+    /// Schaltet das Aufleuchten des Herzens ein/aus – nur wenn es gerade antippbar ist.
+    func setHeartHover(_ allowed: Bool) {
+        heartHoverAllowed = allowed
+        let heart = heartModel
+        guard heart.components.has(TapTargetComponent.self) else { return }
+        if allowed {
+            heart.components.set(HoverEffectComponent())
+        } else {
+            heart.components.remove(HoverEffectComponent.self)
         }
     }
 
