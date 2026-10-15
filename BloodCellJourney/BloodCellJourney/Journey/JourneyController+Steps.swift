@@ -607,7 +607,7 @@ extension JourneyController {
             self.overlay.loopFinalBodyCycle(lapDuration: max(cycleVoice, 5) + agingVoice)
             self.interactionLocked = false
             self.setPanel(StoryText.Panels.cycleRepeats)
-            self.showSkipButton(true)   // SKIP: wer nicht warten will, kann hier weiter tippen
+            //self.showSkipButton(true)   // SKIP: wer nicht warten will, kann hier weiter tippen
         }
     }
 
