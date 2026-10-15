@@ -12,6 +12,7 @@
 
 import Foundation
 import RealityKit
+import RealityKitContent
 import UIKit
 import simd
 
@@ -46,6 +47,9 @@ final class AnatomyOverlay {
     /// Wie weit der rote Punkt zur Person hin rückt (Meter), damit er vor den Linien liegt.
     private static let markerForward: Float = 0.03
     private var glowEntities: [Entity] = []
+    /// Invisible shells around the vessel tubes. While the stream is visible they are the tap target, and
+    /// only their rims glow when looked at (VesselHoverRim), so tubes and cells keep their colours.
+    private var vesselOutlines: Entity?
     /// Alle Teile der dünnen Linie 1 (outline), damit sie zuletzt gezeichnet werden können.
     private var outlineEntities: [Entity] = []
     /// The scanned heart that comes out of the model's heart while it has to be pumped.
@@ -119,22 +123,69 @@ final class AnatomyOverlay {
         body.forEachModelEntity { $0.components.set(order) }
     }
 
-    /// Optional thin tubes along the circulation (Config.showVesselTubes).
+    /// Optional thin tubes along the circulation (Config.showVesselTubes). Around each tube sits a slightly
+    /// wider, invisible shell: while the person looks at the stream, only its rim glows (VesselHoverRim
+    /// material in Reality Composer Pro), so the tubes keep their red colour and just get an outline.
     private func buildVesselTubes() {
+        let radius: Float = 0.003
         let tubes = Entity()
         tubes.name = "VesselTubes"
+        let outlines = Entity()
+        outlines.name = "VesselOutlines"
         let rich = MaterialTools.glow(Palette.rbcOxygenated, opacity: Config.vesselTubeOpacity)
         let poor = MaterialTools.glow(Palette.rbcDeoxygenated, opacity: Config.vesselTubeOpacity)
-        for (index, circuit) in CirculationBuilder.circuits().enumerated() where index % 2 == 0 {
-            for run in circuit.colorRuns() {
-                if let mesh = try? TubeMesh.generate(along: run.points, radius: 0.003) {
-                    tubes.addChild(ModelEntity(mesh: mesh, materials: [run.oxygenRich ? rich : poor]))
-                }
+        let invisible = MaterialTools.glow(.white, opacity: 0)   // until the rim material has loaded
+        var rimModels: [ModelEntity] = []
+
+        func addTube(_ points: [SIMD3<Float>], oxygenRich: Bool) {
+            guard points.count > 1 else { return }
+            if let mesh = try? TubeMesh.generate(along: points, radius: radius) {
+                tubes.addChild(ModelEntity(mesh: mesh, materials: [oxygenRich ? rich : poor]))
+            }
+            if let mesh = try? TubeMesh.generate(along: points, radius: radius * 1.2) {
+                let rim = ModelEntity(mesh: mesh, materials: [invisible])
+                outlines.addChild(rim)
+                rimModels.append(rim)
             }
         }
-        // Part of the stream, so the tubes show and hide together with it.
+
+        // The circuits come in pairs (right lung, left lung) that share the same body vessels.
+        // Every second circuit draws each body vessel once – plus the right lung.
+        for (index, circuit) in CirculationBuilder.circuits().enumerated() where index % 2 == 0 {
+            for run in circuit.colorRuns() {
+                addTube(run.points, oxygenRich: run.oxygenRich)
+            }
+        }
+        // The left lung's own vessels (they were missing): pulmonary artery, capillary loop, pulmonary vein.
+        let leftLung = AnatomyMap.pulmonaryPoints(lung: .lLung)
+        let toLung = Curves.catmullRom(leftLung.toLung, samplesPerSegment: 5)
+        let fromLung = Curves.catmullRom(leftLung.fromLung, samplesPerSegment: 5)
+        if let lungPoint = toLung.last, let veinStart = fromLung.first {
+            addTube(toLung, oxygenRich: false)
+            // Same small loop as the flowing cells take (BloodStream.swift, left side).
+            let loopA = lungPoint + SIMD3<Float>(0.012, -0.006, 0.003)
+            let loopB = lungPoint + SIMD3<Float>(0.010, -0.014, 0.004)
+            addTube([lungPoint, loopA, loopB, veinStart] + fromLung.dropFirst(), oxygenRich: true)
+        }
+
+        // Part of the stream, so tubes and rims show and hide together with it.
         stream.root.addChild(tubes)
+        stream.root.addChild(outlines)
         glowEntities.append(tubes)
+        glowEntities.append(outlines)
+        vesselOutlines = outlines
+
+        let rims = rimModels
+        Task { @MainActor in
+            do {
+                let rimMaterial = try await ShaderGraphMaterial(named: "/Root/VesselHoverRim",
+                                                               from: "HoverMaterials.usda",
+                                                               in: realityKitContentBundle)
+                for rim in rims { rim.model?.materials = [rimMaterial] }
+            } catch {
+                print("⚠️ VesselHoverRim material unavailable – the stream has no hover outline: \(error)")
+            }
+        }
     }
 
     private func buildZones() {
@@ -348,15 +399,19 @@ final class AnatomyOverlay {
             // Box around the whole figure (scan bounds: 0.48 × 0.94 × 0.26 m), same place as the old tap target.
             let box = ShapeResource.generateBox(size: SIMD3<Float>(0.5, 0.86, 0.3))
                 .offsetBy(translation: SIMD3<Float>(0, 0.5, 0))
-            streamRoot.components.set(CollisionComponent(shapes: [box]))
-            streamRoot.components.set(InputTargetComponent())
-            streamRoot.components.set(TapTargetComponent())
-            streamRoot.components.set(HoverEffectComponent())
+            // Gaze box and glow sit on the vessel tubes only (falls back to the whole stream without tubes).
+            let target = vesselOutlines ?? streamRoot
+            target.components.set(CollisionComponent(shapes: [box]))
+            target.components.set(InputTargetComponent())
+            target.components.set(TapTargetComponent())
+            // With rims: only their edges light up (shader). Without tubes: the default effect on the whole stream.
+            target.components.set(vesselOutlines != nil ? HoverEffectComponent(.shader(.default)) : HoverEffectComponent())
         } else {
-            streamRoot.components.remove(HoverEffectComponent.self)
-            streamRoot.components.remove(TapTargetComponent.self)
-            streamRoot.components.remove(InputTargetComponent.self)
-            streamRoot.components.remove(CollisionComponent.self)
+            let target = vesselOutlines ?? streamRoot
+            target.components.remove(HoverEffectComponent.self)
+            target.components.remove(TapTargetComponent.self)
+            target.components.remove(InputTargetComponent.self)
+            target.components.remove(CollisionComponent.self)
             streamRoot.components.set(FadeComponent(target: 0, speed: 1.2, disableWhenHidden: true))
         }
     }
