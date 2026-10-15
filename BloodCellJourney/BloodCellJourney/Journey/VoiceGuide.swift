@@ -83,7 +83,11 @@ final class VoiceGuide {
         player = nil
         currentClip = nil
     }
-
+    /// Length of the recording `clip` in seconds (read from the file, without playing it). nil if there is none.
+    func clipDuration(_ clip: String) -> TimeInterval? {
+        guard let url = audioURL(for: clip), let player = try? AVAudioPlayer(contentsOf: url) else { return nil }
+        return player.duration
+    }
     // MARK: - Intern
 
     private var isPlayingNow: Bool {

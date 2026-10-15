@@ -171,6 +171,13 @@ enum Timing {
     static let markerSpeed: Float = 0.25
     /// Second in the recording voice_pumpToOrgans where the voice has just said "bright red": the cell flies
     /// into the body from here. Open the file (e.g. in QuickTime) and read off the time.
+    ///     /// Speed of "our" cell on its first trip, from the bone marrow to the lungs (metres per second).
+    /// Lower = slower. All other trips use markerSpeed.
+    ///     /// Speed of "our" cell on the final body loop and on to the spleen (metres per second).
+    /// The loop plus the way to the spleen is about 6.9 m; it should take as long as the voice lines
+    /// cycleRepeats + agingIntro together: speed = 6.9 / (both recordings in seconds).
+    static let bodyLoopSpeed: Float = 0.28
+    static let marrowToLungsSpeed: Float = 0.05
     static let brightRedCue: TimeInterval = 3.0
     /// Second in the recording voice_pickUpCO2 where the voice has just said "dark red".
     static let darkRedCue: TimeInterval = 10.5

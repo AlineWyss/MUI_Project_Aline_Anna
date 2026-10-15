@@ -505,15 +505,13 @@ final class AnatomyOverlay {
         root.convert(position: pathFromMarker(to: route).point(at: 0), to: nil)
     }
 
-    /// Moves the marker along a route and returns when it arrives. It always sets off from where it is
-    /// now (see pathFromMarker), so it never jumps, wherever it was.
-    func travel(_ route: AnatomyMap.Route, duration: Double) async {
+    func travel(_ route: AnatomyMap.Route, duration: Double, speed: Float = Timing.markerSpeed) async {
         marker.isEnabled = true
         let way = pathFromMarker(to: route)
-        // Always the same speed (Timing.markerSpeed); `duration` is no longer used.
-        let seconds = Double(way.length / Timing.markerSpeed)
+        // Constant speed in metres per second (Timing.markerSpeed unless a trip passes its own); `duration` is not used.
+        let seconds = Double(way.length / speed)
         finalTour = nil
-        setMarker(path: way, progress: 0, target: 1, speed: constantSpeed(on: way), loops: false)
+        setMarker(path: way, progress: 0, target: 1, speed: speed / max(way.length, 0.001), loops: false)
         let deadline = Date().addingTimeInterval(seconds + 1.5)
         while Date() < deadline {
             try? await Task.sleep(for: .milliseconds(100))
@@ -531,17 +529,22 @@ final class AnatomyOverlay {
         if let tour = finalTour, tour.length > 0,
            let current = marker.components[MarkerComponent.self], current.loops,
            let heart = controls.firstIndex(where: { simd_distance($0, AnatomyMap.leftHeart) < 0.0005 }) {
+            // Finish the lap: once round the whole body, back to where the loop began …
             var points = tourPoints(tour, from: current.progress * tour.length, to: tour.length)
-            for point in Curves.catmullRom(Array(controls[heart...]), samplesPerSegment: 8) {
+            // … then on along the route: from the lung through the pulmonary vein to the left heart and on,
+            // or – if the lap ends elsewhere – joining the route at the left heart.
+            let startsHere = points.last.map { simd_distance($0, controls[0]) < 0.03 } ?? false
+            let onward = startsHere ? controls : Array(controls[heart...])
+            for point in Curves.catmullRom(onward, samplesPerSegment: 8) {
                 if let last = points.last, simd_distance(last, point) < 0.0001 { continue }
                 points.append(point)
             }
             way = SampledPath(points)
         }
         finalTour = nil
-        // Same speed as everywhere else; enterAging then waits for "…spleen." if the light is early.
-        let time = Double(way.length / Timing.markerSpeed)
-        setMarker(path: way, progress: 0, target: 1, speed: constantSpeed(on: way), loops: false)
+        // Arrive exactly when the voice says "spleen": the rest of the way takes the recording's remaining time.
+        let time = max(seconds, 0.5)
+        setMarker(path: way, progress: 0, target: 1, speed: Float(1 / time), loops: false)
         let deadline = Date().addingTimeInterval(time + 1.5)
         while Date() < deadline {
             try? await Task.sleep(for: .milliseconds(100))
@@ -707,17 +710,12 @@ final class AnatomyOverlay {
         typealias Point = SIMD3<Float>
         typealias Landmark = AnatomyMap.Landmark
 
-        // Local branches: do not modify AnatomyMap.systemicBranches.
-        var branches: [[Landmark]] = []
-
-        for branch in AnatomyMap.systemicBranches {
-            if branch.last == .spleen && branch.contains(.stomach) {
-                // Stomach and spleen are separate arterial destinations.
-                branches.append(branch.filter { $0 != .spleen })
-                branches.append(branch.filter { $0 != .stomach })
-            } else {
-                branches.append(branch)
-            }
+        // One trip to each region, in a clear order: one arm, the head, the other arm, the gut (it drains via
+        // the liver, so the liver is visited too), one leg, the other leg. Between two regions the cell always
+        // returns through the heart and a lung – as real blood does. The spleen comes last (finishLapAndTravel).
+        let order: [Landmark] = [.rHand, .headTop, .lHand, .gutL, .rAnkle, .lAnkle]
+        let branches: [[Landmark]] = order.compactMap { end in
+            AnatomyMap.systemicBranches.first { $0.last == end }
         }
 
         var points: [Point] = []
@@ -849,29 +847,40 @@ final class AnatomyOverlay {
             return
         }
 
-        // Join the loop where the marker is now (the nearest point of the tour), so it doesn't jump.
+        // Start the loop where the marker is now: the tour is turned so it begins (and ends) at the nearest
+        // point. One full lap then visits every part of the body – head and both arms included – before it
+        // comes back here (see finishLapAndTravel).
         let here = marker.position
         var nearest = 0
         for index in tour.points.indices
-        where simd_distance(tour.points[index], here) < simd_distance(tour.points[nearest], here) {
+        // "<=" takes the LAST closest point: the lung visit after the last leg, so the lap runs in the order above.
+        where simd_distance(tour.points[index], here) <= simd_distance(tour.points[nearest], here) {
             nearest = index
         }
+        let loopTour = nearest > 0 && nearest < tour.points.count - 1
+            ? SampledPath(Array(tour.points[nearest...]) + Array(tour.points[1...nearest]))
+            : tour
 
+        // Speed: the lap plus the way on to the spleen takes exactly `lapDuration` seconds (the voice lines
+        // cycleRepeats + agingIntro, see enterCycleRepeats).
+        let spleenWay = path(for: .lungsToSpleen).length
+        let metresPerSecond = (loopTour.length + spleenWay) / Float(lapDuration)
         setMarker(
-            path: tour,
-            progress: tour.cumulative[nearest] / tour.length,
+            path: loopTour,
+            progress: 0,
             target: 1,
-            speed: constantSpeed(on: tour),
+            speed: metresPerSecond / max(loopTour.length, 0.001),
             loops: true
         )
 
         marker.isEnabled = true
         // Remember the loop and where it passes the left heart, so the next journey can leave from it.
-        finalTour = tour
-        finalTourHeartStops = tour.points.indices
-            .filter { simd_distance(tour.points[$0], AnatomyMap.leftHeart) < 0.0005 }
-            .map { tour.cumulative[$0] }
+        finalTour = loopTour
+        finalTourHeartStops = loopTour.points.indices
+            .filter { simd_distance(loopTour.points[$0], AnatomyMap.leftHeart) < 0.0005 }
+            .map { loopTour.cumulative[$0] }
     }
+
 
     // MARK: - Reset
 

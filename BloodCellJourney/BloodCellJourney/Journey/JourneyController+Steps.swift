@@ -355,7 +355,8 @@ extension JourneyController {
             }
             guard id == self.runID else { return }
             self.highlight(nil)
-            await self.overlay.travel(.marrowToLungs, duration: Timing.travelToLungs)
+            await self.overlay.travel(.marrowToLungs, duration: Timing.travelToLungs,
+                                      speed: Timing.marrowToLungsSpeed)
             guard id == self.runID else { return }
             self.highlight(.lungs)
             await self.flyOutOfModel(cell, from: self.overlay.markerWorldPosition, to: Layout.mainSlot,
@@ -577,7 +578,11 @@ extension JourneyController {
             await self.flyIntoModel(cell, at: self.overlay.startPosition(of: .fullCircuit))
             guard id == self.runID, self.step == .cycleRepeats else { return }
             //self.overlay.loop(.fullCircuit, lapDuration: Timing.lapDuration)
-            self.overlay.loopFinalBodyCycle(lapDuration: Timing.lapDuration)
+            // The lap plus the way to the spleen takes as long as the two voice lines: cycleRepeats (at least
+            // 5 s – the auto-continue delay) and agingIntro, which ends with "…leads to the spleen."
+            let cycleVoice = VoiceGuide.shared.clipDuration("voice_cycleRepeats") ?? 9
+            let agingVoice = VoiceGuide.shared.clipDuration("voice_agingIntro") ?? 16
+            self.overlay.loopFinalBodyCycle(lapDuration: max(cycleVoice, 5) + agingVoice)
             self.interactionLocked = false
             self.setPanel(StoryText.Panels.cycleRepeats)
             self.showSkipButton(true)   // SKIP: wer nicht warten will, kann hier weiter tippen
