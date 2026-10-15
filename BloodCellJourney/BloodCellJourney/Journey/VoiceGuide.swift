@@ -26,6 +26,8 @@ final class VoiceGuide {
 
     private let synthesizer = AVSpeechSynthesizer()
     private var player: AVAudioPlayer?
+    /// Name of the recording that is playing right now (nil = none, or the synthetic voice).
+    private(set) var currentClip: String?
 
     /// Warteschlange: Texte, die noch gesprochen werden sollen (der Reihe nach).
     private var queue: [(clip: String?, text: String)] = []
@@ -58,7 +60,11 @@ final class VoiceGuide {
     var isSpeaking: Bool {
         runner != nil || isPlayingNow
     }
-
+    /// Seconds into the recording `clip`, while exactly that recording is playing; otherwise nil.
+    func clipTime(of clip: String) -> TimeInterval? {
+        guard currentClip == clip, let player, player.isPlaying else { return nil }
+        return player.currentTime
+    }
     /// Bricht alles sofort ab und leert die Warteschlange (Neustart, Skip, Schliessen).
     func stop() {
         generation += 1
@@ -70,6 +76,7 @@ final class VoiceGuide {
         }
         player?.stop()
         player = nil
+        currentClip = nil
     }
 
     // MARK: - Intern
@@ -110,9 +117,13 @@ final class VoiceGuide {
         if let clip = item.clip, let url = audioURL(for: clip) {
             player = try? AVAudioPlayer(contentsOf: url)
             player?.prepareToPlay()
-            if player?.play() == true { return }
+            if player?.play() == true {
+                currentClip = clip
+                return
+            }
             // Datei kaputt → zur Sicherheit vorlesen
         }
+        currentClip = nil
         let utterance = AVSpeechUtterance(string: item.text)
         utterance.voice = voice(for: item.text)
         utterance.rate = rate

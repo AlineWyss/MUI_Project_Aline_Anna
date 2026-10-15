@@ -325,6 +325,11 @@ extension JourneyController {
             self.setPanel(StoryText.Panels.cellBorn)
 
             guard await self.pause(Timing.afterBirth, id) else { return }
+            // Only change to the vessel scene once the voice has finished the "cellBorn" line, so the vessel
+            // appears exactly when the next line begins ("Now that it is ready …").
+            while VoiceGuide.shared.isSpeaking {
+                guard await self.pause(0.2, id) else { return }
+            }
             self.interactionLocked = false
             self.enterSqueezeIntoBlood()
         }
@@ -389,7 +394,24 @@ extension JourneyController {
     }
 
     // MARK: - Heart pumps (5 taps)
-
+    /// Waits until the recording `clip` has played `cue` seconds (e.g. the moment it says "bright red").
+    /// If earlier lines are still in the voice queue, it first waits for this recording to start.
+    /// With the synthetic voice (no recording) it waits until everything has been spoken.
+    /// Returns false if the story was restarted meanwhile.
+    func waitForVoice(clip: String, cue: TimeInterval, _ id: Int) async -> Bool {
+        guard await pause(0.3, id) else { return false }   // let the voice start first
+        var heard = false
+        while VoiceGuide.shared.isSpeaking {
+            if let time = VoiceGuide.shared.clipTime(of: clip) {
+                heard = true
+                if time >= cue { return true }
+            } else if heard {
+                return true   // this recording has already ended
+            }
+            guard await pause(0.1, id) else { return false }
+        }
+        return true
+    }
     /// The cell flies into the anatomy model; the heart of the model has to be pumped 5 times.
     func enterPump(toOrgans: Bool) {
         step = toOrgans ? .pumpToOrgans : .pumpToLungs
@@ -401,11 +423,16 @@ extension JourneyController {
         if !toOrgans {
             remove(bodyCell, duration: 0.6)
             bodyCell = nil
-            setSecondaryLabel(nil, on: nil)
         }
         setPanel(toOrgans ? StoryText.Panels.pumpToOrgans : StoryText.Panels.pickUpCO2)
 
         sequence { id in
+            // The cell stays until the recording says "…now bright red." (to the organs) or "…now dark red."
+            // (back to the lungs, with the CO₂) – Timing.brightRedCue / darkRedCue in the recordings.
+            guard await self.waitForVoice(clip: toOrgans ? "voice_pumpToOrgans" : "voice_pickUpCO2",
+                                          cue: toOrgans ? Timing.brightRedCue : Timing.darkRedCue,
+                                          id) else { return }
+            if !toOrgans { self.setSecondaryLabel(nil, on: nil) }   // the CO₂ label stays until the cell flies off
             await self.flyIntoModel(cell, at: self.overlay.startPosition(of: route))
             guard id == self.runID else { return }
             // The heart of the anatomy model becomes the button; it only beats when tapped.
@@ -572,6 +599,9 @@ extension JourneyController {
         sequence { id in
             await self.overlay.travel(.lungsToSpleen, duration: Timing.travelToSpleen)
             guard id == self.runID else { return }
+            // The spleen scene only starts once the voice has said "…its path now leads to the spleen."
+            // ("spleen" is the last word of voice_agingIntro, so this waits until that recording has ended.)
+            guard await self.waitForVoice(clip: "voice_agingIntro", cue: .infinity, id) else { return }
             self.highlight(.spleen)
             await self.flyOutOfModel(cell, from: self.overlay.markerWorldPosition, to: Layout.squeezeStart,
                                      label: StoryText.Labels.oldRedBloodCell)
