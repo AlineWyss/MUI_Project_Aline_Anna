@@ -247,7 +247,7 @@ enum StoryText {
             id: "pumpToOrgans",
             title: "Your heart takes over",
             body: "Full of oxygen, the cell is now bright scarlet. It flows back to the heart, and the left side pumps it through the aorta into the body. At rest your heart pumps about 5–6 litres of blood per minute and beats about 100,000 times a day.",
-            hint: "Tap the glowing heart in the anatomy model 5 times to pump the blood to the organs.")
+            hint: "Tap the heart in the anatomy model 5 times to pump the blood to the organs.")
 
         static let deliverOxygen = PanelContent(
             id: "deliverOxygen",
@@ -259,7 +259,7 @@ enum StoryText {
             id: "pickUpCO2",
             title: "Picking up carbon dioxide",
             body: "In return the body cell hands over its waste: carbon dioxide. The oxygen-poor blood is now dark red and flows back through the veins to the heart.",
-            hint: "Tap the glowing heart in the anatomy model 5 times to pump the blood back to the lungs.")
+            hint: "Tap the heart in the anatomy model 5 times to pump the blood back to the lungs.")
 
         static let exhaleCO2 = PanelContent(
             id: "exhaleCO2",

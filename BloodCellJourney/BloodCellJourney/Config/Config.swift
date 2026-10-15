@@ -17,6 +17,11 @@ enum Config {
     /// Shows a translucent copy of the scanned model on top of the real one.
     /// Turn this on once to check that the bloodstream overlay sits correctly on the physical model.
     static let showAlignmentGhost = false
+    
+    /// TESTING ONLY: tapping the bloodstream at the start jumps straight to a later scene.
+    /// nil = the normal story. .aging = from the trip to the spleen on. .recycling = the cell dissolves at once.
+    /// Set back to nil before visitors use the app!
+    static let debugJumpTo: JourneyStep? = nil
 
     /// Opacity of the virtual anatomy model (mode "without the model"). It is see-through so the
     /// bloodstream inside stays visible. 1 = solid.
@@ -63,9 +68,12 @@ enum Config {
     // MARK: The old red blood cell dissolves
 
     /// Seconds the old red blood cell takes to crumble away (front sweeps up, pieces drift up like ash).
-    static let dissolveDuration: Float = 4.0
-    /// How high the pieces rise before they vanish, in metres.
-    static let dissolveRise: Float = 0.08
+    static let dissolveDuration: Float = 10.0
+    /// Length of the flow (metres) in which the pieces float through the space before they travel into
+    /// the anatomy model. Longer = they float around longer (it then flows faster within dissolveDuration).
+    static let dissolveFloatLength: Float = 0.6
+    /// How tidy the flow of the dissolving cell is: 0 = a tight, tidy stream … 1 = a loose cloud of pieces.
+    static let dissolveStreamMess: Float = 0.5
     static let vesselTubeOpacity: Float = 0.25
     /// The developing cell's shell turns slowly and endlessly: degrees per second
     /// (10 ≈ one turn in 36 s). 0 = still.

@@ -42,7 +42,29 @@ extension JourneyController {
         overlay.tapTarget.isEnabled = false
         overlay.setStreamVisible(false)      // fades out; it does not come back until "Start again"
         setStartPromptVisible(false)
+        if let jump = Config.debugJumpTo, debugJump(to: jump) { return }   // TESTING ONLY (Config.debugJumpTo)
         enterMeetCell()
+    }
+
+    /// TESTING ONLY (Config.debugJumpTo): puts a red blood cell on the stage and jumps to a later scene.
+    private func debugJump(to target: JourneyStep) -> Bool {
+        guard target == .aging || target == .recycling else { return false }
+        warmUpCell?.container.removeFromParent()
+        warmUpCell = nil
+        let cell = library.redBloodCell()
+        setLook(cell, .withoutOxygen, animated: false)
+        place(cell, at: Layout.mainSlot)
+        redBloodCell = cell
+        if target == .aging {
+            // Hidden for now: enterAging lets it travel to the spleen and fly out of the model there.
+            cell.container.components.set(OpacityComponent(opacity: 0))
+            overlay.showMarker(at: .lLung)
+            enterAging()
+        } else {
+            calmIdle(cell)
+            enterRecycling()
+        }
+        return true
     }
     /// Draws one red blood cell, far too small to see (about 0.3 mm), inside the model's heart while the
     /// intro runs. The first time a model is drawn, the Vision Pro prepares it on the GPU – that stall
@@ -693,9 +715,11 @@ extension JourneyController {
             UIColor(red: CGFloat($0.x), green: CGFloat($0.y), blue: CGFloat($0.z), alpha: 1)
         } ?? Palette.rbcAged
 
-        // The cell crumbles from the bottom up; its pieces drift upwards like ash.
-        if Disintegrate.start(on: cell.container, duration: duration) {
-            Disintegrate.addDust(for: cell, in: focusRoot, color: color, duration: duration)
+        // The pieces drift around the cell and then fly into the spleen of the anatomy model,
+        // where macrophages recycle old red blood cells.
+        let spleen = anatomyRoot.convert(position: AnatomyMap.p(.spleen), to: nil)
+        if Disintegrate.start(on: cell.container, duration: duration, into: spleen) {
+            Disintegrate.addDust(for: cell, in: focusRoot, color: color, duration: duration, towards: spleen)
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(Double(duration) + 0.2))
                 cell.container.removeFromParent()
