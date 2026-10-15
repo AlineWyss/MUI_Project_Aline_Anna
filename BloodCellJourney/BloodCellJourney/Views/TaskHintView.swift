@@ -23,12 +23,17 @@ struct TaskHintView: View {
            !controller.waitingForVoice {
             Label(hint, systemImage: "hand.pinch.fill")
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(Color(uiColor: Palette.taskHint))
+                .foregroundStyle(.white)                           // NEU: Schrift und Symbol weiss
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 320)                              // lange Texte umbrechen
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
+                // NEU: roter, leicht durchsichtiger Hintergrund.
+                // Er muss VOR dem Glas stehen, dann liegt das Rot über der Glas-Unschärfe.
+                // Die Farbe stellst du in Config.swift ein (Palette.taskHintBackground).
+                .background(Color(uiColor: Palette.taskHintBackground),
+                            in: RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .glassBackgroundEffect(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .transition(.opacity)
         }

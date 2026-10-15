@@ -246,8 +246,12 @@ enum Palette {
     static let vein = UIColor(red: 0.30, green: 0.47, blue: 1.00, alpha: 1)
     /// "Our" red blood cell on the anatomy model – yellow so it stands out from the red stream.
     static let marker = UIColor(red: 1.00, green: 0.2, blue: 0.20, alpha: 1)
-    static let markerHalo = UIColor(red: 1.00, green: 0.10, blue: 0.15, alpha: 1)
-    static let taskHint = UIColor(red: 0.2, green: 0.8, blue: 1, alpha: 1)
+    static let markerHalo = UIColor(red: 1, green: 0.10, blue: 0.15, alpha: 0.7)
+    /// Schriftfarbe für Hinweise, z. B. die Pinch-Zeile im Startprompt (Hellblau, voll sichtbar).
+    static let taskHint = UIColor(red: 1.00, green: 0.33, blue: 0.34, alpha: 1)
+    /// Hintergrund der Aufgaben-Labels (TaskHint): Rot, leicht durchsichtig.
+    /// alpha: 0 = unsichtbar, 1 = voll deckend.
+    static let taskHintBackground = UIColor(red: 1.00, green: 0.33, blue: 0.34, alpha: 0.5)
 
     static func zone(_ zone: AnatomyMap.Zone) -> UIColor {
         switch zone {
