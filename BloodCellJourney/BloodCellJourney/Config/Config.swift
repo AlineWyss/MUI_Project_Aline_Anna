@@ -87,19 +87,22 @@ enum Config {
 /// and end screen. +x = right, +y = up, +z = towards the person. The focus area is turned towards the
 /// person at the start of every round.
 enum Layout {
-    /// Where the focus area sits relative to the anatomy model (the physical one, or the virtual copy),
-    /// in metres, in the model's own directions:
+    /// Where the focus area (welcome screen, cells, labels) sits relative to the anatomy model – the physical
+    /// one or the virtual copy – in metres, in the model's own directions:
     ///   x = to the right of the model, as seen by someone standing in front of it,
     ///   y = up from the model's base (the figure is 0.94 m tall, its heart is at 0.70 m),
     ///   z = out of the model's front, towards the person.
-    /// The model then sits slightly to the left in the view, the cells and text in the middle, a bit
-    /// closer to the person than the model. The same spot every time – wherever the experience was started.
+    /// Always the same spot next to the model: to its right and a little in front of it, facing the same way
+    /// as the model's front. It does not depend on where the person looks or stands.
     static let focusOffsetFromModel = SIMD3<Float>(0.45, 0.60, 0.50)
+    /// Only if the content faces sideways or backwards on the physical model: turns the model's "front"
+    /// (degrees, e.g. 90 or -90). 0 = the scan's front is the human's front.
+    static let physicalModelFrontTurn: Float = 0
     /// The focus area only moves with the physical model when it really moved (someone bumped it):
     /// by more than this distance (metres) …
-    static let modelMoveTolerance: Float = 0.03
+    static let modelMoveTolerance: Float = 0.08
     /// … or turned by more than this angle (degrees). Smaller changes are tracking noise and are ignored.
-    static let modelTurnTolerance: Float = 5
+    static let modelTurnTolerance: Float = 15
 
     /// While searching for the physical model the hint sits in front of the person (there is no model to
     /// place it next to yet): this far from the eyes …

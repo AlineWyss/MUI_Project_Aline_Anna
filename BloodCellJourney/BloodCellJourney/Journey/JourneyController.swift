@@ -349,26 +349,26 @@ final class JourneyController {
         if simd_length(forward) < 0.001 { forward = SIMD3<Float>(0, 0, -1) }
         return (head, simd_normalize(forward), true)
     }
-
-    /// Places the focus area (the stage for cells, labels and text) straight in front of the person,
-    /// facing them, so the 3D models and text are centred in the view and easy to read – not off to the
-    /// side. It still stays attached to the anatomy model: the spot is remembered in the model's own
-    /// directions, so the stage follows if the model is bumped (followModelIfMoved). It is turned
-    /// towards the person once, when it is placed (start of every round); it does not keep turning while
-    /// the person moves.
+    /// Places the focus area (welcome screen, cells, labels) next to the anatomy model, always at
+    /// Layout.focusOffsetFromModel in the model's own directions and facing the same way as the model's front.
+    /// It does not depend on where the person looks or stands, so every round starts at the same spot.
+    /// With the virtual copy this gives exactly the old arrangement (placeVirtualAnatomy puts the copy at
+    /// this offset from the stage in front of the person). The stage then only moves with the model if the
+    /// model is clearly moved (followModelIfMoved).
     /// Needs the model's pose (anatomyRoot): called from enterIntro, after the model was found
     /// (or the virtual copy was placed).
     func placeFocusArea(animated: Bool = false) {
-        let stage = focusPoseInFrontOfPerson()
         let model = modelPose()
+        let frontTurn = mode == .physicalModel ? Layout.physicalModelFrontTurn * .pi / 180 : 0
+        let yaw = model.yaw + frontTurn
+        let position = model.position + Self.yawRotation(yaw).act(Layout.focusOffsetFromModel)
+        moveFocusArea(to: position, yaw: yaw, animated: animated)
         // Remember where the stage sits relative to the model (in the model's own directions), so it can
-        // follow the model if someone bumps it.
-        let offset = Self.yawRotation(-model.yaw).act(stage.position - model.position)
-        moveFocusArea(to: stage.position, yaw: stage.yaw, animated: animated)
+        // follow the model if someone moves it.
         focusPlacement = FocusPlacement(modelPosition: model.position,
                                         modelYaw: model.yaw,
-                                        offset: offset,
-                                        relativeYaw: stage.yaw - model.yaw)
+                                        offset: Self.yawRotation(-model.yaw).act(position - model.position),
+                                        relativeYaw: frontTurn)
     }
 
     /// The physical model moved (someone bumped it): the focus area moves with it, keeping the same
