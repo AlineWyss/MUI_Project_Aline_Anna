@@ -292,7 +292,7 @@ final class JourneyController {
         let rotation = Self.yawRotation(stage.yaw)
         var transform = Transform()
         transform.rotation = rotation
-        transform.translation = stage.position - rotation.act(Layout.focusOffsetFromModel)
+        transform.translation = stage.position - rotation.act(focusOffset)
         anatomyRoot.transform = transform
     }
 
@@ -350,25 +350,21 @@ final class JourneyController {
         return (head, simd_normalize(forward), true)
     }
 
-    /// Places the focus area (the stage for cells, labels and text) straight in front of the person,
-    /// facing them, so the 3D models and text are centred in the view and easy to read – not off to the
-    /// side. It still stays attached to the anatomy model: the spot is remembered in the model's own
-    /// directions, so the stage follows if the model is bumped (followModelIfMoved). It is turned
-    /// towards the person once, when it is placed (start of every round); it does not keep turning while
-    /// the person moves.
-    /// Needs the model's pose (anatomyRoot): called from enterIntro, after the model was found
-    /// (or the virtual copy was placed).
+    /// Places the focus area (the stage for cells, labels and text) next to the anatomy model, at
+    /// Layout.focusOffsetFromModel in the model's own directions and turned by Layout.focusTurnFromModel.
+    /// It depends only on the model, not on where the person stands, so it always keeps the same distance
+    /// to the model and follows it if the model is bumped (followModelIfMoved).
+    /// Needs the model's pose (anatomyRoot): called from enterIntro, after the model was found.
     func placeFocusArea(animated: Bool = false) {
-        let stage = focusPoseInFrontOfPerson()
         let model = modelPose()
-        // Remember where the stage sits relative to the model (in the model's own directions), so it can
-        // follow the model if someone bumps it.
-        let offset = Self.yawRotation(-model.yaw).act(stage.position - model.position)
-        moveFocusArea(to: stage.position, yaw: stage.yaw, animated: animated)
+        let offset = focusOffset
+        let relativeYaw = Layout.focusTurnFromModel * .pi / 180
+        let position = model.position + Self.yawRotation(model.yaw).act(offset)
+        moveFocusArea(to: position, yaw: model.yaw + relativeYaw, animated: animated)
         focusPlacement = FocusPlacement(modelPosition: model.position,
                                         modelYaw: model.yaw,
                                         offset: offset,
-                                        relativeYaw: stage.yaw - model.yaw)
+                                        relativeYaw: relativeYaw)
     }
 
     /// The physical model moved (someone bumped it): the focus area moves with it, keeping the same
@@ -431,7 +427,10 @@ final class JourneyController {
         let yaw = simd_length(front) > 0.0001 ? atan2(front.x, front.z) : 0
         return (position, yaw)
     }
-
+    /// The stage's offset from the model: the physical model and the virtual copy each have their own.
+    private var focusOffset: SIMD3<Float> {
+        mode == .virtualModel ? Layout.virtualFocusOffsetFromModel : Layout.focusOffsetFromModel
+    }
     private func moveFocusArea(to position: SIMD3<Float>, yaw: Float, animated: Bool) {
         var transform = Transform()
         transform.translation = position
