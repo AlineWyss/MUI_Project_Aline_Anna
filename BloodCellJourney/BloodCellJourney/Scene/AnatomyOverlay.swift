@@ -521,7 +521,33 @@ final class AnatomyOverlay {
             if component.loops || component.progress >= component.target - 0.001 { break }
         }
     }
-
+    /// Finishes the current lap of the body loop (round to the left heart, where the loop closes), then takes
+    /// `route` from the left heart, and arrives after exactly `seconds`. Without the body loop it simply
+    /// travels from where the marker is now. Returns when it arrives.
+    func finishLapAndTravel(_ route: AnatomyMap.Route, arrivingIn seconds: Double) async {
+        marker.isEnabled = true
+        let controls = AnatomyMap.points(for: route)
+        var way = pathFromMarker(to: route)
+        if let tour = finalTour, tour.length > 0,
+           let current = marker.components[MarkerComponent.self], current.loops,
+           let heart = controls.firstIndex(where: { simd_distance($0, AnatomyMap.leftHeart) < 0.0005 }) {
+            var points = tourPoints(tour, from: current.progress * tour.length, to: tour.length)
+            for point in Curves.catmullRom(Array(controls[heart...]), samplesPerSegment: 8) {
+                if let last = points.last, simd_distance(last, point) < 0.0001 { continue }
+                points.append(point)
+            }
+            way = SampledPath(points)
+        }
+        finalTour = nil
+        let time = max(seconds, 0.5)
+        setMarker(path: way, progress: 0, target: 1, speed: Float(1 / time), loops: false)
+        let deadline = Date().addingTimeInterval(time + 1.5)
+        while Date() < deadline {
+            try? await Task.sleep(for: .milliseconds(100))
+            guard let component = marker.components[MarkerComponent.self] else { break }
+            if component.progress >= component.target - 0.001 { break }
+        }
+    }
     /// Puts the marker at the start of a route that is then walked step by step (heart beats).
     /// The route starts where the marker is now, so it doesn't jump.
     func prepareSteps(along route: AnatomyMap.Route) {

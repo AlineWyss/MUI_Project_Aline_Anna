@@ -65,6 +65,11 @@ final class VoiceGuide {
         guard currentClip == clip, let player, player.isPlaying else { return nil }
         return player.currentTime
     }
+    /// Seconds left in the recording `clip`, while exactly that recording is playing; otherwise nil.
+    func clipRemaining(of clip: String) -> TimeInterval? {
+        guard currentClip == clip, let player, player.isPlaying else { return nil }
+        return max(player.duration - player.currentTime, 0)
+    }
     /// Bricht alles sofort ab und leert die Warteschlange (Neustart, Skip, Schliessen).
     func stop() {
         generation += 1

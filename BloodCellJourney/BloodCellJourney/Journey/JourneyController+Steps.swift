@@ -597,10 +597,13 @@ extension JourneyController {
         setLook(cell, .withoutOxygen, animated: false)
 
         sequence { id in
-            await self.overlay.travel(.lungsToSpleen, duration: Timing.travelToSpleen)
+            // The light finishes its lap through the body and arrives in the spleen exactly when the voice
+            // says "…its path now leads to the spleen." (the end of voice_agingIntro).
+            guard await self.pause(0.3, id) else { return }   // let the recording start
+            let seconds = VoiceGuide.shared.clipRemaining(of: "voice_agingIntro") ?? Timing.travelToSpleen
+            await self.overlay.finishLapAndTravel(.lungsToSpleen, arrivingIn: seconds)
             guard id == self.runID else { return }
-            // The spleen scene only starts once the voice has said "…its path now leads to the spleen."
-            // ("spleen" is the last word of voice_agingIntro, so this waits until that recording has ended.)
+            // Should the voice still be a little behind (e.g. synthetic voice), wait for "spleen".
             guard await self.waitForVoice(clip: "voice_agingIntro", cue: .infinity, id) else { return }
             self.highlight(.spleen)
             await self.flyOutOfModel(cell, from: self.overlay.markerWorldPosition, to: Layout.squeezeStart,

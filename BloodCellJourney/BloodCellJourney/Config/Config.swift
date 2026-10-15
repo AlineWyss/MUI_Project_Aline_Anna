@@ -206,7 +206,7 @@ enum Timing {
     /// Seconds the capillary takes to fade away before the old cell turns to the person and dissolves.
     static let recycleCapillaryFade: Double = 0.5
     /// Seconds for one lap of the marker while the cycle repeats.
-    static let lapDuration: Double = 60.0  //6.0
+    static let lapDuration: Double = 25.0  //6.0
     /// How far the old cell gets into the squeeze animation (a frame of claudeAniamtion.blend).
     /// 12 = Blender's shape key "Key 1" is complete (blend shapes Squeeze01–03); 9 = it can't bend at all;
     /// 21 = it would get through.
