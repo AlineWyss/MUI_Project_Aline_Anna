@@ -81,8 +81,19 @@ extension JourneyController {
         makeDraggable(cell)
 
         setMainLabel(StoryText.Labels.redBloodCell, on: cell)
-        showStartButton(below: cell)
-        setPanel(StoryText.Panels.meetCell)
+        setPanel(StoryText.Panels.meetCell)   // startet das Voiceover
+
+        // Start-Knopf erst zeigen, wenn das Voiceover fertig ist
+        sequence { id in
+            // kurz warten, bis die Stimme sicher angefangen hat
+            guard await self.pause(0.5, id) else { return }
+            // warten, solange gesprochen wird (bricht ab bei Neustart oder anderem Schritt)
+            while VoiceGuide.shared.isSpeaking {
+                guard await self.pause(0.2, id), self.step == .meetCell else { return }
+            }
+            guard self.step == .meetCell, let cell = self.redBloodCell else { return }
+            self.showStartButton(below: cell)
+        }
     }
 
     /// Start button below the red blood cell.
