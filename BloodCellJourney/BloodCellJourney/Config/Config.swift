@@ -166,6 +166,9 @@ enum Timing {
     static let pop: TimeInterval = 0.45
     /// Seconds for the red blood cell to fly into or out of the anatomy model.
     static let flyToModel: TimeInterval = 1.1
+    /// Speed of "our" red blood cell (the light on the model) on every journey, in metres per second.
+    /// travelToLungs, travelToSpleen and lapDuration no longer change its speed.
+    static let markerSpeed: Float = 0.25
     /// Second in the recording voice_pumpToOrgans where the voice has just said "bright red": the cell flies
     /// into the body from here. Open the file (e.g. in QuickTime) and read off the time.
     static let brightRedCue: TimeInterval = 3.0

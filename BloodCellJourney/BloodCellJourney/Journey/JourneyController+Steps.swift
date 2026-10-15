@@ -457,7 +457,8 @@ extension JourneyController {
         let toOrgans = step == .pumpToOrgans
         overlay.setHeartTappable(false)
         sequence { id in
-            guard await self.pause(Timing.heartStep + 0.3, id) else { return }
+            await self.overlay.waitForMarker()   // constant speed: wait until the cell has arrived
+            guard await self.pause(0.3, id) else { return }
             self.hideHeartCounter()
             self.overlay.hideHeartModel()
             self.overlay.stream.autoBeat = true

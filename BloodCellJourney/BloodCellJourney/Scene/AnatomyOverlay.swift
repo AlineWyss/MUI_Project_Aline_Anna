@@ -493,6 +493,11 @@ final class AnatomyOverlay {
     private func path(for route: AnatomyMap.Route) -> SampledPath {
         SampledPath(Curves.catmullRom(AnatomyMap.points(for: route), samplesPerSegment: 8))
     }
+    
+    /// Progress per second on `path`, so "our" cell always moves at Timing.markerSpeed (metres per second).
+    private func constantSpeed(on path: SampledPath) -> Float {
+        Timing.markerSpeed / max(path.length, 0.001)
+    }
 
     /// World position where the marker's next journey starts: where the marker is now (see
     /// pathFromMarker), so the red blood cell flies to the right spot and nothing jumps.
@@ -505,15 +510,10 @@ final class AnatomyOverlay {
     func travel(_ route: AnatomyMap.Route, duration: Double) async {
         marker.isEnabled = true
         let way = pathFromMarker(to: route)
-        // The route's usual speed. Coming from the body loop it keeps at least the speed it had there,
-        // so a longer way (first round to the heart) neither drags nor rushes.
-        var metresPerSecond = path(for: route).length / Float(max(duration, 0.1))
-        if let tour = finalTour, let current = marker.components[MarkerComponent.self], current.loops {
-            metresPerSecond = max(metresPerSecond, current.speed * tour.length)
-        }
-        let seconds = max(Double(way.length / max(metresPerSecond, 0.001)), 0.1)
+        // Always the same speed (Timing.markerSpeed); `duration` is no longer used.
+        let seconds = Double(way.length / Timing.markerSpeed)
         finalTour = nil
-        setMarker(path: way, progress: 0, target: 1, speed: Float(1 / seconds), loops: false)
+        setMarker(path: way, progress: 0, target: 1, speed: constantSpeed(on: way), loops: false)
         let deadline = Date().addingTimeInterval(seconds + 1.5)
         while Date() < deadline {
             try? await Task.sleep(for: .milliseconds(100))
@@ -539,8 +539,9 @@ final class AnatomyOverlay {
             way = SampledPath(points)
         }
         finalTour = nil
-        let time = max(seconds, 0.5)
-        setMarker(path: way, progress: 0, target: 1, speed: Float(1 / time), loops: false)
+        // Same speed as everywhere else; enterAging then waits for "…spleen." if the light is early.
+        let time = Double(way.length / Timing.markerSpeed)
+        setMarker(path: way, progress: 0, target: 1, speed: constantSpeed(on: way), loops: false)
         let deadline = Date().addingTimeInterval(time + 1.5)
         while Date() < deadline {
             try? await Task.sleep(for: .milliseconds(100))
@@ -606,11 +607,21 @@ final class AnatomyOverlay {
     /// Moves the marker to `fraction` (0...1) of the prepared route.
     func advance(to fraction: Float, duration: Double) {
         guard var component = marker.components[MarkerComponent.self] else { return }
-        let distance = abs(fraction - component.progress)
+        _ = abs(fraction - component.progress)
         component.target = min(max(fraction, 0), 1)
-        component.speed = max(distance / Float(max(duration, 0.05)), 0.01)
+        component.speed = constantSpeed(on: component.path)
         component.loops = false
         marker.components.set(component)
+    }
+    
+    
+    /// Waits until the marker has reached its target (e.g. after the last heart beat).
+    func waitForMarker() async {
+        for _ in 0..<100 {
+            guard let component = marker.components[MarkerComponent.self],
+                  !component.loops, component.progress < component.target - 0.001 else { return }
+            try? await Task.sleep(for: .milliseconds(100))
+        }
     }
 
     /// Lets the marker run round and round (the cycle repeats).
@@ -850,7 +861,7 @@ final class AnatomyOverlay {
             path: tour,
             progress: tour.cumulative[nearest] / tour.length,
             target: 1,
-            speed: Float(1 / max(lapDuration, 0.5)),
+            speed: constantSpeed(on: tour),
             loops: true
         )
 

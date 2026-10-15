@@ -97,69 +97,69 @@ enum StoryText {
         static let redBloodCell = LabelContent(
             title: "Red Blood Cell",
             subtitle: "Erythrocyte",
-            facts:[
-                "A flexible, biconcave disc only 6–8 µm wide. It has no nucleus and carries up to 270 million hemoglobin molecules. Bright red means oxygen-rich, dark red means oxygen-poor.",
+            facts: [
+                "A biconcave disc only about 7.5 µm wide. Besides its nucleus it has also lost its mitochondria, the cell's power plants, so it uses none of the oxygen it carries and gets its energy from sugar alone. Red blood cells make up about 45 % of your blood.",
             ])
 
         static let youngRedBloodCell = LabelContent(
             title: "Red Blood Cell",
             subtitle: "brand new",
-            facts: redBloodCell.facts)
+            facts: [
+                "A brand-new red blood cell is called a reticulocyte. Under the microscope, leftovers of its RNA show up as a fine net. Only about 1 % of your red blood cells are this young.",
+            ])
 
         static let oldRedBloodCell = LabelContent(
             title: "Red Blood Cell",
             subtitle: "about 120 days old",
             facts: [
-                "Red blood cells live about 100–120 days.",
-                "With age the cell membrane becomes stiffer.",
-                "Old cells are removed by macrophages in the spleen, liver and lymph nodes."
+                "Over its life a red blood cell slowly gets smaller: it loses bits of its membrane and water, but keeps its disc shape.",
             ])
 
         static let erythroblast = LabelContent(
             title: "Erythroblast",
             subtitle: "a developing red blood cell",
             facts: [
-                "Develops in about 7 days from a stem cell in the red bone marrow – in adults mainly in the vertebrae, ribs, sternum and pelvis. When oxygen is low, the kidneys release the hormone EPO to speed up production.",
+                "Grows up in a group of up to 30 cells around a \"nurse\" cell, a macrophage that hands them iron for hemoglobin. When oxygen is low, the kidneys release the hormone EPO to speed up production.",
             ])
 
         static let hemoglobin = LabelContent(
             title: "Hemoglobin",
             holdText: "Drag hemoglobin into the cell",
             facts: [
-                "A protein made of 4 chains, each with an iron-containing heme group that can bind one oxygen molecule. It carries over 98 % of the oxygen in your blood – and its heme is what makes blood red."
+                "A protein made of 4 chains, each with an iron-containing heme that holds one oxygen molecule. It carries over 98 % of the oxygen in your blood and its heme is what makes blood red.",
             ])
 
         static let nucleus = LabelContent(
             title: "Nucleus",
             holdText: "Pull the nucleus out of the cell",
             facts: [
-                "It holds the cell's DNA and pushes out the nucleus to make room for the hemoglobin. The ejected nucleus is eaten by macrophages in the bone marrow."
+                "It holds the cell's DNA, its building plan. The ejected nucleus is eaten at once by the nurse macrophage, so its DNA can't do any harm.",
             ])
 
         static let capillary = LabelContent(
             title: "Bone marrow sinusoid",
             facts: [
-                "It is a wide blood vessel with a very thin wall inside the bone marrow. New red blood cells squeeze through tiny openings in its wall to get into the blood."
+                "Sinusoids form a dense network that runs like spokes towards a large central vein. Not only red blood cells leave here: giant cells called megakaryocytes reach through the wall and break off thousands of tiny platelets that help stop bleeding.",
             ])
-        static let spleenSinus = LabelContent(
-            title: "Spleen sinus",
-            facts: [
-                "It is a blood vessel in the spleen whose wall has very narrow slits between long, thin wall cells. Every red blood cell must squeeze through these slits to get back into the blood. Old, stiff cells can't bend enough, get stuck and are broken down by macrophages."
-            ])
+
+                static let spleenSinus = LabelContent(
+                    title: "Spleen sinus",
+                    facts: [
+                        "Its wall is built like a barrel: long, thin wall cells lie side by side like wooden staves, held together by ring-shaped fibres. In the spleen, blood leaves the vessels and first seeps through a sponge-like tissue before it flows back into these sinuses.",
+                    ])
 
         static let oxygen = LabelContent(
             title: "Oxygen (O₂)",
             holdText: "Drag oxygen into the red blood cell",
             facts: [
-                "It helps the cells to release energy from food and bindes the iron in the hemoglobin. About 21 % of the air you breathe is oxygen. ",
-                
+                "About 21 % of the air you breathe is oxygen. Almost all of it rides on the iron in hemoglobin. Only a tiny part is dissolved in the blood plasma.",
             ])
 
         static let bodyCell = LabelContent(
             title: "Body Cell",
             holdText: "Drop the oxygen into the cell",
             facts: [
-                "Cells in organs and muscles use oxygen for cellular respiration, wich releases energy from sugar and fat. Carbon dioxide is left over as waste.",
+                "Body cells build your organs, muscles and nerves. Unlike a red blood cell, each one keeps its nucleus and has mitochondria - tiny power plants where the oxygen is finally used. Surprisingly, red blood cells outnumber them: about 84 % of all your cells are red blood cells.",
             ])
 
         static let carbonDioxide = LabelContent(
@@ -168,16 +168,15 @@ enum StoryText {
             facts: [
                 "A waste product of cellular respiration. About 70% of it travels in the blood as bicarbonate, the rest bound to hemoglobin or dissolved in plasma until you breathe it out.",
             ])
-        
-        
+
         /// Same CO₂ label, shown again in the lungs with the instruction underneath.
         static let carbonDioxideExhale = LabelContent(
             title: "Carbon Dioxide (CO₂)",
             facts: [
-                "A waste product of cellular respiration. About 70% of it travels in the blood as bicarbonate, the rest is bound to hemoglobin or dissolved in plasma until you breathe it out in the lungs.",
+                "Carbon dioxide controls your breathing: your brain measures how much of it builds up in the blood, not how little oxygen is left. When you hold your breath, the urge to breathe comes from the rising carbon dioxide.",
             ])
     }
-
+   
     // MARK: - Panels
 
     enum Panels {
