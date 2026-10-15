@@ -192,7 +192,7 @@ enum Timing {
     /// Seconds the developing cell takes to fly from the pelvis's bone marrow to the person. It grows on the way.
     static let developingCellFlight: TimeInterval = 3.0
     static let travelToLungs: Double = 4.5
-    static let travelToSpleen: Double = 3.5
+    static let travelToSpleen: Double = 2.5
     /// Aging: the marker reaches the spleen (and the old cell flies out) this many seconds BEFORE the voice line
     /// agingIntro ends, so the next line (agingTry) follows without a silent gap. Bigger = earlier.
     static let agingEarlyArrival: Double = 1.5
