@@ -95,11 +95,19 @@ enum Layout {
     /// The model then sits slightly to the left in the view, the cells and text in the middle, a bit
     /// closer to the person than the model. The same spot every time – wherever the experience was started.
     static let focusOffsetFromModel = SIMD3<Float>(0.45, 0.60, 0.50)
+    /// With the physical model: where the focus area sits next to the model, in metres, measured from where
+    /// the person stands when a round starts (looking at the model):
+    ///   x = to the right of the model as the person sees it (negative = left),
+    ///   y = up from the model's base (the figure is 0.94 m tall, its heart is at 0.70 m),
+    ///   z = from the model towards the person.
+    /// The content is always on the left at this distance and turned towards the person; after that it
+    /// stays put and only moves with the model if the model is clearly moved.
+    static let focusOffsetBesideModel = SIMD3<Float>(-0.83, 0.60, 0.25)
     /// The focus area only moves with the physical model when it really moved (someone bumped it):
     /// by more than this distance (metres) …
-    static let modelMoveTolerance: Float = 0.03
+    static let modelMoveTolerance: Float = 0.08
     /// … or turned by more than this angle (degrees). Smaller changes are tracking noise and are ignored.
-    static let modelTurnTolerance: Float = 5
+    static let modelTurnTolerance: Float = 15
 
     /// While searching for the physical model the hint sits in front of the person (there is no model to
     /// place it next to yet): this far from the eyes …

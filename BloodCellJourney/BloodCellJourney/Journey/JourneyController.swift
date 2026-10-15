@@ -350,25 +350,45 @@ final class JourneyController {
         return (head, simd_normalize(forward), true)
     }
 
-    /// Places the focus area (the stage for cells, labels and text) straight in front of the person,
-    /// facing them, so the 3D models and text are centred in the view and easy to read – not off to the
-    /// side. It still stays attached to the anatomy model: the spot is remembered in the model's own
-    /// directions, so the stage follows if the model is bumped (followModelIfMoved). It is turned
-    /// towards the person once, when it is placed (start of every round); it does not keep turning while
-    /// the person moves.
-    /// Needs the model's pose (anatomyRoot): called from enterIntro, after the model was found
-    /// (or the virtual copy was placed).
+    /// Places the focus area (the stage for cells, labels and text) at the start of every round.
+    /// With the physical model: next to the model, always on the left as seen from where the person stands
+    /// right now and always at the same distance (Layout.focusOffsetBesideModel, measured in the direction
+    /// from the model to the person), turned to face the person.
+    /// Without the physical model: straight in front of the person, as before (the virtual copy is placed
+    /// next to it in placeVirtualAnatomy).
+    /// After that the stage stays put – it doesn't follow the person – and only moves with the model if the
+    /// model is clearly moved (followModelIfMoved).
     func placeFocusArea(animated: Bool = false) {
-        let stage = focusPoseInFrontOfPerson()
         let model = modelPose()
+        let position: SIMD3<Float>
+        let yaw: Float
+        if mode == .virtualModel {
+            let stage = focusPoseInFrontOfPerson()
+            position = stage.position
+            yaw = stage.yaw
+        } else {
+            let head = viewpoint().head
+            // Level direction from the model to the person: "left" and "towards the person" are measured in it.
+            var toPerson = head - model.position
+            toPerson.y = 0
+            toPerson = simd_length(toPerson) > 0.01
+                ? simd_normalize(toPerson)
+                : Self.yawRotation(model.yaw).act(SIMD3<Float>(0, 0, 1))   // in doubt: the model's front
+            position = model.position + Self.yawRotation(atan2(toPerson.x, toPerson.z)).act(Layout.focusOffsetBesideModel)
+            // The stage itself turns to face the person, so the text panel is easy to read.
+            var toPersonFromStage = head - position
+            toPersonFromStage.y = 0
+            yaw = simd_length(toPersonFromStage) > 0.01
+                ? atan2(toPersonFromStage.x, toPersonFromStage.z)
+                : atan2(toPerson.x, toPerson.z)
+        }
+        moveFocusArea(to: position, yaw: yaw, animated: animated)
         // Remember where the stage sits relative to the model (in the model's own directions), so it can
-        // follow the model if someone bumps it.
-        let offset = Self.yawRotation(-model.yaw).act(stage.position - model.position)
-        moveFocusArea(to: stage.position, yaw: stage.yaw, animated: animated)
+        // follow the model if someone moves it.
         focusPlacement = FocusPlacement(modelPosition: model.position,
                                         modelYaw: model.yaw,
-                                        offset: offset,
-                                        relativeYaw: stage.yaw - model.yaw)
+                                        offset: Self.yawRotation(-model.yaw).act(position - model.position),
+                                        relativeYaw: yaw - model.yaw)
     }
 
     /// The physical model moved (someone bumped it): the focus area moves with it, keeping the same
