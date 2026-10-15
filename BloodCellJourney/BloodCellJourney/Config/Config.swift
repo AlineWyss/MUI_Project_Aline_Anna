@@ -87,16 +87,14 @@ enum Config {
 /// and end screen. +x = right, +y = up, +z = towards the person. The focus area is turned towards the
 /// person at the start of every round.
 enum Layout {
-    /// The content stands to the left of the model and a little in front of it (in the foreground), always
-    /// at the same spot and distance, wherever the person stands. The text panel covers only the figure's
-    /// arm for someone about 1.2 m in front of the model.
-    static let focusOffsetFromModel = SIMD3<Float>(-0.83, 0.60, 0.25)
-    /// How far the focus area is turned away from the model's facing (degrees). 0 = the content faces
-    /// exactly the way the model faces, so someone in front of the model sees it from the front.
-    static let focusTurnFromModel: Float = 0
-    /// Same as focusOffsetFromModel, but for the virtual copy (mode without the physical model):
-    /// the copy stands this far from the content – as before: 0.45 m to the left of it and 0.5 m behind it.
-    static let virtualFocusOffsetFromModel = SIMD3<Float>(0.45, 0.60, 0.50)
+    /// Where the focus area sits relative to the anatomy model (the physical one, or the virtual copy),
+    /// in metres, in the model's own directions:
+    ///   x = to the right of the model, as seen by someone standing in front of it,
+    ///   y = up from the model's base (the figure is 0.94 m tall, its heart is at 0.70 m),
+    ///   z = out of the model's front, towards the person.
+    /// The model then sits slightly to the left in the view, the cells and text in the middle, a bit
+    /// closer to the person than the model. The same spot every time – wherever the experience was started.
+    static let focusOffsetFromModel = SIMD3<Float>(0.45, 0.60, 0.50)
     /// The focus area only moves with the physical model when it really moved (someone bumped it):
     /// by more than this distance (metres) …
     static let modelMoveTolerance: Float = 0.03
