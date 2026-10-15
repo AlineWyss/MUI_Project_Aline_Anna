@@ -95,22 +95,41 @@ extension JourneyController {
 
     func enterBoneMarrow() {
         step = .boneMarrow
-        if let first = redBloodCell {
-            // The first cell shrinks away (it stays solid – no see-through fade) while the developing cell
-            // grows in its place.
+        let first = redBloodCell
+        redBloodCell = nil
+        if let first {
             detachUI(from: first)
             makeStatic(first)
-            first.stopIdleMotion()
-            move(first.container, to: first.container.position, scale: 0.01, duration: 0.5)
-            Task { @MainActor in
-                try? await Task.sleep(for: .seconds(0.55))
-                first.container.removeFromParent()
-            }
         }
-        redBloodCell = nil
+        // The pelvis lights up while the first cell flies into its bone marrow.
+        highlight(.boneMarrow)
+        let marrowWorld = anatomyRoot.convert(position: AnatomyMap.p(.rMarrow), to: nil)
 
+        sequence { id in
+            if let first {
+                // The first red blood cell flies back into the body – into the bone marrow in the pelvis …
+                await self.flyIntoModel(first, at: marrowWorld)
+                first.container.removeFromParent()
+                guard id == self.runID, self.step == .boneMarrow else { return }
+            }
+            // … and the developing cell comes out of the same spot.
+            self.bringOutDevelopingCell(from: marrowWorld)
+        }
+    }
+
+    /// The developing cell flies out of the bone marrow in the pelvis to the person and grows on the way.
+    private func bringOutDevelopingCell(from marrowWorld: SIMD3<Float>) {
         let parts = library.developingCell()
-        place(parts.cell, at: Layout.mainSlot)
+        place(parts.cell, at: focusRoot.convert(position: marrowWorld, from: nil))
+        var arrival = parts.cell.container.transform
+        arrival.translation = Layout.mainSlot
+        if parts.development == nil {
+            // No development animation: the cell grows during the flight instead.
+            parts.cell.container.scale = SIMD3<Float>(repeating: 0.01)
+            arrival.scale = SIMD3<Float>(repeating: 1)
+        }
+        parts.cell.container.move(to: arrival, relativeTo: focusRoot,
+                                  duration: Timing.developingCellFlight, timingFunction: .easeInOut)
         developingCell = parts.cell
         nucleus = parts.nucleus
         // Very subtle idle movement of the nucleus inside the cell.
@@ -119,19 +138,22 @@ extension JourneyController {
             $0.rockSpeed = 0.45    // slowly, about one sway every 14 seconds
             $0.hover = 0.0015      // floats 1.5 mm up and down
         }
-
-        setMainLabel(StoryText.Labels.erythroblast, on: parts.cell)
-
-        highlight(.boneMarrow)
         overlay.showMarker(at: .rMarrow)
 
+        // The label appears once the cell has arrived, so it doesn't fly along from the pelvis.
+        let arrivingCell = parts.cell
+        sequence { id in
+            guard await self.pause(Timing.developingCellFlight, id),
+                  self.step == .boneMarrow, self.developingCell === arrivingCell else { return }
+            self.setMainLabel(StoryText.Labels.erythroblast, on: arrivingCell)
+        }
+
         if let development = parts.development {
-            // The cell develops first; the story continues once its shell has settled.
+            // The cell develops (grows) during and after its flight; the story continues once its shell has settled.
             develop(development, nucleus: parts.nucleus) { [weak self] in
                 self?.setPanel(StoryText.Panels.boneMarrow)
             }
         } else {
-            popIn(parts.cell)
             setPanel(StoryText.Panels.boneMarrow)
         }
     }

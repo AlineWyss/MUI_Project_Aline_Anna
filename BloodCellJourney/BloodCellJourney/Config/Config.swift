@@ -163,6 +163,8 @@ enum Timing {
     static let pop: TimeInterval = 0.45
     /// Seconds for the red blood cell to fly into or out of the anatomy model.
     static let flyToModel: TimeInterval = 1.1
+    /// Seconds the developing cell takes to fly from the pelvis's bone marrow to the person. It grows on the way.
+    static let developingCellFlight: TimeInterval = 3.0
     static let travelToLungs: Double = 4.5
     static let travelToSpleen: Double = 3.5
     static let heartStep: Double = 0.7
@@ -180,7 +182,7 @@ enum Timing {
     static let nucleusGrowFrame: Double = 75
     /// The development plays this many times faster up to shellPopFrame, then at normal speed
     /// (1 = as in Blender; the growth takes the same time, so shell and nucleus stay in sync).
-    static let shellEarlySpeed: Double = 1
+    static let shellEarlySpeed: Double = 0.5
     /// Speed of the development after full size (1 = as in Blender, 0.5 = slow motion, 2 = twice as fast).
     static let shellLateSpeed: Double = 1.5
     /// The development starts at this frame of the bake (frames before it are still).
@@ -194,7 +196,7 @@ enum Timing {
     /// (matches the 72-frame settle baked into ShellDevelopment.json).
     static let shellSettleSeconds: Double = 3.0
     /// Seconds the capillary takes to fade away before the old cell turns to the person and dissolves.
-    static let recycleCapillaryFade: Double = 0.8
+    static let recycleCapillaryFade: Double = 0.5
     /// Seconds for one lap of the marker while the cycle repeats.
     static let lapDuration: Double = 60.0  //6.0
     /// How far the old cell gets into the squeeze animation (a frame of claudeAniamtion.blend).
