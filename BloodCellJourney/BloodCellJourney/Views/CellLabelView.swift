@@ -63,6 +63,8 @@ struct CellLabelView: View {
             // Weiches Ein- und Ausblenden der Karte (wie beim Hover)
             .animation(.easeOut(duration: 0.25), value: showsFacts)
             .animation(.easeInOut(duration: 0.25), value: holdText)
+            .opacity(controller.isHolding ? 0 : 1)
+            .animation(.easeInOut(duration: 0.2), value: controller.isHolding)
         }
     }
     private func header(_ content: LabelContent, holdText: String?, showsFacts: Bool) -> some View {
