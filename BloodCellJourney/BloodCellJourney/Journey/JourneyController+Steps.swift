@@ -604,7 +604,7 @@ extension JourneyController {
             // 5 s – the auto-continue delay) and agingIntro, which ends with "…leads to the spleen."
             let cycleVoice = VoiceGuide.shared.clipDuration("voice_cycleRepeats") ?? 9
             let agingVoice = VoiceGuide.shared.clipDuration("voice_agingIntro") ?? 16
-            self.overlay.loopFinalBodyCycle(lapDuration: max(cycleVoice, 5) + agingVoice)
+            self.overlay.loopFinalBodyCycle(lapDuration: max(cycleVoice, 5) + agingVoice - Timing.agingEarlyArrival)
             self.interactionLocked = false
             self.setPanel(StoryText.Panels.cycleRepeats)
             //self.showSkipButton(true)   // SKIP: wer nicht warten will, kann hier weiter tippen
@@ -625,20 +625,39 @@ extension JourneyController {
         setLook(cell, .withoutOxygen, animated: false)
 
         sequence { id in
-            // The light finishes its lap through the body and arrives in the spleen exactly when the voice
-            // says "…its path now leads to the spleen." (the end of voice_agingIntro).
+            // The light finishes its lap through the body and reaches the spleen a little BEFORE the voice ends
+            // ("…its path now leads to the spleen."), so the cell is already out when the next line starts.
             guard await self.pause(0.3, id) else { return }   // let the recording start
-            let seconds = VoiceGuide.shared.clipRemaining(of: "voice_agingIntro") ?? Timing.travelToSpleen
-            await self.overlay.finishLapAndTravel(.lungsToSpleen, arrivingIn: seconds)
+            let remaining = VoiceGuide.shared.clipRemaining(of: "voice_agingIntro") ?? Timing.travelToSpleen
+            await self.overlay.finishLapAndTravel(.lungsToSpleen,
+                                                  arrivingIn: remaining - Timing.agingEarlyArrival)
             guard id == self.runID else { return }
-            // Should the voice still be a little behind (e.g. synthetic voice), wait for "spleen".
-            guard await self.waitForVoice(clip: "voice_agingIntro", cue: .infinity, id) else { return }
+            // Should the voice be behind, wait until it is at the same point. Synthetic voice (no recording):
+            // wait for "spleen" as before.
+            let intro = VoiceGuide.shared.clipDuration("voice_agingIntro")
+            let cue = intro.map { $0 - Timing.agingEarlyArrival } ?? .infinity
+            guard await self.waitForVoice(clip: "voice_agingIntro", cue: cue, id) else { return }
             self.highlight(.spleen)
-            await self.flyOutOfModel(cell, from: self.overlay.markerWorldPosition, to: Layout.squeezeStart,
-                                     label: StoryText.Labels.oldRedBloodCell)
+
+            // The old cell flies out of the model. On the way the spleen sinus grows in and the cell already
+            // turns into its place in it – it lands ready to squeeze, with no stop-and-turn afterwards.
+            let flight = Task { @MainActor in
+                await self.flyOutOfModel(cell, from: self.overlay.markerWorldPosition, to: Layout.squeezeStart,
+                                         label: StoryText.Labels.oldRedBloodCell)
+            }
+            guard await self.pause(Timing.flyToModel * 0.3, id) else { return }
+            let scene = await self.showSqueezeVessel(for: cell, id, grow: false)   // hidden until the cell has landed
+            if let scene {
+                scene.attach(to: cell, duration: Timing.flyToModel * 0.75)
+                // The next line follows "…leads to the spleen." with only the short gap between clips.
+                self.speakEarly(StoryText.Panels.agingTry)
+            }
+            await flight.value
             guard id == self.runID else { return }
+            // Landed at the entrance: only now the spleen sinus grows in around it.
+            if let scene { self.growVessel(scene) }
             // The same squeeze as before – but the old cell can't get through (JourneyController+Squeeze.swift).
-            await self.startAgingSqueeze(cell, id)
+            await self.startAgingSqueeze(cell, scene: scene, id)
         }
     }
 

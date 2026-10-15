@@ -24,6 +24,20 @@ extension JourneyController {
     /// start of the animated path. Returns nil if the baked animation can't be loaded (logged) or the story
     /// was restarted meanwhile (`id` is the sequence id).
     func beginSqueeze(with cell: StageItem, _ id: Int) async -> SqueezeScene? {
+        guard let scene = await showSqueezeVessel(for: cell, id) else { return nil }
+        calmIdle(cell)   // keeps moving gently at the capillary until it is grabbed
+        cell.container.stopAllAnimations()
+        cell.container.scale = SIMD3<Float>(repeating: 1)
+        scene.attach(to: cell, duration: 0.8)
+        move(cell.container, to: scene.start, duration: 0.8)
+        return scene
+    }
+
+    /// Loads the squeeze scene and puts its vessel at Layout.squeezeStart – without touching the cell.
+    /// grow = false: the vessel stays hidden until growVessel(_:) (aging: it appears once the cell has landed,
+    /// so the cell never flies through it). Returns nil if the baked animation can't be loaded (logged) or the
+    /// story was restarted meanwhile.
+    func showSqueezeVessel(for cell: StageItem, _ id: Int, grow: Bool = true) async -> SqueezeScene? {
         let scene: SqueezeScene
         do {
             scene = try await SqueezeScene(animation: SqueezeAnimation.shared(),
@@ -37,16 +51,20 @@ extension JourneyController {
         guard id == runID else { return nil }
 
         place(scene.capillary, at: scene.capillary.container.position)
-        popIn(scene.capillary)
+        if grow {
+            popIn(scene.capillary)
+        } else {
+            scene.capillary.container.isEnabled = false
+        }
         capillary = scene.capillary
-
-        calmIdle(cell)   // keeps moving gently at the capillary until it is grabbed
-        cell.container.stopAllAnimations()
-        cell.container.scale = SIMD3<Float>(repeating: 1)
-        scene.attach(to: cell, duration: 0.8)
-        move(cell.container, to: scene.start, duration: 0.8)
         squeezeScene = scene
         return scene
+    }
+
+    /// Shows a vessel that was loaded hidden (showSqueezeVessel with grow: false) and grows it in.
+    func growVessel(_ scene: SqueezeScene) {
+        scene.capillary.container.isEnabled = true
+        popIn(scene.capillary)
     }
 
     /// The cell moves to `slot`, relaxes into its normal shape and gets its normal model back.
@@ -114,10 +132,11 @@ extension JourneyController {
 
     // MARK: - Step "aging": the old cell can't get through
 
-    /// Called once the old cell has flown out of the anatomy model.
-    func startAgingSqueeze(_ cell: StageItem, _ id: Int) async {
-        guard let scene = await beginSqueeze(with: cell, id) else {
-            guard id == runID else { return }
+    /// Called once the old cell has landed at the spleen sinus. `scene` was shown during its flight
+    /// (enterAging → showSqueezeVessel); nil = the baked animation couldn't be loaded.
+    func startAgingSqueeze(_ cell: StageItem, scene: SqueezeScene?, _ id: Int) async {
+        guard id == runID else { return }
+        guard let scene else {
             // Without the baked animation: straight to the explanation.
             setPanel(StoryText.Panels.tooStiff)
             guard await pause(Timing.readTooStiff, id) else { return }
