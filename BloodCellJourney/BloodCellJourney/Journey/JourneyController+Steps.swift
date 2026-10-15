@@ -186,9 +186,13 @@ extension JourneyController {
         if let development = parts.development {
             // The cell develops (grows) during and after its flight; the story continues once its shell has settled.
             develop(development, nucleus: parts.nucleus) { [weak self] in
-                self?.setPanel(StoryText.Panels.boneMarrow)
+                guard let self else { return }
+                // Settled: the cell (with its nucleus) can be held and turned until the story goes on.
+                self.allowLookAt(arrivingCell, returningTo: Layout.mainSlot, carrying: [parts.nucleus])
+                self.setPanel(StoryText.Panels.boneMarrow)
             }
         } else {
+            allowLookAt(parts.cell, returningTo: Layout.mainSlot, carrying: [parts.nucleus])
             setPanel(StoryText.Panels.boneMarrow)
         }
     }
@@ -250,7 +254,12 @@ extension JourneyController {
     /// "Next" button in the text panel.
     func continueTapped() {
         switch step {
-        case .boneMarrow: enterAddHemoglobin()
+        case .boneMarrow:
+            // If the cell is being held, the story waits until it is let go and back in its place.
+            sequence { id in
+                guard await self.endLookAt(id), self.step == .boneMarrow else { return }
+                self.enterAddHemoglobin()
+            }
         case .cycleRepeats:
             showSkipButton(false)   // SKIP: Knopf weg, egal ob übersprungen oder automatisch weiter
             enterAging()
@@ -343,6 +352,8 @@ extension JourneyController {
             self.popIn(newCell, duration: 0.9)
             self.calmIdle(newCell)
             self.redBloodCell = newCell
+            // Born and facing the person: it can be held and turned until the vessel scene starts.
+            self.allowLookAt(newCell, returningTo: Layout.mainSlot)
             self.setMainLabel(StoryText.Labels.youngRedBloodCell, on: newCell)
             self.setPanel(StoryText.Panels.cellBorn)
 
@@ -352,6 +363,8 @@ extension JourneyController {
             while VoiceGuide.shared.isSpeaking {
                 guard await self.pause(0.2, id) else { return }
             }
+            // If the cell is being held, wait until it is let go and back in its place.
+            guard await self.endLookAt(id) else { return }
             self.interactionLocked = false
             self.enterSqueezeIntoBlood()
         }

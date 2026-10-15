@@ -111,10 +111,20 @@ extension JourneyController {
     }
 
     private func beginDrag(_ item: StageItem) {
-        item.container.stopAllAnimations()
-        item.spin.stopAllAnimations()
+        // A looked-at item keeps its inner animations (the shell's wobble); only its own movement stops.
+        let deep = item !== lookAtItem
+        item.container.stopAllAnimations(recursive: deep)
+        item.spin.stopAllAnimations(recursive: deep)
         // The first cell is looked at on its own: its label and the Start button stay where they are.
         if step == .meetCell, item === redBloodCell { detachUI(from: item) }
+        // Looked at: the label stays where it is; remember how it followed, so it can follow again later.
+        if item === lookAtItem {
+            if let follow = mainLabelSlot.entity?.components[FollowComponent.self],
+               follow.target?.isInside(item.container) == true {
+                lookAtLabelFollow = follow
+            }
+            detachUI(from: item)
+        }
         // Grabbed for squeezing: the red blood cell settles straight.
         if item === redBloodCell { item.stopIdleMotion() }
         item.container.scale = SIMD3<Float>(repeating: 1)
@@ -143,6 +153,23 @@ extension JourneyController {
     /// Checks whether the item was dropped in the right place.
     private func finishDrag(_ session: DragSession) {
         let item = session.item
+        if item === lookAtItem {
+            // Looked at: it floats back to its place and rocks gently again; once it is back, its label
+            // follows it again.
+            let back = max(0.6, Timing.grabRotationReturn)
+            lookAtBackAt = Date().addingTimeInterval(back)
+            move(item.container, to: lookAtSlot, duration: 0.6)
+            if item === redBloodCell { item.updateMotion { $0.idleFadeTarget = 1 } }
+            let id = runID
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(back))
+                guard id == self.runID, self.drag?.item !== item, self.mainLabel != nil,
+                      let follow = self.lookAtLabelFollow, let label = self.mainLabelSlot.entity else { return }
+                self.lookAtLabelFollow = nil
+                self.follow(label, item.container, offset: follow.offset, anchor: follow.anchor)
+            }
+            return
+        }
         switch step {
         case .addHemoglobin where item === hemoglobin:
             guard let cell = developingCell else { return }
@@ -220,5 +247,49 @@ extension JourneyController {
             follow(button, cell.container,
                    offset: SIMD3<Float>(0, -(cell.halfHeight + Layout.buttonGap), 0), anchor: .top)
         }
+    }
+    
+    // MARK: - Look at it: an item on its own can be held and turned
+
+    /// An item standing alone on stage can be picked up, moved and turned to look at it; on release it
+    /// floats back to `slot`. `carrying` turns along with it (the nucleus inside the developing cell).
+    func allowLookAt(_ item: StageItem, returningTo slot: SIMD3<Float>, carrying: [StageItem] = []) {
+        lookAtItem = item
+        lookAtSlot = slot
+        lookAtBackAt = .distantPast
+        lookAtLabelFollow = nil
+        for carried in carrying {
+            carried.container.setParent(item.spin, preservingWorldTransform: true)
+        }
+        lookAtCarried = carrying
+        makeDraggable(item)
+        interactionLocked = false   // nothing else on stage can be grabbed in these moments
+    }
+
+    /// Before the story goes on: waits until the looked-at item is let go and back in its place (label
+    /// following again), then it can no longer be grabbed. Returns false if the story was restarted.
+    func endLookAt(_ id: Int) async -> Bool {
+        guard let item = lookAtItem else { return id == runID }
+        while true {
+            // Still in the hand: the story waits until it is let go …
+            while drag?.item === item {
+                guard await pause(0.1, id) else { return false }
+            }
+            // … and until it has floated and turned back.
+            let left = lookAtBackAt.timeIntervalSinceNow + 0.1
+            if left > 0 {
+                guard await pause(left, id) else { return false }
+            }
+            if drag?.item !== item { break }   // grabbed again meanwhile → wait once more
+        }
+        guard lookAtItem === item else { return id == runID }   // already ended by another caller
+        makeStatic(item)
+        // What turned along goes back to where it was (the spin has turned back, so nothing moves).
+        for carried in lookAtCarried {
+            carried.container.setParent(item.container, preservingWorldTransform: true)
+        }
+        lookAtCarried = []
+        lookAtItem = nil
+        return true
     }
 }

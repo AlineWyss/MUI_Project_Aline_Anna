@@ -116,6 +116,16 @@ final class JourneyController {
 
     @ObservationIgnored var draggables: [ObjectIdentifier: StageItem] = [:]
     @ObservationIgnored var drag: DragSession?
+    /// An item standing alone on stage that can be held and turned to look at it (allowLookAt / endLookAt).
+    @ObservationIgnored var lookAtItem: StageItem?
+    /// Where it floats back to when it is let go.
+    @ObservationIgnored var lookAtSlot = SIMD3<Float>(0, 0, 0)
+    /// Items that turn along with it (the nucleus inside the developing cell).
+    @ObservationIgnored var lookAtCarried: [StageItem] = []
+    /// When it is back in its place after the last release.
+    @ObservationIgnored var lookAtBackAt = Date.distantPast
+    /// How its label followed it before it was grabbed (the label stays put while it is held).
+    @ObservationIgnored var lookAtLabelFollow: FollowComponent?
     /// The squeeze animation from Blender while a cell is pushed into the capillary (young and old cell).
     @ObservationIgnored var squeezeScene: SqueezeScene?
     @ObservationIgnored var squeezeDone = false
@@ -1026,6 +1036,9 @@ final class JourneyController {
 
         draggables.removeAll()
         drag = nil
+        lookAtItem = nil
+        lookAtCarried = []
+        lookAtLabelFollow = nil
         isHolding = false
         interactionLocked = false
         squeezeScene = nil
