@@ -420,7 +420,8 @@ extension JourneyController {
 
     /// Tap on the heart of the anatomy model (or on the counter next to it).
     func heartTapped() {
-        guard step == .pumpToOrgans || step == .pumpToLungs, showsHeart, heartBeats < requiredHeartBeats else { return }
+        guard step == .pumpToOrgans || step == .pumpToLungs, showsHeart, heartBeats < requiredHeartBeats,
+              !waitingForVoice else { return }   // erst pumpen, wenn der TaskHint da ist
         heartBeats += 1
         overlay.beatHeart()
         overlay.advance(to: Float(heartBeats) / Float(requiredHeartBeats), duration: Timing.heartStep)

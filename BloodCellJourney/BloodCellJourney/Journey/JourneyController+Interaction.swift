@@ -30,6 +30,8 @@ extension JourneyController {
 
     func dragChanged(_ value: EntityTargetValue<DragGesture.Value>) {
         guard !interactionLocked else { return }
+        // Solange die Stimme spricht: die Zelle noch nicht in die Gefässwand drücken lassen
+        if waitingForVoice && (step == .squeezeIntoBlood || step == .aging) { return }
 
         // SwiftUI does not call onEnded when a gesture is cancelled (e.g. hand tracking lost).
         // A different start location means a new gesture: drop the stale session.
@@ -144,7 +146,7 @@ extension JourneyController {
         switch step {
         case .addHemoglobin where item === hemoglobin:
             guard let cell = developingCell else { return }
-            if simd_distance(item.container.position, cell.container.position) < cell.radius * 0.9 {
+            if !waitingForVoice && simd_distance(item.container.position, cell.container.position) < cell.radius * 0.9 {
                 hemoglobinDelivered()
             } else {
                 move(item.container, to: Layout.sideSlot, duration: 0.4)
@@ -153,7 +155,7 @@ extension JourneyController {
         case .ejectNucleus where item === nucleus:
             guard let cell = developingCell else { return }
             // The nucleus position is relative to the centre of its cell.
-            if simd_length(item.container.position) > cell.radius * 0.95 {
+            if !waitingForVoice && simd_length(item.container.position) > cell.radius * 0.95 {
                 nucleusRemoved()
             } else {
                 move(item.container, to: SIMD3<Float>(0, 0, 0), duration: 0.35)
@@ -161,7 +163,7 @@ extension JourneyController {
 
         case .lungsOxygen where item === oxygen:
             guard let cell = redBloodCell else { return }
-            if simd_distance(item.container.position, cell.container.position) < cell.radius * 1.1 {
+            if !waitingForVoice && simd_distance(item.container.position, cell.container.position) < cell.radius * 1.1 {
                 oxygenBound()
             } else {
                 move(item.container, to: Layout.sideSlot, duration: 0.4)
@@ -169,7 +171,7 @@ extension JourneyController {
 
         case .organsExchange where item === oxygen:
             guard let cell = redBloodCell, let target = bodyCell else { return }
-            if simd_distance(item.container.position, target.container.position) < target.radius * 0.9 {
+            if !waitingForVoice && simd_distance(item.container.position, target.container.position) < target.radius * 0.9 {
                 oxygenDelivered()
             } else {
                 bind(item, to: cell, at: oxygenSlot(on: cell), duration: 0.4)
@@ -177,7 +179,7 @@ extension JourneyController {
 
         case .lungsCarbonDioxide where item === carbonDioxide:
             guard let cell = redBloodCell else { return }
-            if simd_distance(item.container.position, cell.container.position) > cell.radius * 1.5 {
+            if !waitingForVoice && simd_distance(item.container.position, cell.container.position) > cell.radius * 1.5 {
                 carbonDioxideReleased()
             } else {
                 bind(item, to: cell, at: carbonDioxideSlot(on: cell), duration: 0.4)
