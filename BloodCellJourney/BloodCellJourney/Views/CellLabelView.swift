@@ -30,46 +30,44 @@ struct CellLabelView: View {
         slot == .main ? controller.mainLabel : controller.secondaryLabel
     }
 
+    // Grösse des unsichtbaren Rahmens, in dem die Karte unten steht.
+    // Breite = Breite der offenen Karte. Höhe = Platz nach oben für den Text.
+    // Ist ein Text länger, einfach die Höhe vergrössern.
+    private static let openWidth: CGFloat = 360
+    private static let frameHeight: CGFloat = 420
+
     var body: some View {
         if let content {
             // Beim Greifen bleibt der Objektname stehen (kein anderer Text)
             let holdText: String? = nil
-            // Hat dieses Objekt überhaupt Fakten?
             let factsAvailable = !content.facts.isEmpty && holdText == nil
-            // Ist die Karte gerade offen? (per Antippen auf das (i))
             let showsFacts = factsAvailable && controller.infoCard == content
 
-            VStack(alignment: .center, spacing: 10) {
-
-                // 1) Fakten-Karte (oben). Sie ist IMMER da, aber unsichtbar,
-                //    solange sie zu ist. So bleibt das Namens-Label immer an derselben Stelle.
-                if factsAvailable {
-                    facts(content)
-                        .padding(.horizontal, 22)
-                        .padding(.vertical, 20)
-                        .frame(width: 360, alignment: .leading)
-                        .glassBackgroundEffect(in: RoundedRectangle(cornerRadius: 30, style: .continuous))
-                        .opacity(showsFacts ? 1 : 0)                                  // ein-/ausblenden
-                        .scaleEffect(showsFacts ? 1 : 0.94, anchor: .bottom)  // leicht "aufploppen"
-                        .allowsHitTesting(showsFacts)                                 // unsichtbar = nicht antippbar
-                }
-
-                // 2) Namens-Label (unten, direkt über dem Modell) – bewegt sich nie
+            // EINE Karte: oben Name + Knopf, darunter (nur wenn offen) der Text
+            VStack(alignment: .leading, spacing: 12) {
                 header(content, holdText: holdText, showsFacts: showsFacts)
-                    .padding(.horizontal, 22)
-                    .padding(.vertical, 12)
-                    .glassBackgroundEffect(in: RoundedRectangle(cornerRadius: 30, style: .continuous))
+                if showsFacts {
+                    facts(content)
+                        .transition(.opacity)
+                }
             }
-            // Weiches Ein- und Ausblenden der Karte (wie beim Hover)
-            .animation(.easeOut(duration: 0.25), value: showsFacts)
-            .animation(.easeInOut(duration: 0.25), value: holdText)
+            .padding(.horizontal, 22)
+            .padding(.vertical, showsFacts ? 20 : 12)
+            .frame(width: showsFacts ? Self.openWidth : nil, alignment: .leading)
+            .glassBackgroundEffect(in: RoundedRectangle(cornerRadius: 30, style: .continuous))
+            .animation(.easeInOut(duration: 0.3), value: showsFacts)
+            // Beim Greifen eines Objekts: Label ausblenden
             .opacity(controller.isHolding ? 0 : 1)
             .animation(.easeInOut(duration: 0.2), value: controller.isHolding)
+            // FESTER RAHMEN: Die Karte steht unten in der Mitte und wächst nur nach oben.
+            // Der Rahmen selbst ist unsichtbar und ändert seine Grösse nie → die Unterkante springt nicht.
+            .frame(width: Self.openWidth, height: Self.frameHeight, alignment: .bottom)
         }
     }
+    
     private func header(_ content: LabelContent, holdText: String?, showsFacts: Bool) -> some View {
         HStack(spacing: 14) {
-            VStack(alignment: .center, spacing: 2) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(holdText ?? content.title)
                     .font(.title3.weight(.semibold))
                     .contentTransition(.opacity)
@@ -80,6 +78,9 @@ struct CellLabelView: View {
                 }
             }
             if !content.facts.isEmpty && holdText == nil {
+                if showsFacts {
+                    Spacer(minLength: 0)
+                }
                 // Wenn die Fakten offen sind, schiebt der Spacer das (x) nach rechts
 
                 Button {
@@ -99,16 +100,13 @@ struct CellLabelView: View {
         }
     }
 
+    /// Der Text in der offenen Karte – ohne Aufzählungspunkt und ohne Trennlinie.
     private func facts(_ content: LabelContent) -> some View {
-        VStack(alignment: .center, spacing: 10) {
-            Divider()
+        VStack(alignment: .leading, spacing: 10) {
             ForEach(content.facts, id: \.self) { fact in
-                HStack(alignment: .firstTextBaseline, spacing: 10) {
-                    Text("•")
-                    Text(fact)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .font(.body)
+                Text(fact)
+                    .font(.body)
+                    .fixedSize(horizontal: false, vertical: true)   // Text darf umbrechen
             }
         }
     }
