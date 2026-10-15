@@ -45,6 +45,7 @@ final class JourneyController {
     }
     /// true = Aufgabe dieses Schritts ist erledigt bzw. wurde begonnen → Label ausblenden.
     var hintDismissed = false
+    var waitingForVoice = false
     /// Wie viele Objekte beim Greifen ziehbar waren (zum Erkennen, ob die Aktion geklappt hat).
     @ObservationIgnored var draggablesAtGrab = 0
     /// true = die Aufgabe steht gerade als Label unter einem Modell
@@ -525,6 +526,7 @@ final class JourneyController {
     /// bevor der nächste Schritt beginnt.
     /// VOICEOVER: Mindest-Wartezeit. Spricht die Stimme länger, wird zusätzlich gewartet, bis sie fertig ist.
     private static let autoContinueDelay: Double = 5.0
+    private static let hintAfterVoiceDelay: Double = 0.3
 
     /// Setzt den Inhalt des aktuellen Schritts.
     /// Titel und Erklärung werden nicht mehr angezeigt (keine Box mehr).
@@ -544,6 +546,12 @@ final class JourneyController {
         } else {
             panelSlot.hide()
         }
+        if isNew {
+            if isNew {
+                       let hasVoice = content.flatMap { StoryText.Voice.lines[$0.id] } != nil
+                       waitingForVoice = hasVoice && content?.hint != nil && VoiceGuide.shared.isEnabled
+                   }
+        }
         updateTaskHint()   // neuer Text → Aufgabe unter dem Modell anpassen
 
         // VOICEOVER: Bei einem neuen Schritt den passenden Text sprechen.
@@ -551,7 +559,21 @@ final class JourneyController {
         // Gibt es eine Aufnahme "voice_<id>.m4a" im Projekt, wird diese abgespielt.
         if isNew, let content, let line = StoryText.Voice.lines[content.id] {
             VoiceGuide.shared.speak(clip: "voice_\(content.id)", text: line)
-        }
+            if waitingForVoice {
+                            let id = runID
+                            Task { @MainActor in
+                                // kurz warten, bis die Stimme sicher angefangen hat
+                                try? await Task.sleep(for: .milliseconds(300))
+                                while VoiceGuide.shared.isSpeaking && id == self.runID && self.panel == content {
+                                    try? await Task.sleep(for: .milliseconds(200))
+                                }
+                                guard id == self.runID, self.panel == content else { return }
+                                try? await Task.sleep(for: .seconds(Self.hintAfterVoiceDelay))
+                                guard id == self.runID, self.panel == content else { return }
+                                self.waitingForVoice = false
+                                self.updateTaskHint()
+                            }
+                        }}
 
         // Automatisch weiter statt "Next"-Knopf
         if isNew, let content, content.continueTitle != nil {
@@ -666,7 +688,7 @@ final class JourneyController {
     func updateTaskHint() {
         // Keine Aufgabe, oder der Start-Knopf ist sichtbar → kein Label
         // (der Knopf sagt schon, was zu tun ist, und beide lägen übereinander).
-        guard panel?.hint != nil, !showsStartButton else {
+        guard panel?.hint != nil, !showsStartButton, !waitingForVoice else {
             hintBelowObject = false
             hintSlot?.hide()
             return

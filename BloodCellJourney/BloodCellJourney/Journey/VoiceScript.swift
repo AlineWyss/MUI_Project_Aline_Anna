@@ -13,21 +13,22 @@ extension StoryText {
             
             //Willkommen
             "welcome": """
-            Welcome to the Journey of ared blood cell!
+            Welcome to the Journey of a red blood cell!
 """,
 
             //Start
             "meetCell":"""
-There are about 25 trillion of them moving through our body, \
- wich makes 70% of our blood cells. \
-Every second our bone marrow makes 20-30 million new red blood cells and sends it in to the blood flow. \
-For one cycle, the red blood cell needs one minute and transports oxygen to every corner in our body. \
-Lets follow one of them.
-""",
+            There are about 25 trillion red blood cells moving through our body, \
+            which make up 70% of our blood cells. \
+            Every second our bone marrow produces 20-30 million new red blood cells and sends them in to the blood flow. 
+            """,
+// For one cycle, the red blood cell needs one minute and transports oxygen to every corner in our body. \
+
+
 
          //Knochenmark
             "boneMarrow": """
-            It all starts in the bone marrow, where the Erythroblast is built and matures. \
+            It all starts in the bone marrow, where the Erythroblast develops and matures. \
             In the soft red marrow, stem cells divide again and again. \
             One of them is about to become our red blood cell that we are going to follow.
             """,
@@ -42,7 +43,7 @@ Lets follow one of them.
             "ejectNucleus": """
             Because of the hemoglobin, the nucleus dosn't have enough space anymore. \
             So the cell needs to throws the nucleuse out.
-            """,
+            """, 
 
             //Rotes Blutkörperchen entsteht
             "cellBorn": """
