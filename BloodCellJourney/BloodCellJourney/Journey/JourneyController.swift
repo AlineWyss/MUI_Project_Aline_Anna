@@ -535,6 +535,17 @@ final class JourneyController {
     /// NEU: Hat ein Schritt einen "Weiter"-Knopf (continueTitle), wird dieser nicht
     /// mehr angezeigt. Stattdessen geht es nach autoContinueDelay automatisch weiter –
     /// genau so, als hätte die Person den Knopf gedrückt (continueTapped).
+    /// VOICEOVER FRÜHER: id des Panels, dessen Text schon vorab gestartet wurde (speakEarly).
+    @ObservationIgnored var preSpokenPanelID: String?
+
+    /// VOICEOVER FRÜHER: Spricht den Text eines Panels schon jetzt – z. B. während eine Animation
+    /// läuft und das Panel selbst erst danach gesetzt wird. setPanel startet ihn dann nicht nochmals.
+    func speakEarly(_ panel: PanelContent) {
+        guard let line = StoryText.Voice.lines[panel.id] else { return }
+        VoiceGuide.shared.speak(clip: "voice_\(panel.id)", text: line)
+        preSpokenPanelID = panel.id
+    }
+
     func setPanel(_ content: PanelContent?) {
         let isNew = content != panel   // nur bei einem wirklich neuen Schritt weiterschalten
         if content?.hint != panel?.hint {
@@ -546,11 +557,10 @@ final class JourneyController {
         } else {
             panelSlot.hide()
         }
+        // HINT NACH VOICEOVER: Aufgabe erst zeigen, wenn die Stimme fertig ist.
         if isNew {
-            if isNew {
-                       let hasVoice = content.flatMap { StoryText.Voice.lines[$0.id] } != nil
-                       waitingForVoice = hasVoice && content?.hint != nil && VoiceGuide.shared.isEnabled
-                   }
+            let hasVoice = content.flatMap { StoryText.Voice.lines[$0.id] } != nil
+            waitingForVoice = hasVoice && content?.hint != nil && VoiceGuide.shared.isEnabled
         }
         updateTaskHint()   // neuer Text → Aufgabe unter dem Modell anpassen
 
@@ -558,7 +568,12 @@ final class JourneyController {
         // Die Texte stehen in VoiceScript.swift (Schlüssel = id des Panels).
         // Gibt es eine Aufnahme "voice_<id>.m4a" im Projekt, wird diese abgespielt.
         if isNew, let content, let line = StoryText.Voice.lines[content.id] {
-            VoiceGuide.shared.speak(clip: "voice_\(content.id)", text: line)
+            if preSpokenPanelID == content.id {
+                // VOICEOVER FRÜHER: läuft schon (speakEarly) – nicht nochmals von vorne starten
+                preSpokenPanelID = nil
+            } else {
+                VoiceGuide.shared.speak(clip: "voice_\(content.id)", text: line)
+            }
             if waitingForVoice {
                             let id = runID
                             Task { @MainActor in
@@ -967,7 +982,10 @@ final class JourneyController {
 
     /// Removes everything from the focus area and resets the interaction state.
     func clearStage() {
-        VoiceGuide.shared.stop()   // VOICEOVER: bei Neustart nicht weitersprechen
+        // VOICEOVER: Die Stimme wird hier NICHT mehr gestoppt – sonst würde z. B. der letzte Text
+        // ("tooStiff") abgeschnitten, wenn der Endbildschirm kommt. Gestoppt wird nur bei Neustart
+        // (enterIntro), beim Überspringen (skipTapped) und beim Schliessen (shutDown).
+        preSpokenPanelID = nil     // VOICEOVER FRÜHER: zurücksetzen
         let items: [StageItem?] = [redBloodCell, developingCell, nucleus, hemoglobin, oxygen, carbonDioxide, bodyCell, capillary]
         for case let item? in items {
             detachUI(from: item)

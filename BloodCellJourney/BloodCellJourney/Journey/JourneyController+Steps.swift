@@ -15,6 +15,7 @@ extension JourneyController {
 
     func enterIntro() {
         step = .intro
+        VoiceGuide.shared.stop()
         clearStage()
         showMessage(nil)
         hideFinalPanel()
@@ -103,6 +104,7 @@ extension JourneyController {
         }
         // The pelvis lights up while the first cell flies into its bone marrow.
         highlight(.boneMarrow)
+        speakEarly(StoryText.Panels.boneMarrow)   // ← NEU: Stimme startet jetzt, während die Zelle hineinfliegt
         let marrowWorld = anatomyRoot.convert(position: AnatomyMap.p(.rMarrow), to: nil)
 
         sequence { id in
