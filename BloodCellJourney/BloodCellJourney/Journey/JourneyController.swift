@@ -45,9 +45,7 @@ final class JourneyController {
     }
     /// true = Aufgabe dieses Schritts ist erledigt bzw. wurde begonnen → Label ausblenden.
     var hintDismissed = false
-    var waitingForVoice = false {
-           didSet { updateHoverEffects() }
-       }
+    var waitingForVoice = false
     /// Wie viele Objekte beim Greifen ziehbar waren (zum Erkennen, ob die Aktion geklappt hat).
     @ObservationIgnored var draggablesAtGrab = 0
     /// true = die Aufgabe steht gerade als Label unter einem Modell
@@ -115,6 +113,10 @@ final class JourneyController {
     }
 
     @ObservationIgnored var draggables: [ObjectIdentifier: StageItem] = [:]
+    /// Der Wächter, der das Aufleuchten ein- und ausschaltet (läuft im Hintergrund).
+    @ObservationIgnored private var hoverWatcher: Task<Void, Never>?
+    /// true = Objekte leuchten beim Hinschauen auf. false = Stimme spricht noch.
+    @ObservationIgnored private var hoverOn = true
     @ObservationIgnored var drag: DragSession?
     /// An item standing alone on stage that can be held and turned to look at it (allowLookAt / endLookAt).
     @ObservationIgnored var lookAtItem: StageItem?
@@ -963,12 +965,13 @@ final class JourneyController {
         let radius = max(item.radius, 0.035)
         item.container.components.set(CollisionComponent(shapes: [ShapeResource.generateSphere(radius: radius)]))
         item.container.components.set(InputTargetComponent())
-        // Aufleuchten nur, wenn die Stimme fertig ist – sonst denkt man, man könne schon etwas tun.
-        if !waitingForVoice {
+        // Aufleuchten nur, wenn die Stimme fertig ist (sonst denkt man, man könne schon etwas tun).
+        if hoverOn {
             item.container.components.set(HoverEffectComponent())
         }
         item.container.components.set(DraggableComponent())
         draggables[ObjectIdentifier(item.container)] = item
+        startHoverWatcher()   // Wächter starten (passiert nur beim ersten Mal)
     }
 
     func makeStatic(_ item: StageItem) {
@@ -983,21 +986,36 @@ final class JourneyController {
             isHolding = false
         }
     }
-    /// Schaltet das Aufleuchten beim Hinschauen ein oder aus:
-    /// aus, solange die Stimme spricht – an, sobald der TaskHint erscheint.
-    /// Greifen und Drehen bleiben in beiden Fällen möglich.
-    func updateHoverEffects() {
-        for item in draggables.values {
-            if waitingForVoice {
-                item.container.components.remove(HoverEffectComponent.self)
-            } else {
-                item.container.components.set(HoverEffectComponent())
+    /// Startet einen Wächter, der alle 0,15 Sekunden prüft:
+    /// Spricht die Stimme noch – oder wartet der TaskHint noch? → kein Aufleuchten.
+    /// Ist beides vorbei → Aufleuchten wieder an.
+    /// Greifen und Drehen bleiben immer möglich, nur das Aufleuchten wird gesteuert.
+    func startHoverWatcher() {
+        guard hoverWatcher == nil else { return }   // läuft schon → nichts tun
+        hoverWatcher = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                guard let self else { return }
+                let allowed = !VoiceGuide.shared.isSpeaking && !self.waitingForVoice
+                if allowed != self.hoverOn {        // nur bei einer Änderung etwas tun
+                    self.hoverOn = allowed
+                    self.applyHover()
+                }
+                try? await Task.sleep(for: .milliseconds(150))
             }
         }
-        // Das Herz zum Pumpen ebenso
-        overlay.setHeartHover(!waitingForVoice)
     }
 
+    /// Setzt oder entfernt das Aufleuchten bei allen greifbaren Objekten und beim Herz.
+    private func applyHover() {
+        for item in draggables.values {
+            if hoverOn {
+                item.container.components.set(HoverEffectComponent())
+            } else {
+                item.container.components.remove(HoverEffectComponent.self)
+            }
+        }
+        overlay.setHeartHover(hoverOn)
+    }
     func setColor(_ item: StageItem, _ color: UIColor, animated: Bool, duration: Float = 1.2) {
         let target = color.rgba
         if animated, let from = item.currentColor {
