@@ -152,8 +152,8 @@ enum Layout {
           ///   x = links (−) / rechts (+)
           ///   y = unten (−) / oben (+)  – 0 ist die Höhe, auf der die Zellen schweben
           ///   z = nach hinten (−) / zur Person hin (+)
-        static let hintSlot = SIMD3<Float>(-0.1, -0.15, 0.02)
-    static let squeezeStart = SIMD3<Float>(-0.2, 0, -0.05)
+    static let hintSlot = SIMD3<Float>(-0.1, -0.15, 0.02)
+    static let squeezeStart = SIMD3<Float>(-0.2, 0, 0.05)
     /// A held object turns this many times as far as the wrist (2 = a small turn shows the back).
     static let grabRotationGain: Float = 2
 
