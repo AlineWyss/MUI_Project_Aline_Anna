@@ -28,6 +28,18 @@ final class VoiceGuide {
     private var player: AVAudioPlayer?
     /// Name of the recording that is playing right now (nil = none, or the synthetic voice).
     private(set) var currentClip: String?
+    /// Players already prepared by preload(clips:), used once by play().
+    private var preloaded: [String: AVAudioPlayer] = [:]
+
+    /// Wakes the voice system (audio session, decoder) and prepares `clips` so they start at once.
+    /// Called while the app is loading – otherwise all this happens when the first text should be spoken.
+    func preload(clips: [String]) {
+        for clip in clips where preloaded[clip] == nil {
+            guard let url = audioURL(for: clip), let player = try? AVAudioPlayer(contentsOf: url) else { continue }
+            player.prepareToPlay()
+            preloaded[clip] = player
+        }
+    }
 
     /// Warteschlange: Texte, die noch gesprochen werden sollen (der Reihe nach).
     private var queue: [(clip: String?, text: String)] = []
@@ -124,7 +136,7 @@ final class VoiceGuide {
     /// Spielt EINEN Text: Audiodatei, falls vorhanden – sonst synthetische Stimme.
     private func play(_ item: (clip: String?, text: String)) {
         if let clip = item.clip, let url = audioURL(for: clip) {
-            player = try? AVAudioPlayer(contentsOf: url)
+            player = preloaded.removeValue(forKey: clip) ?? (try? AVAudioPlayer(contentsOf: url))
             player?.prepareToPlay()
             if player?.play() == true {
                 currentClip = clip

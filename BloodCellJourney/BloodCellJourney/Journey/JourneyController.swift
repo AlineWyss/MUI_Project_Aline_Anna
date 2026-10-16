@@ -137,6 +137,11 @@ final class JourneyController {
     /// Increases on every restart; running sequences stop when it changes.
     @ObservationIgnored var runID = 0
     @ObservationIgnored private var isPrepared = false
+    /// Everything was drawn once, hidden (warmUpRendering) – the intro can appear without a hitch.
+    @ObservationIgnored private var isWarmedUp = false
+    @ObservationIgnored private var isWarmingUp = false
+    /// Models loaded and warmed up: the intro may start.
+    private var isReady: Bool { library.isLoaded && isWarmedUp }
     @ObservationIgnored private var hasAnatomyPose = false
     private var modelLoadError: String?
     @ObservationIgnored private var isStartingVirtualModel = false
@@ -173,14 +178,17 @@ final class JourneyController {
 
     // MARK: - Lifecycle
 
-    /// Builds the scene. Called once from the RealityView.
     func prepare() async {
         guard !isPrepared else { return }
         isPrepared = true
 
-        overlay.build()
+        // The message first, so something shows right after Start – give it a moment to appear.
         showMessage(StoryText.Messages.loading)
         keepMessageInFrontWhileSearching()
+        try? await Task.sleep(for: .milliseconds(100))
+        // Wake the voice now (audio session, decoder) and have the welcome text ready to play at once.
+        VoiceGuide.shared.preload(clips: ["voice_welcome"])
+        overlay.build()
 
         do {
             try await library.load()
@@ -195,16 +203,49 @@ final class JourneyController {
             return
         }
 
+        // Physical model: draw everything once, hidden, before the model is recognised.
+        // (The virtual model does this in startVirtualModel, together with the copy of the model.)
+        if mode == .physicalModel {
+            await warmUpRendering()
+        }
+
         switch mode {
         case .physicalModel:
             if hasAnatomyPose && step == .searching {
-                enterIntro()          // the model was already found while the models were loading
+                enterIntro()          // the model was already found while loading
             } else {
                 updateSearchMessage()
             }
         case .virtualModel:
             await startVirtualModel()
         }
+    }
+
+    /// Draws the anatomy overlay (bloodstream, vessel tubes, outlines, marker, heart, virtual model) and the
+    /// red blood cell once, hidden: 1/1000 size, 1.5 m in front of the person (about 1 mm – invisible).
+    /// The Vision Pro prepares every model and material on the GPU the first time it is drawn; done here,
+    /// behind the loading message, the intro appears at once instead of freezing for a moment.
+    /// If the physical model was already found, it is drawn in its real place instead (the stream shows a
+    /// moment early, behind the loading message).
+    private func warmUpRendering() async {
+        isWarmingUp = true
+        if !hasAnatomyPose {
+            let view = viewpoint()
+            var transform = Transform()
+            transform.scale = SIMD3<Float>(repeating: 0.001)
+            transform.translation = view.head + view.forward * 1.5
+            anatomyRoot.transform = transform
+            anatomyRoot.isEnabled = true
+            overlay.showAllForWarmUp(true)
+        }
+        warmUpRedBloodCell()
+        try? await Task.sleep(for: .seconds(Timing.renderWarmUp))
+        overlay.showAllForWarmUp(false)
+        if !hasAnatomyPose {
+            anatomyRoot.isEnabled = false   // the model wasn't found meanwhile: hidden again until it is
+        }
+        isWarmingUp = false
+        isWarmedUp = true
     }
 
     /// Runs ARKit until the immersive space closes.
@@ -233,7 +274,7 @@ final class JourneyController {
             showMessage(StoryText.Messages.modelsFailed(modelLoadError))
             return
         }
-        guard library.isLoaded else {
+        guard isReady else {
             showMessage(StoryText.Messages.loading)
             return
         }
@@ -259,7 +300,7 @@ final class JourneyController {
         mode = .virtualModel
         tracking.stopObjectTracking()
         // If the models are still loading, prepare() starts the virtual model when it is done.
-        if library.isLoaded {
+        if isReady {
             Task { await self.startVirtualModel() }
         }
     }
@@ -288,6 +329,8 @@ final class JourneyController {
         for _ in 0..<20 where tracking.devicePose() == nil {
             try? await Task.sleep(for: .milliseconds(100))
         }
+        // Draw everything once, hidden – including the copy of the model – before the intro appears.
+        await warmUpRendering()
         hasAnatomyPose = true
         anatomyRoot.isEnabled = true
         if step == .searching {
@@ -319,9 +362,12 @@ final class JourneyController {
         if !hasAnatomyPose {
             hasAnatomyPose = true
             anatomyRoot.isEnabled = true
+            // Found during the hidden warm-up: outlines, marker and heart must not appear at full size.
+            if isWarmingUp { overlay.showAllForWarmUp(false) }
             Task { await self.addAlignmentGhostIfNeeded() }
         }
-        if step == .searching && library.isLoaded {
+        // Only once everything is loaded and warmed up (otherwise prepare() starts the intro when it is).
+        if step == .searching && isReady {
             enterIntro()
         }
     }

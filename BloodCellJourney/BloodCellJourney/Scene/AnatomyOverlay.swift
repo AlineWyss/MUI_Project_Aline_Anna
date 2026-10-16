@@ -434,6 +434,18 @@ final class AnatomyOverlay {
     func zoneEntity(_ zone: AnatomyMap.Zone) -> Entity? {
         zoneEntities[zone]
     }
+    
+    /// For the hidden warm-up draw (JourneyController.warmUpRendering): shows the parts that only appear
+    /// later (organ outlines, marker, heart) so the Vision Pro prepares them too. false = all hidden again.
+    func showAllForWarmUp(_ on: Bool) {
+        for entity in zoneEntities.values {
+            entity.components.remove(FadeComponent.self)
+            entity.components.set(OpacityComponent(opacity: on ? 1 : 0))
+            entity.isEnabled = on
+        }
+        marker.isEnabled = on
+        heartModel.isEnabled = on
+    }
 
     func zonePosition(_ zone: AnatomyMap.Zone) -> SIMD3<Float>? {
         zoneEntities[zone]?.position(relativeTo: nil)

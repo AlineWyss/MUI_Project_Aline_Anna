@@ -102,7 +102,7 @@ enum Layout {
     ///   z = out of the model's front, towards the person.
     /// Always the same spot next to the model: to its right and a little in front of it, facing the same way
     /// as the model's front. It does not depend on where the person looks or stands.
-    static let focusOffsetFromModel = SIMD3<Float>(0.45, 0.60, 0.50)
+    static let focusOffsetFromModel = SIMD3<Float>(0.45, 0.60, 0.30)
     /// Only if the content faces sideways or backwards on the physical model: turns the model's "front"
     /// (degrees, e.g. 90 or -90). 0 = the scan's front is the human's front.
     static let physicalModelFrontTurn: Float = 0
@@ -172,6 +172,9 @@ enum Timing {
     /// Seconds a released object takes to turn back to how it was.
     static let grabRotationReturn: Double = 0.4
     static let pop: TimeInterval = 0.45
+    /// How long everything is drawn hidden (1/1000 size) while loading, so the Vision Pro has prepared all
+    /// models and materials on the GPU before the intro appears (JourneyController.warmUpRendering).
+    static let renderWarmUp: Double = 1.0
     /// Seconds for the red blood cell to fly into or out of the anatomy model.
     static let flyToModel: TimeInterval = 1.1
     /// Speed of "our" red blood cell (the light on the model) on every journey, in metres per second.
