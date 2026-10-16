@@ -782,9 +782,22 @@ extension JourneyController {
         highlight(nil)
         overlay.hideMarker()
 
-        // Where the cells were – the centre of the focus area, facing the person.
-        showsFinalPanel = true
-        finalPanelSlot.show(at: Layout.finalPanelSlot)
+        // Den Restart-Knopf erst zeigen, wenn die Stimme fertig gesprochen hat.
+        // Das Zerfallen der Zelle läuft unabhängig davon ganz normal weiter.
+        sequence { id in
+            // kurz warten, damit sicher feststeht, ob die Stimme noch spricht
+            guard await self.pause(0.3, id) else { return }
+            // warten, solange die Stimme spricht
+            while VoiceGuide.shared.isSpeaking {
+                guard await self.pause(0.2, id), self.step == .finished else { return }
+            }
+            // kleine Pause nach dem letzten Satz, dann erscheint der Knopf
+            guard await self.pause(0.8, id), self.step == .finished else { return }
+
+            // Where the cells were – the centre of the focus area, facing the person.
+            self.showsFinalPanel = true
+            self.finalPanelSlot.show(at: Layout.finalPanelSlot)
+        }
     }
 
     func hideFinalPanel() {
