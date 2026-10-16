@@ -77,7 +77,7 @@ enum StoryText {
         static let title = "Welcome to the Journey of a Red Blood Cell"
         static let description = "This augmented reality experiment illustrates the life cycle of a red blood cell. It shows how a red blood cell is formed and how it moves through the human body. The shared AR space enables students to engage in interactive learning."
         static let duration = "10min"
-        static let distance = "~ 2m"
+        static let distance = "~ 1m"
         static let age = "6+"
         static let body = "To get a close-up look on a red blood cell, tap the bloodstream"
     }
