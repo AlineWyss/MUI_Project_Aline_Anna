@@ -23,7 +23,7 @@ struct TaskHintView: View {
            !controller.waitingForVoice {
             Label(hint, systemImage: "hand.pinch.fill")
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(.white)                           // NEU: Schrift und Symbol weiss
+                .foregroundStyle(Color(uiColor: Palette.taskHint))                           // NEU: Schrift und Symbol weiss
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 320)                              // lange Texte umbrechen
                 .fixedSize(horizontal: false, vertical: true)

@@ -153,7 +153,7 @@ enum Layout {
           ///   y = unten (−) / oben (+)  – 0 ist die Höhe, auf der die Zellen schweben
           ///   z = nach hinten (−) / zur Person hin (+)
     static let hintSlot = SIMD3<Float>(-0.1, -0.15, 0.02)
-    static let squeezeStart = SIMD3<Float>(-0.2, 0, 0.05)
+    static let squeezeStart = SIMD3<Float>(-0.1, 0, 0.05)
     /// A held object turns this many times as far as the wrist (2 = a small turn shows the back).
     static let grabRotationGain: Float = 2
 
@@ -257,7 +257,7 @@ enum Palette {
     static let marker = UIColor(red: 1.00, green: 0.2, blue: 0.20, alpha: 1)
     static let markerHalo = UIColor(red: 1, green: 0.10, blue: 0.15, alpha: 0.7)
     /// Schriftfarbe für Hinweise, z. B. die Pinch-Zeile im Startprompt (Hellblau, voll sichtbar).
-    static let taskHint = UIColor(red: 1, green: 1, blue: 1, alpha: 1)
+    static let taskHint = UIColor(red: 0.55, green: 0.85, blue: 1, alpha: 1)
 
     static func zone(_ zone: AnatomyMap.Zone) -> UIColor {
         switch zone {
