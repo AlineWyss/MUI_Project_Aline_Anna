@@ -251,10 +251,7 @@ enum Palette {
     static let marker = UIColor(red: 1.00, green: 0.2, blue: 0.20, alpha: 1)
     static let markerHalo = UIColor(red: 1, green: 0.10, blue: 0.15, alpha: 0.7)
     /// Schriftfarbe für Hinweise, z. B. die Pinch-Zeile im Startprompt (Hellblau, voll sichtbar).
-    static let taskHint = UIColor(red: 1.00, green: 0.33, blue: 0.34, alpha: 1)
-    /// Hintergrund der Aufgaben-Labels (TaskHint): Rot, leicht durchsichtig.
-    /// alpha: 0 = unsichtbar, 1 = voll deckend.
-    static let taskHintBackground = UIColor(red: 1.00, green: 0.33, blue: 0.34, alpha: 0.5)
+    static let taskHint = UIColor(red: 0.25, green: 0.85, blue: 1, alpha: 1)
 
     static func zone(_ zone: AnatomyMap.Zone) -> UIColor {
         switch zone {

@@ -29,11 +29,6 @@ struct TaskHintView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
-                // NEU: roter, leicht durchsichtiger Hintergrund.
-                // Er muss VOR dem Glas stehen, dann liegt das Rot über der Glas-Unschärfe.
-                // Die Farbe stellst du in Config.swift ein (Palette.taskHintBackground).
-                .background(Color(uiColor: Palette.taskHintBackground),
-                            in: RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .glassBackgroundEffect(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .transition(.opacity)
         }
