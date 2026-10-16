@@ -36,6 +36,7 @@ struct StartPromptView: View {
                     
             }
             .font(.system(size: 23))
+            .foregroundStyle(Color.secondary)
             
             
             

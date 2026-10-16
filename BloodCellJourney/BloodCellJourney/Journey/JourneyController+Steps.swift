@@ -667,7 +667,7 @@ extension JourneyController {
             // turns into its place in it – it lands ready to squeeze, with no stop-and-turn afterwards.
             let flight = Task { @MainActor in
                 await self.flyOutOfModel(cell, from: self.overlay.markerWorldPosition, to: Layout.squeezeStart,
-                                         label: StoryText.Labels.oldRedBloodCell)
+                                         label: nil)   // the old cell has no label
             }
             guard await self.pause(Timing.flyToModel * 0.3, id) else { return }
             let scene = await self.showSqueezeVessel(for: cell, id, grow: false)   // hidden until the cell has landed

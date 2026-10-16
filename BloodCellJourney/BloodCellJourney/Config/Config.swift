@@ -143,6 +143,9 @@ enum Layout {
     /// Gap between the top of a model and the bottom edge of its name label.
     /// The label grows upwards from there when (i) opens the facts.
     static let labelGap: Float = 0.02
+    /// The vessel's label (bone-marrow sinusoid / spleen sinus) sits this much lower than the top of the
+    /// squeeze scene (metres). Only this label; the others keep labelGap.
+    static let capillaryLabelDrop: Float = 0.14
     /// Gap between the bottom of a model and the top edge of the start button.
     static let buttonGap: Float = 0.035
     /// Abstand zwischen der Unterkante eines Modells und dem Aufgaben-Label darunter.

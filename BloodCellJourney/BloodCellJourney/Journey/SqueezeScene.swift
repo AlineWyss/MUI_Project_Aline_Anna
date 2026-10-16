@@ -137,6 +137,7 @@ final class SqueezeScene {
         self.capillary = capillary
         self.capillaryShapes = SqueezeScene.blendShapeEntity(in: capillaryRoot)
         self.labelHeight = squeeze.visualBounds(relativeTo: capillary.container).max.y + Layout.labelGap
+            - Layout.capillaryLabelDrop
 
         apply(frame: frame)
     }
