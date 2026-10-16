@@ -126,9 +126,13 @@ struct MessageView: View {
     var body: some View {
         if let message = controller.message {
             VStack(spacing: 14) {
-                Image(systemName: "viewfinder")
-                    .font(.system(size: 44))
-                    .symbolEffect(.pulse, options: .repeating)
+                if controller.isLoadingMessage {
+                    // One loading screen: the spinner stays, only the text below changes.
+                    LoadingRing()
+                } else {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 44))
+                }
                 Text(message.title)
                     .font(.title.weight(.bold))
                 Text(message.body)
@@ -195,5 +199,32 @@ struct FinalPanelView: View {
         .padding(36)
         .frame(width: 580, alignment: .leading)
         .glassBackgroundEffect()
+    }
+}
+
+/// Loading symbol: a faint ring with a bright arc that turns around it endlessly.
+struct LoadingRing: View {
+    var size: CGFloat = 44
+    var lineWidth: CGFloat = 5
+    /// Seconds for one full turn.
+    var turnDuration: Double = 1.0
+    /// How much of the ring the arc covers (0…1).
+    var arcLength: CGFloat = 0.28
+    var color: Color = .red
+
+    var body: some View {
+        TimelineView(.animation) { context in
+            let seconds = context.date.timeIntervalSinceReferenceDate
+            let angle = seconds.truncatingRemainder(dividingBy: turnDuration) / turnDuration * 360
+            ZStack {
+                Circle()
+                    .stroke(.white.opacity(0.2), lineWidth: lineWidth)
+                Circle()
+                    .trim(from: 0, to: arcLength)
+                    .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                    .rotationEffect(.degrees(angle))
+            }
+            .frame(width: size, height: size)
+        }
     }
 }

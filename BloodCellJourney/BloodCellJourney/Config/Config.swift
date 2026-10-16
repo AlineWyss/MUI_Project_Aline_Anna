@@ -175,6 +175,9 @@ enum Timing {
     /// How long everything is drawn hidden (1/1000 size) while loading, so the Vision Pro has prepared all
     /// models and materials on the GPU before the intro appears (JourneyController.warmUpRendering).
     static let renderWarmUp: Double = 1.0
+    /// After loading: how long only the flowing bloodstream shows before the start prompt and the welcome
+    /// voice begin (seconds).
+    static let introVoiceDelay: Double = 1.5
     /// Seconds for the red blood cell to fly into or out of the anatomy model.
     static let flyToModel: TimeInterval = 1.1
     /// Speed of "our" red blood cell (the light on the model) on every journey, in metres per second.

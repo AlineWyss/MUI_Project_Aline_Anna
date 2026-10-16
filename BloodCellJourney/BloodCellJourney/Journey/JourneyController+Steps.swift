@@ -24,16 +24,21 @@ extension JourneyController {
             placeVirtualAnatomy()
         }
         placeFocusArea()
+        anatomyRoot.isEnabled = true         // the model's overlay shows only now: loaded and warmed up
 
         overlay.reset()
         overlay.tapTarget.isEnabled = true
-        overlay.setStreamVisible(true)       // the blood stream is only part of this first scene
+        overlay.setStreamVisible(true)       // fades in, already flowing; only part of this first scene
         labelledItems.removeAll()            // every run shows each label once again
         highlight(nil)
-        setStartPromptVisible(true)
         warmUpRedBloodCell()
-        setPanel(StoryText.Panels.welcome)
 
+        // A short calm moment with just the flowing bloodstream, then the start prompt and the welcome voice.
+        sequence { id in
+            guard await self.pause(Timing.introVoiceDelay, id), self.step == .intro else { return }
+            self.setStartPromptVisible(true)
+            self.setPanel(StoryText.Panels.welcome)
+        }
     }
 
     /// Tap on the bloodstream of the physical model.

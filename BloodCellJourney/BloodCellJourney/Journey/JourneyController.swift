@@ -141,7 +141,6 @@ final class JourneyController {
     @ObservationIgnored private var isPrepared = false
     /// Everything was drawn once, hidden (warmUpRendering) – the intro can appear without a hitch.
     @ObservationIgnored private var isWarmedUp = false
-    @ObservationIgnored private var isWarmingUp = false
     /// Models loaded and warmed up: the intro may start.
     private var isReady: Bool { library.isLoaded && isWarmedUp }
     @ObservationIgnored private var hasAnatomyPose = false
@@ -184,10 +183,16 @@ final class JourneyController {
         guard !isPrepared else { return }
         isPrepared = true
 
-        // The message first, so something shows right after Start – give it a moment to appear.
+        // The one loading screen: first put it in front of the person (up to 1 s for head tracking), so it
+        // appears once, in its place, instead of showing somewhere else and jumping there.
+        var placed = placeFocusAreaInFrontOfPerson()
+        for _ in 0..<10 where !placed {
+            try? await Task.sleep(for: .milliseconds(100))
+            placed = placeFocusAreaInFrontOfPerson()
+        }
         showMessage(StoryText.Messages.loading)
         keepMessageInFrontWhileSearching()
-        try? await Task.sleep(for: .milliseconds(100))
+        try? await Task.sleep(for: .milliseconds(100))   // let it appear before the heavy work starts
         // Wake the voice now (audio session, decoder) and have the welcome text ready to play at once.
         VoiceGuide.shared.preload(clips: ["voice_welcome"])
         overlay.build()
@@ -223,30 +228,34 @@ final class JourneyController {
         }
     }
 
-    /// Draws the anatomy overlay (bloodstream, vessel tubes, outlines, marker, heart, virtual model) and the
-    /// red blood cell once, hidden: 1/1000 size, 1.5 m in front of the person (about 1 mm – invisible).
-    /// The Vision Pro prepares every model and material on the GPU the first time it is drawn; done here,
-    /// behind the loading message, the intro appears at once instead of freezing for a moment.
-    /// If the physical model was already found, it is drawn in its real place instead (the stream shows a
-    /// moment early, behind the loading message).
+    /// Draws everything that belongs to the model (bloodstream, vessel tubes, outlines, marker, heart, virtual
+    /// copy) and a red blood cell once, hidden: on a stand of its own at 1/1000 size, 1.5 m in front of the
+    /// person (about 1 mm – invisible). The Vision Pro prepares every model and material on the GPU the first
+    /// time it is drawn; done here, behind the loading screen, the intro appears without a hitch.
+    /// The model itself (anatomyRoot) stays hidden until enterIntro, even if it is recognised meanwhile.
     private func warmUpRendering() async {
-        isWarmingUp = true
-        if !hasAnatomyPose {
-            let view = viewpoint()
-            var transform = Transform()
-            transform.scale = SIMD3<Float>(repeating: 0.001)
-            transform.translation = view.head + view.forward * 1.5
-            anatomyRoot.transform = transform
-            anatomyRoot.isEnabled = true
-            overlay.showAllForWarmUp(true)
-        }
-        warmUpRedBloodCell()
+        let view = viewpoint()
+        let stand = Entity()
+        stand.name = "WarmUp"
+        stand.scale = SIMD3<Float>(repeating: 0.001)
+        stand.position = view.head + view.forward * 1.5
+        root.addChild(stand)
+        let parts = Array(anatomyRoot.children)
+        for part in parts { stand.addChild(part) }
+        overlay.stream.root.isEnabled = true
+        overlay.showAllForWarmUp(true)
+        let cell = library.redBloodCell()
+        CellTextures.apply(.withOxygen, to: cell.body)
+        stand.addChild(cell.container)
+
         try? await Task.sleep(for: .seconds(Timing.renderWarmUp))
+
         overlay.showAllForWarmUp(false)
-        if !hasAnatomyPose {
-            anatomyRoot.isEnabled = false   // the model wasn't found meanwhile: hidden again until it is
-        }
-        isWarmingUp = false
+        // Back onto the (hidden) model. The stream waits switched off and fades in, flowing, in enterIntro
+        // (setStreamVisible) – it is never seen standing still.
+        for part in parts { anatomyRoot.addChild(part) }
+        overlay.stream.root.isEnabled = false
+        stand.removeFromParent()
         isWarmedUp = true
     }
 
@@ -363,9 +372,7 @@ final class JourneyController {
         followModelIfMoved()
         if !hasAnatomyPose {
             hasAnatomyPose = true
-            anatomyRoot.isEnabled = true
-            // Found during the hidden warm-up: outlines, marker and heart must not appear at full size.
-            if isWarmingUp { overlay.showAllForWarmUp(false) }
+            // Not shown yet: the overlay appears in enterIntro, once everything is loaded and warmed up.
             Task { await self.addAlignmentGhostIfNeeded() }
         }
         // Only once everything is loaded and warmed up (otherwise prepare() starts the intro when it is).
@@ -567,7 +574,6 @@ final class JourneyController {
     }
 
     // MARK: - UI helpers
-
     func showMessage(_ content: MessageContent?) {
         message = content
         if content != nil {
@@ -575,6 +581,12 @@ final class JourneyController {
         } else {
             messageSlot.hide()
         }
+    }
+    
+    /// The message belongs to the loading screen (spinner) – not an error.
+    var isLoadingMessage: Bool {
+        message == StoryText.Messages.loading || message == StoryText.Messages.preparingVirtual
+            || message == StoryText.Messages.searching
     }
 
     /// Setzt den Inhalt des aktuellen Schritts.
