@@ -102,7 +102,7 @@ enum Layout {
     ///   z = out of the model's front, towards the person.
     /// Always the same spot next to the model: to its right and a little in front of it, facing the same way
     /// as the model's front. It does not depend on where the person looks or stands.
-    static let focusOffsetFromModel = SIMD3<Float>(0.45, 0.60, 0.30)
+    static let focusOffsetFromModel = SIMD3<Float>(0.3, 0.57, 0.17)
     /// Only if the content faces sideways or backwards on the physical model: turns the model's "front"
     /// (degrees, e.g. 90 or -90). 0 = the scan's front is the human's front.
     static let physicalModelFrontTurn: Float = 0
