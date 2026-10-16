@@ -36,9 +36,8 @@ final class AttachmentSlot {
     var isShown: Bool { entity != nil }
 
     /// Shows the view and returns its entity. If it is already shown, the same entity is kept
-    /// (its SwiftUI content simply updates); otherwise a new entity fades in.
     @discardableResult
-    func show(at position: SIMD3<Float>? = nil) -> Entity {
+    func show(at position: SIMD3<Float>? = nil, fadeIn: TimeInterval = 0.2) -> Entity {
         if let current = entity {
             if let position { current.position = position }
             return current
@@ -47,22 +46,28 @@ final class AttachmentSlot {
         created.name = name
         created.components.set(ViewAttachmentComponent(rootView: makeView()))
         if let position { created.position = position }
-        // Short fade-in. FadeSystem removes the OpacityComponent again when it reaches 1.
+        // Fade-in. FadeSystem removes the OpacityComponent again when it reaches 1.
         // (Changing the opacity does not affect taps – only disabling/removing does.)
         created.components.set(OpacityComponent(opacity: 0))
-        created.components.set(FadeComponent(target: 1, speed: 5, disableWhenHidden: false))
+        created.components.set(FadeComponent(target: 1, speed: Float(1 / max(fadeIn, 0.05)),
+                                             disableWhenHidden: false))
         parent.addChild(created)
         entity = created
         return created
     }
 
-    /// Hides the view. Its entity is removed and never used again.
-    func hide() {
+    /// Hides the view (fadeOut > 0: it fades out first). Its entity is removed and never used again.
+    func hide(fadeOut: TimeInterval = 0) {
         guard let old = entity else { return }
         entity = nil
         old.components.remove(FollowComponent.self)
-        // Removed on the next run-loop turn, so a button inside it can finish its action first.
+        if fadeOut > 0 {
+            old.components.set(FadeComponent(target: 0, speed: Float(1 / fadeOut), disableWhenHidden: false))
+        }
+        // Removed afterwards (at the earliest on the next run-loop turn, so a button inside it can finish
+        // its action first).
         Task { @MainActor in
+            if fadeOut > 0 { try? await Task.sleep(for: .seconds(fadeOut)) }
             old.removeFromParent()
         }
     }

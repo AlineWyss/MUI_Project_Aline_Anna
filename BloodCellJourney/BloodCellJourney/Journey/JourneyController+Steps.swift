@@ -24,7 +24,13 @@ extension JourneyController {
             placeVirtualAnatomy()
         }
         placeFocusArea()
-        anatomyRoot.isEnabled = true         // the model's overlay shows only now: loaded and warmed up
+        if !anatomyRoot.isEnabled {
+            // First appearance: the bloodstream (already flowing) and the virtual copy fade in gently.
+            anatomyRoot.components.set(OpacityComponent(opacity: 0))
+            anatomyRoot.components.set(FadeComponent(target: 1, speed: Float(1 / Timing.introFadeIn),
+                                                     disableWhenHidden: false))
+            anatomyRoot.isEnabled = true
+        }
 
         overlay.reset()
         overlay.tapTarget.isEnabled = true

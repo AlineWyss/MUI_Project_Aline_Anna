@@ -23,7 +23,7 @@ import Metal
 import RealityKit
 
 /// The baked frames: rest shape and every frame's vertex positions, in the mesh space of the shell's USDZ.
-final class ShellBake {
+final class ShellBake: @unchecked Sendable {   // never changes after loading
     let fps: Float
     let frameCount: Int
     let vertexCount: Int
@@ -60,7 +60,17 @@ final class ShellBake {
     }
 
     /// Loaded once from the app bundle; nil if the file is missing or broken.
-    @MainActor static let shared: ShellBake? = ShellBake.load()
+    /// Loaded once by preload(); nil until then, or if the file is missing or broken.
+    @MainActor private(set) static var shared: ShellBake?
+    @MainActor private static var isPreloaded = false
+
+    /// Reads Resources/ShellDevelopment.json (2.4 MB) on a background thread – decoding it on the main
+    /// thread froze the loading screen. Called once from ModelLibrary.load().
+    @MainActor static func preload() async {
+        guard !isPreloaded else { return }
+        isPreloaded = true
+        shared = await Task.detached(priority: .userInitiated) { ShellBake.load() }.value
+    }
 
     private init(fps: Float, frameCount: Int, vertexCount: Int, rest: [SIMD3<Float>], frames: [SIMD3<Float>]) {
         self.fps = fps

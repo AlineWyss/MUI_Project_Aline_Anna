@@ -67,22 +67,28 @@ final class AnatomyOverlay {
         heartModel.isEnabled = false
         root.addChild(heartModel)
     }
-
+    /// A short break between heavy build steps, so a frame is drawn and the loading screen stays alive.
+    private static func letFrameDraw() async {
+        try? await Task.sleep(for: .milliseconds(20))
+    }
     // MARK: - Build
 
-    func build() {
+    func build() async {
 
         root.addChild(stream.root)
 
         stream.root.components.set(
             BloodStreamComponent(stream: stream)
         )
+        await Self.letFrameDraw()   // the loading ring keeps turning between the heavy steps
 
         if Config.showVesselTubes {
             buildVesselTubes()
+            await Self.letFrameDraw()
         }
 
         buildZones()
+        await Self.letFrameDraw()
         buildMarker()
         buildTapTarget()
 

@@ -178,6 +178,12 @@ enum Timing {
     /// After loading: how long only the flowing bloodstream shows before the start prompt and the welcome
     /// voice begin (seconds).
     static let introVoiceDelay: Double = 1.5
+    /// How long the bloodstream (and the virtual model) take to fade in when the intro starts (seconds).
+    static let introFadeIn: Double = 1.5
+    /// How long the loading screen takes to fade out (seconds).
+    static let messageFadeOut: Double = 0.5
+    /// How long the start prompt takes to fade in (seconds).
+    static let startPromptFadeIn: Double = 0.8
     /// Seconds for the red blood cell to fly into or out of the anatomy model.
     static let flyToModel: TimeInterval = 1.1
     /// Speed of "our" red blood cell (the light on the model) on every journey, in metres per second.

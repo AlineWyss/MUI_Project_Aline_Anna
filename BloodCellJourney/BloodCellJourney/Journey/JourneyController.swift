@@ -195,7 +195,7 @@ final class JourneyController {
         try? await Task.sleep(for: .milliseconds(100))   // let it appear before the heavy work starts
         // Wake the voice now (audio session, decoder) and have the welcome text ready to play at once.
         VoiceGuide.shared.preload(clips: ["voice_welcome"])
-        overlay.build()
+        await overlay.build()
 
         do {
             try await library.load()
@@ -248,7 +248,11 @@ final class JourneyController {
         CellTextures.apply(.withOxygen, to: cell.body)
         stand.addChild(cell.container)
 
-        try? await Task.sleep(for: .seconds(Timing.renderWarmUp))
+        // Half the time solid, half see-through: the fade-in at the intro draws everything see-through,
+        // which the Vision Pro prepares separately.
+        try? await Task.sleep(for: .seconds(Timing.renderWarmUp / 2))
+        stand.components.set(OpacityComponent(opacity: 0.5))
+        try? await Task.sleep(for: .seconds(Timing.renderWarmUp / 2))
 
         overlay.showAllForWarmUp(false)
         // Back onto the (hidden) model. The stream waits switched off and fades in, flowing, in enterIntro
@@ -343,7 +347,6 @@ final class JourneyController {
         // Draw everything once, hidden – including the copy of the model – before the intro appears.
         await warmUpRendering()
         hasAnatomyPose = true
-        anatomyRoot.isEnabled = true
         if step == .searching {
             enterIntro()   // also places the virtual model
         }
@@ -579,7 +582,7 @@ final class JourneyController {
         if content != nil {
             messageSlot.show()
         } else {
-            messageSlot.hide()
+            messageSlot.hide(fadeOut: Timing.messageFadeOut)
         }
     }
     
@@ -823,7 +826,7 @@ final class JourneyController {
     func setStartPromptVisible(_ visible: Bool) {
         showsStartPrompt = visible
         if visible {
-            startPromptSlot.show(at: Layout.startPromptSlot)
+            startPromptSlot.show(at: Layout.startPromptSlot, fadeIn: Timing.startPromptFadeIn)
         } else {
             startPromptSlot.hide()
         }

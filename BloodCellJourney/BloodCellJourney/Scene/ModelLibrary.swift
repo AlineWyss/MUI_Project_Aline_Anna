@@ -62,7 +62,7 @@ final class ModelLibrary {
             prototypes[model] = entity
         }
 
-        _ = ShellBake.shared
+        await ShellBake.preload()
         isLoaded = true
     }
 
